@@ -626,7 +626,7 @@ function SaladTab.create(environment, hub, name, icon, context)
 		local value = options.Default and true or false
 		local current, nativeHandle = currentSection(), nil
 		environment.pcall(function()
-			nativeHandle = current:Toggle({Text = translate(options.Text), Desc = options.Desc and translate(options.Desc) or nil, Default = value,
+			nativeHandle = current:Toggle({NoSave = options.NoSave, Text = translate(options.Text), Desc = options.Desc and translate(options.Desc) or nil, Default = value,
 				Tooltip = options.Tooltip and translate(options.Tooltip) or nil, Indent = indent(), Locked = options.Locked, Drawer = options.Settings ~= nil,
 				Callback = function(nextValue)
 					value = nextValue and true or false
@@ -672,7 +672,7 @@ function SaladTab.create(environment, hub, name, icon, context)
 		local value = math.floor(math.clamp(tonumber(options.Default) or minimum, minimum, maximum) * factor + 0.5) / factor
 		local current, nativeHandle = currentSection(), nil
 		environment.pcall(function()
-			nativeHandle = current:Slider({Text = translate(options.Text), Min = minimum, Max = maximum, Default = value, Decimals = decimals,
+			nativeHandle = current:Slider({NoSave = options.NoSave, Text = translate(options.Text), Min = minimum, Max = maximum, Default = value, Decimals = decimals,
 				Suffix = options.Suffix or "", Tooltip = options.Tooltip and translate(options.Tooltip) or nil, Indent = indent(), Display = options.Display,
 				Callback = function(nextValue) value = nextValue; store(key, value); if options.Callback then options.Callback(value) end end})
 		end)
@@ -709,7 +709,7 @@ function SaladTab.create(environment, hub, name, icon, context)
 			local value = type(options.Default) == "table" and options.Default or {}
 			local current, nativeHandle = currentSection(), nil
 			environment.pcall(function()
-				nativeHandle = current:Dropdown({Text = translate(options.Text), Options = mappedOptions(options.Options), Multi = true, Default = value,
+				nativeHandle = current:Dropdown({NoSave = options.NoSave, Text = translate(options.Text), Options = mappedOptions(options.Options), Multi = true, Default = value,
 					Placeholder = options.Placeholder and translate(options.Placeholder) or nil, Tooltip = options.Tooltip and translate(options.Tooltip) or nil,
 					Indent = indent(), Callback = function(nextValue)
 						value = type(nextValue) == "table" and nextValue or {}
@@ -737,7 +737,7 @@ function SaladTab.create(environment, hub, name, icon, context)
 		if previous ~= nil and labels[previous] then options.Default = previous end
 		local value, current, nativeHandle = options.Default, currentSection(), nil
 		environment.pcall(function()
-			nativeHandle = current:Dropdown({Text = translate(options.Text), Options = mappedOptions(options.Options), Default = value,
+			nativeHandle = current:Dropdown({NoSave = options.NoSave, Text = translate(options.Text), Options = mappedOptions(options.Options), Default = value,
 				Tooltip = options.Tooltip and translate(options.Tooltip) or nil, Indent = indent(), Callback = function(nextValue)
 					if nextValue == nil then return end
 					value = nextValue
@@ -789,7 +789,7 @@ function SaladTab.create(environment, hub, name, icon, context)
 		end
 		local current, nativeHandle = currentSection(), nil
 		environment.pcall(function()
-			nativeHandle = current:Colorpicker({Text = translate(options.Text), Default = value, Alpha = options.Alpha == true, DefaultAlpha = options.DefaultAlpha,
+			nativeHandle = current:Colorpicker({NoSave = options.NoSave, Text = translate(options.Text), Default = value, Alpha = options.Alpha == true, DefaultAlpha = options.DefaultAlpha,
 				Indent = indent(), Callback = function(color, alpha)
 					if environment.typeof(color) ~= "Color3" then return end
 					value = color
@@ -890,7 +890,7 @@ function SaladTab.create(environment, hub, name, icon, context)
 		if type(savedBinding) == "string" and savedBinding ~= "" then binding = environment.getgenv().__saladBindFromName(savedBinding) or binding end
 		local current, nativeHandle = currentSection(), nil
 		environment.pcall(function()
-			nativeHandle = current:Toggle({Text = translate(options.Text), Default = value, Tooltip = options.Tooltip and translate(options.Tooltip) or nil,
+			nativeHandle = current:Toggle({NoSave = options.NoSave, Text = translate(options.Text), Default = value, Tooltip = options.Tooltip and translate(options.Tooltip) or nil,
 				Indent = indent(), Bind = true, Keybind = binding, KeyToggle = true, Drawer = options.Settings ~= nil,
 				OnBind = function(nextBinding)
 					if environment.typeof(nextBinding) ~= "EnumItem" and nextBinding ~= nil then return end
@@ -998,23 +998,62 @@ function SaladTab.create(environment, hub, name, icon, context)
 			padding.PaddingLeft, padding.PaddingRight = environment.UDim.new(0, 12), environment.UDim.new(0, 12)
 			padding.PaddingTop, padding.PaddingBottom, padding.Parent = environment.UDim.new(0, 9), environment.UDim.new(0, 9), card
 			local label = environment.Instance.new("TextLabel")
-			label.Name, label.BackgroundTransparency, label.Size = "Name", 1, environment.UDim2.new(1, 0, 0, 15)
+			label.Name, label.BackgroundTransparency, label.Size = "Name", 1, environment.UDim2.new(1, -30, 0, 15)
 			label.FontFace, label.TextSize, label.TextXAlignment, label.TextTruncate = nova.Font.Medium(), 12, environment.Enum.TextXAlignment.Left, environment.Enum.TextTruncate.AtEnd
 			label.Text, label.Parent = tostring(options.Name or ""), card
+			 
+			local chip = environment.Instance.new("Frame")
+			chip.Name, chip.AnchorPoint, chip.Position = "Chip", environment.Vector2.new(1, 0), environment.UDim2.new(1, 2, 0, -2)
+			chip.Size, chip.BorderSizePixel, chip.BackgroundTransparency = environment.UDim2.fromOffset(22, 22), 0, 0.82
+			local chipCorner = environment.Instance.new("UICorner")
+			chipCorner.CornerRadius, chipCorner.Parent = environment.UDim.new(0, 6), chip
+			chip.Parent = card
+			local glyph
+			if options.Icon then
+				environment.pcall(function()
+					glyph = nova.icon({Parent = chip, Icon = options.Icon, Size = 13, Pos = environment.UDim2.fromScale(0.5, 0.5),
+						Anchor = environment.Vector2.new(0.5, 0.5), Color = "Text", Z = 2})
+				end)
+			end
 			local value = environment.Instance.new("TextLabel")
 			value.Name, value.BackgroundTransparency, value.AnchorPoint = "Value", 1, environment.Vector2.new(0, 1)
 			value.Position, value.Size = environment.UDim2.fromScale(0, 1), environment.UDim2.new(1, 0, 0, 24)
 			value.FontFace, value.TextSize, value.TextXAlignment, value.TextTruncate = nova.Font.Bold(), 20, environment.Enum.TextXAlignment.Left, environment.Enum.TextTruncate.AtEnd
-			value.TextScaled = true
-			local constraint = environment.Instance.new("UITextSizeConstraint")
-			constraint.MaxTextSize, constraint.MinTextSize, constraint.Parent = 20, 11, value
-			value.Text, value.Parent, card.Parent = tostring(options.Value or "-"), card, frame
+			value.RichText = true
+			 
+			local function grouped(digits)
+				local head, tail = string.match(digits, "^(%d+)(.*)$")
+				if not head or #head < 4 then return digits end
+				local out = string.reverse((string.gsub(string.reverse(head), "(%d%d%d)", "%1,")))
+				if string.sub(out, 1, 1) == "," then out = string.sub(out, 2) end
+				return out .. tail
+			end
+			local function pretty(text)
+				text = tostring(text or "-")
+				local number, unit = string.match(text, "^([%d%.,]+[kmb]?)%s+(.+)$")
+				if number then
+					return grouped(number) .. ' <font size="13" transparency="0.45">' .. unit .. "</font>"
+				end
+				if string.match(text, "^[%d%.]+[kmb]?$") then return grouped(text) end
+				return (string.gsub(string.gsub(text, "&", "&amp;"), "<", "&lt;"))
+			end
+			value.Text, value.Parent, card.Parent = pretty(options.Value), card, frame
 			nova.Theme.bind(card, "BackgroundColor3", "Surface2")
 			nova.Theme.bind(stroke, "Color", "Glass")
 			nova.Theme.bind(label, "TextColor3", "Muted")
-			if hub.Slate and hub.Slate.Theme then hub.Slate.Theme.bind(value, "TextColor3", options.Tone or "Accent") end
+			if hub.Slate and hub.Slate.Theme then
+				hub.Slate.Theme.bind(value, "TextColor3", options.Tone or "Accent")
+				environment.pcall(function() hub.Slate.Theme.bind(chip, "BackgroundColor3", options.Tone or "Accent") end)
+				if glyph then environment.pcall(function() hub.Slate.Theme.bind(glyph, "ImageColor3", options.Tone or "Accent") end) end
+			end
 			environment.pcall(function() translator.bind(label, options.Name) end)
-			return {card = card, big = value, name = label, Set = function(_, nextValue) value.Text = tostring(nextValue) end}
+			local shown
+			return {card = card, big = value, name = label, Set = function(_, nextValue)
+				local text = pretty(nextValue)
+				if text == shown then return end
+				shown = text
+				value.Text = text
+			end}
 		end
 		return grid
 	end
@@ -2172,14 +2211,6 @@ function Movement.installSpinAndBhop(context)
 			end})
 			context.section:Slider({Text = "Spin Speed", Min = 1, Max = 100, Default = context.defaults.spin.speed or 10, Decimals = 0,
 				Callback = function(value) settings.spin.speed = value end})
-		end})
-	context.section:ToggleKey({Text = "Bhop", Default = context.defaults.bhop,
-		Bind = globals.__saladBindFromName(settings.bhopKey), Callback = function(enabled) settings.bhop = not not enabled end,
-		OnBind = function(key) settings.bhopKey = key and key.Name or "" end, Settings = function()
-			context.section:Slider({Text = "Bhop Power", Min = 1, Max = 10, Default = context.defaults.bhopPower or 5, Decimals = 0,
-				Callback = function(value) settings.bhopPower = value end})
-			context.section:Toggle({Text = "Bhop Sound", Default = context.defaults.bhopSound,
-				Callback = function(value) settings.bhopSound = not not value end})
 		end})
 	return function()
 		stopAnimation()
@@ -7586,23 +7617,23 @@ function ServerIdentity.MapVote.row(state, parent, index, compact)
 	local create, enum = context.create, environment.Enum
 	local frame = create("TextButton", {Name = "VoteRow" .. index, Text = "", AutoButtonColor = false, BorderSizePixel = 0,
 		BackgroundColor3 = environment.Color3.fromRGB(20, 20, 22), Size = compact and environment.UDim2.new(1 / 3, -6, 1, 0)
-			or environment.UDim2.new(1, 0, 0, 68), LayoutOrder = index, ZIndex = 8}, parent)
+			or environment.UDim2.new(1, 0, 0, 108), LayoutOrder = index, ZIndex = 8}, parent)
 	context.corner(frame, compact and 8 or 10)
 	local image = create("ImageLabel", {Name = "Map", BackgroundTransparency = 1, Image = "", ScaleType = enum.ScaleType.Fit,
-		Position = compact and environment.UDim2.fromOffset(4, 4) or environment.UDim2.fromOffset(8, 7),
-		Size = compact and environment.UDim2.new(1, -8, 0, 72) or environment.UDim2.fromOffset(96, 54), ZIndex = 9}, frame)
+		Position = compact and environment.UDim2.fromOffset(4, 4) or environment.UDim2.fromOffset(8, 8),
+		Size = compact and environment.UDim2.new(1, -8, 0, 72) or environment.UDim2.fromOffset(150, 92), ZIndex = 9}, frame)
 	context.corner(image, 7)
 	local title = create("TextLabel", {Name = "MapName", BackgroundTransparency = 1, Text = "", TextSize = compact and 14 or 15,
 		Font = enum.Font.GothamSemibold, TextColor3 = environment.Color3.new(1, 1, 1), TextTruncate = enum.TextTruncate.AtEnd,
-		TextXAlignment = enum.TextXAlignment.Left, Position = compact and environment.UDim2.fromOffset(4, 78) or environment.UDim2.fromOffset(116, 10),
-		Size = compact and environment.UDim2.new(1, -8, 0, 20) or environment.UDim2.new(1, -180, 0, 22), ZIndex = 9}, frame)
+		TextXAlignment = enum.TextXAlignment.Left, Position = compact and environment.UDim2.fromOffset(4, 78) or environment.UDim2.fromOffset(170, 30),
+		Size = compact and environment.UDim2.new(1, -8, 0, 20) or environment.UDim2.new(1, -240, 0, 22), ZIndex = 9}, frame)
 	local details = create("TextLabel", {Name = "Mode", BackgroundTransparency = 1, Text = "", TextSize = 12,
 		Font = enum.Font.Gotham, TextColor3 = environment.Color3.fromRGB(138, 143, 158), TextTruncate = enum.TextTruncate.AtEnd,
-		TextXAlignment = enum.TextXAlignment.Left, Position = compact and environment.UDim2.fromOffset(4, 142) or environment.UDim2.fromOffset(116, 36),
-		Size = compact and environment.UDim2.new(1, -8, 0, 16) or environment.UDim2.new(1, -180, 0, 16), ZIndex = 9}, frame)
+		TextXAlignment = enum.TextXAlignment.Left, Position = compact and environment.UDim2.fromOffset(4, 142) or environment.UDim2.fromOffset(170, 56),
+		Size = compact and environment.UDim2.new(1, -8, 0, 16) or environment.UDim2.new(1, -240, 0, 16), ZIndex = 9}, frame)
 	local votes = create("TextLabel", {Name = "Votes", BackgroundTransparency = 1, Text = "", TextSize = 16,
 		Font = enum.Font.GothamBold, TextColor3 = environment.Color3.new(1, 1, 1),
-		AnchorPoint = environment.Vector2.new(1, 0), Position = environment.UDim2.new(1, -10, 0, 8),
+		AnchorPoint = environment.Vector2.new(1, 0.5), Position = environment.UDim2.new(1, -12, 0.5, 0),
 		Size = environment.UDim2.fromOffset(48, 18), ZIndex = 10}, frame)
 	context.connect(frame.MouseButton1Click, function()
 		state.sel = index
@@ -7614,7 +7645,7 @@ function ServerIdentity.MapVote.rows(state, parent, compact)
 	if not parent then return {} end
 	local context, environment = state.context, state.context.environment
 	local frame = context.create("Frame", {Name = "VoteList", BackgroundTransparency = 1,
-		Size = compact and environment.UDim2.new(1, -24, 0, 104) or environment.UDim2.new(1, 0, 0, 220)}, parent)
+		Size = compact and environment.UDim2.new(1, -24, 0, 104) or environment.UDim2.new(1, 0, 0, 340)}, parent)
 	local layout = context.create("UIListLayout", {SortOrder = environment.Enum.SortOrder.LayoutOrder,
 		FillDirection = compact and environment.Enum.FillDirection.Horizontal or environment.Enum.FillDirection.Vertical,
 		Padding = environment.UDim.new(0, compact and 6 or 4)}, frame)
@@ -23365,7 +23396,7 @@ function EspSettings.create(environment, configuration)
 	local color = environment.Color3
 	local settings = {
 		on = false, style = "Box", maxDist = 1000, murderer = true, sheriff = true, hero = true, innocent = true,
-		noRole = false, visCheck = false, dimHidden = true, hiddenStyle = "Fade", smooth = 40, fade = true, fadeFrom = 60,
+		noRole = true, visCheck = false, dimHidden = true, hiddenStyle = "Fade", smooth = 40, fade = true, fadeFrom = 60,
 		box = true, boxStyle = "Corners", boxThickness = 1, cornerSize = 22, boxRound = 4, outline = true, boxFill = false,
 		boxFillAlpha = 8, boxGlow = false, glowStrength = 25, gradient = false,
 		gradientColour = color.fromRGB(255, 255, 255), salad = false, saladSpeed = 1.2, colorMode = "Role",
@@ -23382,11 +23413,11 @@ function EspSettings.create(environment, configuration)
 		textGradA = color.fromRGB(255, 94, 160), textGradB = color.fromRGB(90, 200, 255), textGradAnim = true,
 		textGradSpeed = 1, textGradAngle = 0, nameColour = color.fromRGB(250, 250, 250),
 		infoColour = color.fromRGB(200, 205, 215), nameOffset = 3, labelWidth = 240, plate = false, plateStyle = "Flat",
-		plateAlpha = 70, plateColour = color.fromRGB(20, 20, 24), chams = false, chamsStyle = "Soft", chamsAlpha = 45,
-		chamsThrough = false, chamsRange = 60, chamsOutline = true, chamsEdgeAlpha = 85, chamsRole = true,
-		chamsColour = color.fromRGB(255, 70, 70), chamsHidden = color.fromRGB(150, 110, 255),
-		chamsEdge = color.fromRGB(255, 255, 255), chamsEdgeHidden = color.fromRGB(200, 180, 255), chamsAnim = "None",
-		chamsSpeed = 1, chamsFlow = color.fromRGB(255, 200, 80), chamsFlash = true, chamsMaterial = "Flat", tracer = false,
+		plateAlpha = 70, plateColour = color.fromRGB(20, 20, 24), chams = true, chamsStyle = "Soft", chamsAlpha = 45,
+		chamsThrough = true, chamsRange = 60, chamsOutline = true, chamsEdgeAlpha = 85, chamsRole = false,
+		chamsColour = color.fromRGB(255, 70, 70), chamsHidden = color.fromRGB(255, 70, 70),
+		chamsEdge = color.fromRGB(255, 255, 255), chamsEdgeHidden = color.fromRGB(255, 255, 255), chamsAnim = "None",
+		chamsSpeed = 1, chamsFlow = color.fromRGB(255, 200, 80), chamsFlash = true, chamsMaterial = "Glow", chamsSolid = false, chamsMatAlpha = 65, chamsTwoTone = false, tracer = false,
 		tracerFrom = "Bottom", tracerThickness = 1, tracerAlpha = 60, tracerRole = true,
 		tracerColour = color.fromRGB(235, 235, 235), offscreen = false, radarStyle = "Arrow", ringRadius = 170,
 		arrowSize = 9, ringText = false, fxTargets = "All", glowHalo = 60, glowCore = 85, sparkles = false,
@@ -23400,7 +23431,7 @@ function EspSettings.create(environment, configuration)
 		outlineCol = color.fromRGB(0, 0, 0), outlineAlpha = 65, outlineSize = 2, nameWeight = "SemiBold",
 		nameCase = "Normal", namePos = "Above", strokeSize = 0, strokeCol = color.fromRGB(5, 8, 13), distUnit = "Studs",
 		roleStyle = "Full", plateRadius = 5, plateBorder = 1, plateGrad = false, chamsBright = 100, chamsShell = 100,
-		chamsGradA = color.fromRGB(255, 120, 150), chamsGradB = color.fromRGB(110, 160, 255), chamsGradScroll = false,
+		chamsGradA = color.fromRGB(255, 120, 150), chamsGradB = color.fromRGB(110, 160, 255), chamsGradScroll = false, chamsSat = 70, chamsSpread = 35,
 		boneStyle = "Line", boneAlpha = 100, joints = false, jointSize = 3, boneGrad = false,
 		boneTop = color.fromRGB(255, 255, 255), boneBottom = color.fromRGB(160, 170, 190), headStyle = "Ring",
 		headFill = 25, headColMode = "ESP", headCol = color.fromRGB(255, 255, 255), lookThick = 1.5, lookColMode = "ESP",
@@ -23547,7 +23578,7 @@ function EspColor.select(state, role, isVisible, distance)
 	return EspColor.tone(state, color)
 end
 function EspColor.cham(state, color)
-	local brightness = (state.settings.chamsBright or 100) / 100
+	local brightness = 1
 	if brightness > 1 then return color:Lerp(state.white, math.clamp((brightness - 1) * 0.6, 0, 0.6)) end
 	if brightness < 1 then return color:Lerp(state.black, math.clamp(1 - brightness, 0, 0.85)) end
 	return color
@@ -24565,19 +24596,92 @@ function EspHead.look(state, object, head, color, alpha, camera)
 	EspLine.draw(state.boxContext, object.look, {from = from, to = to, color = tint, width = width, alpha = alpha, outline = settings.outline})
 end
 local EspChams = {}
+ 
+local CHAM_PRESETS = {"Flat", "Shaded", "Glow", "Glow Outline", "Iridescent", "Water Flow", "Glossy", "Glass", "ForceField", "Gradient", "Ghost", "Metallic", "Metal", "Chrome", "Crystal", "Ice", "Lava", "Wireframe", "Neon", "Neon Ghost", "Diamond", "Hologram", "Obsidian", "Gold Foil", "Frostbite", "Molten", "Prism", "Mirror", "Foil", "Ghost FF", "FF Hex", "FF Grid", "FF Lines", "FF Rings", "FF Scan", "Glass Metal", "Plastic", "SmoothPlastic", "Wood", "WoodPlanks", "Marble", "Slate", "Concrete", "Granite", "Brick", "Pebble", "Cobblestone", "Rock", "Sandstone", "Basalt", "CrackedLava", "Asphalt", "LeafyGrass", "Salt", "Limestone", "Pavement", "DiamondPlate", "CorrodedMetal", "Fabric", "Sand", "Grass", "Snow", "Mud", "Ground", "Glacier", "Leather", "Cardboard", "Carpet", "Plaster", "Rubber"}
+ 
+local CHAM_KIND_ALIAS = {}
+ 
+ 
+local CHAM_DEFS = {
+		{"Shaded", "SmoothPlastic", 1.02, 0.95, 0},
+		{"Glow", "Neon", 1.02, 0.7, 0},
+		{"Glow Outline", "Neon", 1.05, 0.3, 0},
+		{"Iridescent", "ForceField", 1.03, 0.9, 0},
+		{"Water Flow", "ForceField", 1.03, 0.9, 0},
+		{"Glossy", "SmoothPlastic", 1.02, 0.95, 0.65},
+		{"Glass", "Glass", 1.03, 0.55, 0.3},
+		{"ForceField", "ForceField", 1.03, 0.95, 0},
+		{"Gradient", "SmoothPlastic", 1.02, 0.85, 0},
+		{"Ghost", "SmoothPlastic", 1.03, 0.4, 0.15},
+		{"Metallic", "Foil", 1.02, 0.95, 0.3},
+		{"Metal", "Metal", 1.02, 0.95, 0.15},
+		{"Chrome", "SmoothPlastic", 1.02, 0.95, 0.55},
+		{"Crystal", "Glass", 1.04, 0.5, 0.6},
+		{"Ice", "Ice", 1.03, 0.85, 0.25},
+		{"Lava", "CrackedLava", 1.02, 0.95, 0},
+		{"Wireframe", "SmoothPlastic", 1.01, 1, 0},
+		{"Neon", "Neon", 1.02, 1, 0},
+		{"Neon Ghost", "Neon", 1.03, 0.45, 0},
+		{"Diamond", "Glass", 1.03, 0.6, 0.7},
+		{"Hologram", "ForceField", 1.03, 0.65, 0},
+		{"Obsidian", "Glass", 1.02, 1, 0.25},
+		{"Gold Foil", "Foil", 1.02, 1, 0.5},
+		{"Frostbite", "Glacier", 1.02, 1, 0.2},
+		{"Molten", "CorrodedMetal", 1.02, 1, 0.05},
+		{"Prism", "Glass", 1.03, 0.55, 0.45},
+		{"Mirror", "Metal", 1.02, 1, 1},
+		{"Foil", "Foil", 1.02, 1, 0},
+		{"Ghost FF", "ForceField", 1.03, 1, 0, "rbxassetid://2930247814"},
+		{"FF Hex", "ForceField", 1.03, 1, 0, "hex"},
+		{"FF Grid", "ForceField", 1.03, 1, 0, "grid"},
+		{"FF Lines", "ForceField", 1.03, 1, 0, "stripes"},
+		{"FF Rings", "ForceField", 1.03, 1, 0, "dots"},
+		{"FF Scan", "ForceField", 1.03, 1, 0, "scanlines"},
+	 
+	{"Glass Metal", "Glass", 1.03, 0.6, 0.85},
+	{"Plastic", "Plastic", 1.02, 0.95, 0},
+	{"SmoothPlastic", "SmoothPlastic", 1.02, 0.95, 0},
+	{"Wood", "Wood", 1.02, 0.95, 0},
+	{"WoodPlanks", "WoodPlanks", 1.02, 0.95, 0},
+	{"Marble", "Marble", 1.02, 0.95, 0},
+	{"Slate", "Slate", 1.02, 0.95, 0},
+	{"Concrete", "Concrete", 1.02, 0.95, 0},
+	{"Granite", "Granite", 1.02, 0.95, 0},
+	{"Brick", "Brick", 1.02, 0.95, 0},
+	{"Pebble", "Pebble", 1.02, 0.95, 0},
+	{"Cobblestone", "Cobblestone", 1.02, 0.95, 0},
+	{"Rock", "Rock", 1.02, 0.95, 0},
+	{"Sandstone", "Sandstone", 1.02, 0.95, 0},
+	{"Basalt", "Basalt", 1.02, 0.95, 0},
+	{"CrackedLava", "CrackedLava", 1.02, 0.95, 0},
+	{"Asphalt", "Asphalt", 1.02, 0.95, 0},
+	{"LeafyGrass", "LeafyGrass", 1.02, 0.95, 0},
+	{"Salt", "Salt", 1.02, 0.95, 0},
+	{"Limestone", "Limestone", 1.02, 0.95, 0},
+	{"Pavement", "Pavement", 1.02, 0.95, 0},
+	{"DiamondPlate", "DiamondPlate", 1.02, 0.95, 0},
+	{"CorrodedMetal", "CorrodedMetal", 1.02, 0.95, 0},
+	{"Fabric", "Fabric", 1.02, 0.95, 0},
+	{"Sand", "Sand", 1.02, 0.95, 0},
+	{"Grass", "Grass", 1.02, 0.95, 0},
+	{"Snow", "Snow", 1.02, 0.95, 0},
+	{"Mud", "Mud", 1.02, 0.95, 0},
+	{"Ground", "Ground", 1.02, 0.95, 0},
+	{"Glacier", "Glacier", 1.02, 0.95, 0},
+	{"Leather", "Leather", 1.02, 0.95, 0},
+	{"Cardboard", "Cardboard", 1.02, 0.95, 0},
+	{"Carpet", "Carpet", 1.02, 0.95, 0},
+	{"Plaster", "Plaster", 1.02, 0.95, 0},
+	{"Rubber", "Rubber", 1.02, 0.95, 0},
+}
 function EspChams.materials(environment)
 	local material = environment.Enum.Material
-	return {
-		Shaded = {material.SmoothPlastic, 1.02, 0.95, 0}, Glow = {material.Neon, 1.02, 0.7, 0},
-		["Glow Outline"] = {material.Neon, 1.05, 0.3, 0}, Iridescent = {material.ForceField, 1.03, 0.9, 0},
-		["Water Flow"] = {material.ForceField, 1.03, 0.9, 0}, Glossy = {material.SmoothPlastic, 1.02, 0.95, 0.65},
-		Glass = {material.Glass, 1.03, 0.8, 0.25}, ForceField = {material.ForceField, 1.03, 0.95, 0},
-		Gradient = {material.SmoothPlastic, 1.02, 0.85, 0}, Ghost = {material.SmoothPlastic, 1.03, 0.4, 0.15},
-		Metallic = {material.Foil, 1.02, 0.95, 0.3}, Metal = {material.Metal, 1.02, 0.95, 0.15},
-		Chrome = {material.SmoothPlastic, 1.02, 0.95, 0.55}, Crystal = {material.Glass, 1.04, 0.7, 0.5},
-		Ice = {material.Ice, 1.03, 0.85, 0.25}, Lava = {material.CrackedLava, 1.02, 0.95, 0},
-		Wireframe = {material.SmoothPlastic, 1.01, 1, 0},
-	}
+	local table_ = {}
+	for _, entry in ipairs(CHAM_DEFS) do
+		local ok, item = pcall(function() return material[entry[2]] end)
+		if ok and item then table_[entry[1]] = {item, entry[3], entry[4], entry[5], entry[6]} end
+	end
+	return table_
 end
 function EspChams.close(color, target)
 	if math.abs(color.R - target.R) + math.abs(color.G - target.G) + math.abs(color.B - target.B) < 0.004 then return target end
@@ -24586,18 +24690,14 @@ end
 function EspChams.targets(state, options)
 	local settings = state.settings
 	local role = EspColor.role(state.colors, options.role)
-	local darkness = math.clamp((tonumber(settings.chamsHiddenDark) or 30) / 100, 0, 0.9)
+	 
+	local darkness = 0
+	 
+	 
 	local fill = settings.chamsColour
-	if not options.seen then fill = settings.chamsHidden end
-	if settings.chamsRole then
-		fill = role
-		if not options.seen then fill = role:Lerp(state.colors.black, darkness) end
-	end
-	local edge = options.seen and settings.chamsEdge or settings.chamsEdgeHidden
-	if settings.chamsRole and settings.chamsEdgeRole ~= false then
-		edge = role:Lerp(state.colors.white, 0.25)
-		if not options.seen then edge = role:Lerp(state.colors.black, darkness * 0.6) end
-	end
+	if settings.chamsRole then fill = role end
+	local edge = settings.chamsEdge
+	if settings.chamsRole and settings.chamsEdgeRole ~= false then edge = role:Lerp(state.colors.white, 0.25) end
 	return fill, edge
 end
 function EspChams.animate(state, options, previous)
@@ -24635,22 +24735,21 @@ function EspChams.material(state, role)
 	end
 	if not specification then return nil, nil, nil end
 	local scale = math.clamp((settings.chamsShell or 100) / 100, 1, 1.4)
+	local baseName = name
+	if settings.chamsTwoTone and name ~= "Core" then name = name .. "~2" end
 	if scale ~= 1 then
 		return name .. "@" .. tostring(math.floor(scale * 100 + 0.5)),
-			{specification[1], specification[2] * scale, specification[3], specification[4]}, name
+			{specification[1], specification[2] * scale, specification[3], specification[4], specification[5]}, baseName
 	end
-	return name, specification, name
+	return name, specification, baseName
 end
 function EspChams.plan(state, options, saved)
 	local settings, environment = state.settings, state.context.environment
+	 
 	local through = settings.chamsThrough
-	if through and (settings.chamsRange or 60) < 300 then
-		local root = options.character:FindFirstChild("HumanoidRootPart")
-		through = root ~= nil and (root.Position - options.cameraPosition).Magnitude <= (settings.chamsRange or 60)
-	end
 	local animation
 	saved, animation = EspChams.animate(state, options, saved)
-	local opacity = math.clamp(settings.chamsAlpha / 100, 0, 1)
+	local opacity = math.clamp((settings.chamsMatAlpha or settings.chamsAlpha or 65) / 100, 0, 1)
 	if settings.chamsStyle == "Outline" then opacity = 0 end
 	if settings.chamsStyle == "Soft" then opacity *= 0.65 end
 	local material, spec, kind = EspChams.material(state, options.role)
@@ -24658,8 +24757,7 @@ function EspChams.plan(state, options, saved)
 	local showModel = (options.seen or through) and options.inView ~= false
 	local modelColor = animation.fill
 	if isGlow then modelColor = modelColor:Lerp(state.colors.white, 0.08) end
-	if not isGlow and (kind == "Glow" or kind == "Glow Outline") then modelColor = modelColor:Lerp(state.colors.black, 0.42) end
-	local modelAlpha = options.alpha * animation.born * animation.fillFactor
+	local modelAlpha = options.alpha * animation.born * animation.fillFactor * math.clamp((settings.chamsMatAlpha or 65) / 100, 0.05, 1)
 	if isGlow then modelAlpha *= math.clamp((settings.glowCore or 85) / 100, 0, 1) end
 	local edge = animation.edge
 	local edgeTransparency = settings.chamsOutline and 1 - options.alpha * animation.born * settings.chamsEdgeAlpha / 100 * animation.edgeFactor or 1
@@ -24686,11 +24784,12 @@ function EspChamModel.root(state)
 	if not camera then return nil end
 	if state.modelFolder and state.modelFolder.Parent == camera then return state.modelFolder end
 	if state.modelFolder then pcall(function() state.modelFolder:Destroy() end) end
+	local folderName = state.folderName or "SaladESPModels"
 	for _, object in camera:GetChildren() do
-		if object.Name == "SaladESPModels" then pcall(function() object:Destroy() end) end
+		if object.Name == folderName then pcall(function() object:Destroy() end) end
 	end
 	local folder = environment.Instance.new("Folder")
-	folder.Name, folder.Parent = "SaladESPModels", camera
+	folder.Name, folder.Parent = folderName, camera
 	state.modelFolder = folder
 	return folder
 end
@@ -24736,6 +24835,7 @@ end
 function EspChamModel.drop(state, store, player)
 	local model = store[player]
 	if not model then return end
+	EspChamModel.body(state, model, false)
 	for _, connection in model.connections do pcall(function() connection:Disconnect() end) end
 	local pool = model.kind ~= "Wireframe" and model.keys and EspChamModel.pool(state, store, player) or nil
 	for index, clone in model.clones do
@@ -24748,12 +24848,46 @@ function EspChamModel.drop(state, store, player)
 	if pool then pool.at = state.context.environment.os.clock() end
 	store[player] = nil
 end
+ 
+ 
+function EspChamModel.covered(state, character, part)
+	 
+	do return false end
+	if part.Parent ~= character then return false end
+	 
+	if part.Name ~= "Head" then return false end
+	state.coverMemo = state.coverMemo or setmetatable({}, {__mode = "k"})
+	local signature = ""
+	for _, accessory in character:GetChildren() do
+		if accessory:IsA("Accessory") then signature ..= accessory.Name .. ";" end
+	end
+	local memo = state.coverMemo[part]
+	 
+	 
+	if memo and memo.signature == signature then return memo.covered end
+	local covered = false
+	local size = part.Size
+	for _, accessory in character:GetChildren() do
+		if not accessory:IsA("Accessory") then continue end
+		local handle = accessory:FindFirstChild("Handle")
+		if not handle or not handle:IsA("BasePart") or handle.Transparency >= 0.95 then continue end
+		local box = handle.Size
+		 
+		if box.X >= size.X * 1.05 and box.Y >= size.Y * 1.05 and box.Z >= size.Z * 1.05 then
+			local offset = handle.CFrame:PointToObjectSpace(part.Position)
+			if math.abs(offset.X) <= box.X * 0.2 and math.abs(offset.Y) <= box.Y * 0.25 and math.abs(offset.Z) <= box.Z * 0.2 then
+				covered = true
+				break
+			end
+		end
+	end
+	state.coverMemo[part] = {signature = signature, covered = covered}
+	return covered
+end
 function EspChamModel.cloneable(part)
 	if not part:IsA("BasePart") or part.Name == "HumanoidRootPart" then return false end
 	if part.Transparency >= 0.95 or part.LocalTransparencyModifier >= 0.95 then return false end
-	if part:FindFirstChildWhichIsA("WrapLayer") then return false end
-	local accessory = part:FindFirstAncestorWhichIsA("Accessory")
-	if accessory and accessory:FindFirstChildWhichIsA("WrapLayer", true) then return false end
+	 
 	return true
 end
 function EspChamModel.clone(state, source, specification, folder, pool)
@@ -24806,18 +24940,36 @@ function EspChamModel.clone(state, source, specification, folder, pool)
 	end
 	clone.Anchored, clone.CanCollide, clone.CanQuery, clone.CanTouch, clone.CastShadow = true, false, false, false, false
 	clone.Material, clone.Reflectance, clone.Transparency = specification[1], specification[4], 1
+	do
+		local id = ""
+		if specification[5] then
+			state.chamTextures = state.chamTextures or {}
+			local cached = state.chamTextures[specification[5]]
+			if cached == nil and string.sub(specification[5], 1, 13) == "rbxassetid://" then cached = specification[5] end
+			if cached == nil then
+				local ok, made = pcall(function() return environment.getgenv().ZolarAsset("chams/" .. specification[5] .. ".png") end)
+				cached = ok and made or false
+				state.chamTextures[specification[5]] = cached
+			end
+			id = cached or ""
+		end
+		if clone:IsA("MeshPart") then pcall(function() clone.TextureID = id end) end
+		if mesh then pcall(function() mesh.TextureId = id end) end
+	end
 	if clone.Parent ~= folder then clone.Parent = folder end
 	return {clone = clone, mesh = mesh and scale and mesh or nil, scale = scale, size = size, key = key}
 end
 function EspChamModel.build(state, character, material, specification, folder, pool)
 	local environment = state.context.environment
-	local kind = tostring(material):match("^[^@]+")
+	local kind = tostring(material):match("^[^@~]+")
+	kind = CHAM_KIND_ALIAS[kind] or kind
+	if tostring(material):find("~2", 1, true) then kind = "Gradient" end
 	local model = {material = material, kind = kind, specification = specification, character = character,
 		root = character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso"),
 		sources = {}, clones = {}, sizes = {}, meshes = {}, scales = {}, cframes = {}, boxes = {}, keys = {}, scale = 1, connections = {}}
 	if kind == "Wireframe" then pool = nil end
 	for _, source in character:GetDescendants() do
-		if not EspChamModel.cloneable(source) then continue end
+		if not EspChamModel.cloneable(source) or EspChamModel.covered(state, character, source) then continue end
 		local result = EspChamModel.clone(state, source, specification, folder, pool)
 		if not result then continue end
 		local index = #model.clones + 1
@@ -24852,22 +25004,47 @@ function EspChamModel.paint(state, model, color, transparency, now)
 	local rootY = model.root and model.root.Parent and model.root.Position.Y or 0
 	local top, bottom
 	if model.kind == "Gradient" then
-		top = EspColor.cham(state.colors, EspColor.tone(state.colors, settings.chamsGradA))
+		top = color
 		bottom = EspColor.cham(state.colors, EspColor.tone(state.colors, settings.chamsGradB))
 	end
+	local speed = settings.chamsSpeed or 1
+	local spread = math.clamp((settings.chamsSpread or 35) / 100, 0, 1)
+	local saturation = math.clamp((settings.chamsSat or 70) / 100, 0, 1)
+	local pi = math.pi
 	for index, clone in model.clones do
 		local tint = color
-		if model.kind == "Iridescent" then tint = environment.Color3.fromHSV((now * 0.12 * (settings.chamsSpeed or 1) + index * 0.012) % 1, 0.38, 1) end
+		 
+		local source = model.sources[index]
+		local fraction = source and source.Parent and math.clamp((source.Position.Y - (rootY - 3)) / 5.6, 0, 1) or 0.5
+		if model.kind == "Iridescent" then
+			 
+			tint = environment.Color3.fromHSV((now * 0.1 * speed + fraction * spread) % 1, saturation, 1)
+		end
 		if model.kind == "Gradient" then
-			local source = model.sources[index]
-			local fraction = source and source.Parent and math.clamp((source.Position.Y - (rootY - 3)) / 5.6, 0, 1) or 0.5
-			if settings.chamsGradScroll then fraction = math.abs((fraction + now * 0.2 * (settings.chamsSpeed or 1)) % 1 * 2 - 1) end
-			tint = bottom:Lerp(top, fraction)
+			local blend = fraction
+			 
+			if settings.chamsGradScroll then blend = 0.5 + 0.5 * math.sin((fraction * 1.6 - now * 0.5 * speed) * pi) end
+			blend = blend * blend * (3 - 2 * blend)
+			tint = bottom:Lerp(top, blend)
 		end
 		clone.Color, clone.Transparency = tint, transparency
 	end
 end
+ 
+ 
+function EspChamModel.body(state, model, hide)
+	 
+	 
+	local solid = state.settings.chamsSolid == true or state.settings.chamsMatAlpha ~= nil and state.settings.chamsMatAlpha >= 95
+	hide = hide and solid
+	if model.bodyHidden == hide then return end
+	model.bodyHidden = hide
+	for _, source in model.sources do
+		if source.Parent then pcall(function() source.LocalTransparencyModifier = hide and 1 or 0 end) end
+	end
+end
 function EspChamModel.show(state, model, visible, color, alpha)
+	EspChamModel.body(state, model, visible and not model.parked)
 	if not visible then
 		if model.shown == false then return end
 		for _, clone in model.clones do clone.Transparency = 1 end
@@ -24876,8 +25053,12 @@ function EspChamModel.show(state, model, visible, color, alpha)
 		return
 	end
 	local now, wasShown = state.context.environment.os.clock(), model.shown == true
-	if wasShown and now - (model.propertiesAt or 0) < 1 / 30 then return end
+	local moving = model.kind == "Iridescent" or model.kind == "Gradient"
+		or state.settings.chamsAnim ~= nil and state.settings.chamsAnim ~= "None"
+	if wasShown and not moving and now - (model.propertiesAt or 0) < 1 / 30 then return end
 	model.propertiesAt = now
+	 
+	 
 	local transparency = 1 - math.clamp(model.specification[3] * alpha, 0, 1)
 	if model.kind == "Wireframe" then
 		model.shown = true
@@ -24912,7 +25093,8 @@ function EspChamModel.step(state, options)
 		or model.dirty ~= nil and now - model.dirty > 0.35
 	if stale then
 		if not options.visible then EspChamModel.drop(state, store, player); return end
-		if (state.modelBudget or 0) <= 0 then
+		local changed = model and model.material ~= options.material
+		if (state.modelBudget or 0) <= 0 and not changed then
 			if model and model.character == options.character then
 				model.view = options.inView
 				EspChamModel.show(state, model, options.visible, options.color, options.alpha)
@@ -24953,10 +25135,15 @@ function EspChamModel.placeStore(state, store, camera)
 		if not model.shown or parked then continue end
 		model.parked = nil
 		if state.settings.chamsThrough and root and root.Parent then
+			 
+			 
+			 
 			local distance = math.max((root.Position - position).Magnitude, 0.01)
-			local scale = math.min(1, 2.5 / distance)
-			if scale >= 1 and model.scale < 1 then EspChamModel.resize(model, 1) end
-			if scale < 1 and (model.scale >= 1 or distance * model.scale < 1.9 or distance * model.scale > 3.25) then EspChamModel.resize(model, scale) end
+			local scale = EspChamModel.reach(state, model, position, distance)
+			if scale >= 1 and model.scale < 1 then EspChamModel.resize(model, 1)
+			elseif scale < 1 and (model.scale >= 1 or math.abs(scale - model.scale) > model.scale * 0.04) then
+				EspChamModel.resize(model, scale)
+			end
 		end
 		if not state.settings.chamsThrough and model.scale ~= 1 then EspChamModel.resize(model, 1) end
 		for index, source in model.sources do
@@ -24967,10 +25154,60 @@ function EspChamModel.placeStore(state, store, camera)
 		pcall(workspace.BulkMoveTo, workspace, model.clones, model.cframes, environment.Enum.BulkMoveMode.FireCFrameChanged)
 	end
 end
+ 
+ 
+function EspChamModel.reach(state, model, position, distance)
+	local environment, workspace = state.context.environment, state.context.workspace
+	local now = environment.os.clock()
+	if not state.reachParams or now - (state.reachAt or 0) > 1 then
+		state.reachAt = now
+		local params = state.reachParams or environment.RaycastParams.new()
+		params.FilterType = environment.Enum.RaycastFilterType.Exclude
+		local ignore = {workspace.CurrentCamera}
+		for _, player in environment.game:GetService("Players"):GetPlayers() do
+			if player.Character then table.insert(ignore, player.Character) end
+		end
+		state.reachIgnore = ignore
+		params.FilterDescendantsInstances = ignore
+		state.reachParams = params
+	end
+	 
+	 
+	 
+	if model.reachAt and now - model.reachAt < 0.08 and model.reachScale then return model.reachScale end
+	model.reachAt = now
+	local scale = 1
+	local checked = 0
+	for _, source in model.sources do
+		if checked >= 24 then break end
+		if not source.Parent then continue end
+		checked += 1
+		local point = source.Position
+		local direction = point - position
+		local length = direction.Magnitude
+		if length < 0.5 then continue end
+		local hit = workspace:Raycast(position, direction, state.reachParams)
+		local tries = 0
+		 
+		while hit and tries < 3 and hit.Instance.Transparency >= 0.6 do
+			tries += 1
+			local from = hit.Position + direction.Unit * 0.05
+			local again = workspace:Raycast(from, point - from, state.reachParams)
+			hit = again and {Instance = again.Instance, Distance = (again.Position - position).Magnitude} or nil
+		end
+		if hit then
+			local wanted = (hit.Distance - 0.5) / (length + 1.5)
+			if wanted < scale then scale = wanted end
+		end
+	end
+	scale = math.clamp(scale, math.min(1, 1.2 / distance), 1)
+	model.reachScale = scale
+	return scale
+end
 function EspChamModel.bind(state)
 	if state.modelsBound then return end
 	local runService, environment = state.context.runService, state.context.environment
-	local name = "SaladESP2ModelPlace"
+	local name = state.bindName or "SaladESP2ModelPlace"
 	state.modelsBound = name
 	pcall(function() runService:UnbindFromRenderStep(name) end)
 	runService:BindToRenderStep(name, environment.Enum.RenderPriority.Last.Value, function()
@@ -24987,6 +25224,53 @@ function EspChamModel.unbind(state)
 	pcall(function() state.context.runService:UnbindFromRenderStep(state.modelsBound) end)
 	state.modelsBound = nil
 end
+ 
+ 
+local SelfChams2 = {}
+function SelfChams2.create(environment)
+	local players = environment.game:GetService("Players")
+	local settings = {chamsThrough = false, chamsSolid = false, chamsSpeed = 1, chamsGradScroll = false,
+		chamsGradA = environment.Color3.fromRGB(0, 200, 255), chamsGradB = environment.Color3.fromRGB(255, 0, 170), chamsBright = 100}
+	local state = {context = {environment = environment, workspace = environment.workspace, runService = environment.game:GetService("RunService")},
+		settings = settings, models = {}, halos = {}, folderName = "SaladSelfChams", bindName = "SaladSelfChamPlace"}
+	state.colors = EspColor.create(environment, settings)
+	state.chamsMaterials = EspChams.materials(environment)
+	local api = {state = state, settings = settings}
+	function api.names() return table.clone(CHAM_PRESETS) end
+	function api.step(on, material, color, alpha, twoTone)
+		local player = players.LocalPlayer
+		local character = player and player.Character
+		local specification = state.chamsMaterials[material]
+		if material == "Flat" then specification = {environment.Enum.Material.SmoothPlastic, 1.02, 1, 0} end
+		if not on or not character or not specification then
+			if player and state.models[player] then EspChamModel.drop(state, state.models, player) end
+			return
+		end
+		state.modelBudget = 3
+		EspChamModel.step(state, {store = state.models, player = player, character = character, visible = true,
+			color = color, alpha = alpha, material = twoTone and (material .. "~2") or material,
+			specification = specification, inView = true})
+	end
+	 
+	function api.shells()
+		local model = state.models[players.LocalPlayer]
+		if not model or not model.shown then return {} end
+		local list = {}
+		for index, clone in model.clones do
+			local source = model.sources[index]
+			if source and source.Parent and clone.Parent then list[#list + 1] = {source = source, clone = clone} end
+		end
+		return list
+	end
+	function api.clear()
+		for player in state.models do EspChamModel.drop(state, state.models, player) end
+		EspChamModel.unbind(state)
+		if state.modelFolder then pcall(function() state.modelFolder:Destroy() end) end
+		state.modelFolder = nil
+	end
+	return api
+end
+pcall(function() getgenv().__saladSelfChams2 = SelfChams2.create end)
 function EspChams.drop(state, player)
 	local highlight = state.highlights[player]
 	if highlight then pcall(function() highlight:Destroy() end) end
@@ -25414,7 +25698,6 @@ function EspFeature.update(state, player, roles, camera, delta)
 		return
 	end
 	local distance = (root.Position - camera.CFrame.Position).Magnitude
-	if distance > settings.maxDist then EspFeature.hide(state, player); EspChams.drop(state, player); return end
 	local object = state.objects[player]
 	if not object or not object.layer.Parent then
 		object = EspBox.create(state.boxContext, EspFeature.root(state), player.UserId)
@@ -25438,7 +25721,7 @@ function EspFeature.update(state, player, roles, camera, delta)
 	object.skelOff = settings.limits and (tonumber(settings.skelMaxDist) or 0) > 0 and distance > settings.skelMaxDist
 	state.boxContext.lineWidthFactor = settings.distScale and math.clamp(90 / math.max(distance, 1), 0.55, 1.6) or 1
 	local isGhost = type(player) == "table" and player.Ghost == true
-	local exceedsChamLimit = settings.limits and (tonumber(settings.chamsMaxDist) or 0) > 0 and distance > settings.chamsMaxDist
+	local exceedsChamLimit = false
 	if isGhost or exceedsChamLimit then EspChams.drop(state, player) end
 	if not isGhost and not exceedsChamLimit then
 		EspChams.apply(state, {player = player, character = character, role = role, seen = object.seen ~= false,
@@ -25523,7 +25806,7 @@ function EspFeature.step(state, delta)
 	state.projection.projection = nil
 	pcall(EspFeature.prepareProjection, state, camera)
 	local roles, present, now = context.roles(), {}, context.environment.os.clock()
-	state.modelBudget = 1
+	state.modelBudget = 3
 	if not state.poolSweepAt or now >= state.poolSweepAt then
 		state.poolSweepAt = now + 5
 		pcall(EspChamModel.sweep, state)
@@ -25584,6 +25867,14 @@ function EspFeature.colorpicker(state, field, text)
 	local section, settings = state.context.section, state.settings
 	state.colorHandles[field] = section:Colorpicker({Text = text, Default = settings[field], Callback = function(value)
 		if state.context.environment.typeof(value) == "Color3" then settings[field] = value end
+		 
+		if field == "chamsColour" and settings.chamsRole then
+			settings.chamsRole = false
+			pcall(function()
+				local set = state.context.environment.getgenv().Zolar.SetFlags["salad_toggle_rolecolors"]
+				if set then set(false) end
+			end)
+		end
 	end})
 end
 function EspFeature.mainControls(state)
@@ -25594,7 +25885,6 @@ function EspFeature.mainControls(state)
 		{"innocent", "Show Innocent"}, {"noRole", "Show No Role"}} do
 		EspFeature.toggle(state, option[1], option[2])
 	end
-	EspFeature.slider(state, {field = "maxDist", text = "Max Distance", min = 50, max = 2000, decimals = 0, suffix = " st"})
 	EspFeature.toggle(state, "visCheck", "Visibility Check", function()
 		EspFeature.toggle(state, "dimHidden", "Dim Hidden")
 		EspFeature.dropdown(state, "hiddenStyle", "Hidden Style", {"Fade", "Grey"})
@@ -25689,7 +25979,6 @@ function EspFeature.lookControls(state)
 	EspFeature.toggle(state, "limits", "Element Limits", function()
 		EspFeature.slider(state, {field = "boxMaxDist", text = "Box Max Distance", min = 0, max = 2000, suffix = " st"})
 		EspFeature.slider(state, {field = "nameMaxDist", text = "Name Max Distance", min = 0, max = 2000, suffix = " st"})
-		EspFeature.slider(state, {field = "chamsMaxDist", text = "Chams Max Distance", min = 0, max = 2000, suffix = " st"})
 		EspFeature.slider(state, {field = "skelMaxDist", text = "Skeleton Max Distance", min = 0, max = 2000, suffix = " st"})
 	end)
 	EspFeature.toggle(state, "murdererFocus", "Murderer Focus", function()
@@ -25776,43 +26065,45 @@ function EspFeature.tracerControls(state)
 	end)
 end
 function EspFeature.chamsControls(state)
-	local section = state.context.section
-	local materials = {"Flat", "Shaded", "Metallic", "Metal", "Chrome", "Glossy", "Glass", "Crystal", "Ice", "Lava", "Glow",
-		"Glow Outline", "Iridescent", "Water Flow", "ForceField", "Gradient", "Ghost", "Wireframe"}
+	local settings = state.settings
+	local materials = table.clone(CHAM_PRESETS)
 	local overrides = {"Same"}
 	for _, material in materials do table.insert(overrides, material) end
+	 
+	if not table.find(materials, settings.chamsMaterial) then settings.chamsMaterial = "Glow" end
+	if settings.murdMat and settings.murdMat ~= "Same" and not table.find(materials, settings.murdMat) then settings.murdMat = "Same" end
+	if settings.sheriffMat and settings.sheriffMat ~= "Same" and not table.find(materials, settings.sheriffMat) then settings.sheriffMat = "Same" end
+	 
+	settings.chamsStyle = "Solid"
+	local section = state.context.section
 	section:Group({Title = "ESP Chams", Side = "Left"})
 	EspFeature.toggle(state, "chams", "Chams", function()
 		EspFeature.toggle(state, "chamsThrough", "Through Walls")
-		EspFeature.slider(state, {field = "chamsRange", text = "Through Range", min = 20, max = 300})
-		EspFeature.slider(state, {field = "chamsHiddenDark", text = "Hidden Darkness", min = 0, max = 80, suffix = "%"})
-		EspFeature.slider(state, {field = "chamsAlpha", text = "Fill Strength", min = 0, max = 100, suffix = "%"})
-		EspFeature.slider(state, {field = "glowCore", text = "Glow Core", min = 20, max = 100, suffix = "%"})
-		EspFeature.slider(state, {field = "glowHalo", text = "Glow Halo", min = 0, max = 100, suffix = "%"})
-		EspFeature.slider(state, {field = "chamsBright", text = "Chams Brightness", min = 30, max = 200, suffix = "%"})
 		EspFeature.slider(state, {field = "chamsShell", text = "Shell Size", min = 100, max = 130, suffix = "%"})
-		EspFeature.slider(state, {field = "chamsSpeed", text = "Animation Speed", min = 0.2, max = 3, decimals = 1})
-		EspFeature.colorpicker(state, "chamsFlow", "Flow Color")
-		EspFeature.colorpicker(state, "chamsGradA", "Body Gradient Top")
-		EspFeature.colorpicker(state, "chamsGradB", "Body Gradient Bottom")
-		EspFeature.toggle(state, "chamsGradScroll", "Scroll Body Gradient")
 		EspFeature.dropdown(state, "murdMat", "Murderer Material", overrides)
 		EspFeature.dropdown(state, "sheriffMat", "Sheriff Material", overrides)
 	end)
-	EspFeature.dropdown(state, "chamsStyle", "Chams Style", {"Soft", "Outline", "Solid", "Glow"})
 	EspFeature.dropdown(state, "chamsMaterial", "Material", materials)
-	EspFeature.toggle(state, "chamsOutline", "Chams Outline", function()
-		EspFeature.slider(state, {field = "chamsEdgeAlpha", text = "Edge Strength", min = 0, max = 100, suffix = "%"})
-		EspFeature.toggle(state, "chamsEdgeRole", "Role Edge")
-		EspFeature.colorpicker(state, "chamsEdge", "Visible Edge")
-		EspFeature.colorpicker(state, "chamsEdgeHidden", "Hidden Edge")
+	EspFeature.colorpicker(state, "chamsColour", "Chams Color")
+	EspFeature.slider(state, {field = "chamsMatAlpha", text = "Opacity", min = 5, max = 100, suffix = "%"})
+	EspFeature.colorpicker(state, "chamsGradB", "Second Color")
+	EspFeature.toggle(state, "chamsTwoTone", "Two Tone", function()
+		EspFeature.toggle(state, "chamsGradScroll", "Scroll Colors")
 	end)
-	EspFeature.toggle(state, "chamsRole", "Role Colors", function()
-		EspFeature.colorpicker(state, "chamsColour", "Visible Fill")
-		EspFeature.colorpicker(state, "chamsHidden", "Hidden Fill")
+	EspFeature.toggle(state, "chamsOverlay", "Glow Around", function()
+		EspFeature.slider(state, {field = "glowHalo", text = "Glow Strength", min = 0, max = 100, suffix = "%"})
 	end)
-	EspFeature.toggle(state, "chamsOverlay", "Glow Overlay")
+	EspFeature.toggle(state, "chamsOutline", "Outline", function()
+		EspFeature.colorpicker(state, "chamsEdge", "Outline Color")
+		EspFeature.slider(state, {field = "chamsEdgeAlpha", text = "Outline Strength", min = 0, max = 100, suffix = "%"})
+		EspFeature.toggle(state, "chamsEdgeRole", "Outline In Role Color")
+	end)
+	EspFeature.toggle(state, "chamsRole", "Role Colors")
 	EspFeature.dropdown(state, "chamsAnim", "Animation", {"None", "Salad", "Breathe", "Flow"})
+	EspFeature.slider(state, {field = "chamsSpeed", text = "Animation Speed", min = 0.1, max = 4, decimals = 1})
+	EspFeature.slider(state, {field = "chamsSat", text = "Rainbow Saturation", min = 10, max = 100, suffix = "%"})
+	EspFeature.slider(state, {field = "chamsSpread", text = "Rainbow Spread", min = 0, max = 100, suffix = "%"})
+	EspFeature.toggle(state, "chamsSolid", "Hide Real Body")
 	EspFeature.toggle(state, "chamsFlash", "Flash On Sight")
 end
 local MurderFeature = {}
@@ -27806,9 +28097,7 @@ local KILL_SOUNDS = {
 	{"Madness Headshot", "rbxassetid://7849569525"},
 	{"Kill Confirmed", "rbxassetid://127053529664678"}
 }
-local LOCAL_SOUNDS = {
-	"agpa1", "agpa2", "amamam", "bratik-tozhe-tut", "ding", "disciplina", "ekh", "fotoparat", "gavknul-i-puknul", "hamam", "hihihihi", "korolia-ne-ubit", "mcbow", "musor", "neverlose", "odin-svinia", "ohaeshichki", "pump-shotgun", "reminder", "rizz", "sela-dala", "semya-v-arbuz", "skeet", "spasibo-khorosho", "stapler", "tiki", "yara", "zingtrio"
-}
+local LOCAL_SOUNDS = {}
 local CustomSounds = {}
 function CustomSounds.options(catalog)
 	local options = {}
@@ -27856,8 +28145,7 @@ function CustomSounds.play(state, asset)
 end
 function CustomSounds.shouldMute(state, sound)
 	local name = string.lower(sound.Name)
-	if state.settings.shotSnd ~= "Off" and (name == "gunshot" or name == "reload" or name == "gunkill") then return true end
-	return state.settings.killSnd ~= "Off" and name == "gunkill"
+	return state.settings.shotSnd ~= "Off" and (name == "gunshot" or name == "reload" or name == "gunkill")
 end
 function CustomSounds.watch(state, sound)
 	if not sound:IsA("Sound") then return end
@@ -27914,12 +28202,6 @@ function CustomSounds.onFired(state, tool, origin, endpoint, hit)
 		state.lastShot = now
 		CustomSounds.play(state, CustomSounds.resolve(state, SHOT_SOUNDS, settings.shotSnd))
 	end
-	if settings.killSnd ~= "Off" and environment.typeof(hit) == "Instance" then
-		local victim = CustomSounds.characterOf(environment, hit)
-		if victim and victim ~= context.player.Character and context.players:GetPlayerFromCharacter(victim) then
-			environment.task.delay(0.06, function() CustomSounds.play(state, CustomSounds.resolve(state, KILL_SOUNDS, settings.killSnd)) end)
-		end
-	end
 	pcall(CustomSounds.refresh, state)
 end
 function CustomSounds.install(context)
@@ -27947,6 +28229,49 @@ function CustomSounds.install(context)
 			if settings.shotSnd ~= "Off" or settings.killSnd ~= "Off" or next(state.muted) then pcall(CustomSounds.refresh, state) end
 		end
 	end)
+	 
+	 
+	 
+	state.killHooks = {}
+	local function hookKill(sound)
+		if state.killHooks[sound] then return end
+		local entry = {volume = sound.Volume, connections = {}}
+		state.killHooks[sound] = entry
+		local function fire()
+			if settings.killSnd == "Off" then return end
+			local now = environment.os.clock()
+			if now - (state.lastKill or 0) < 0.15 then return end
+			state.lastKill = now
+			pcall(function() sound:Stop() end)
+			CustomSounds.play(state, CustomSounds.resolve(state, KILL_SOUNDS, settings.killSnd))
+		end
+		table.insert(entry.connections, sound.Played:Connect(fire))
+		table.insert(entry.connections, sound:GetPropertyChangedSignal("Playing"):Connect(function() if sound.Playing then fire() end end))
+		table.insert(entry.connections, sound.Destroying:Connect(function() state.killHooks[sound] = nil end))
+	end
+	local function scanKnife(root)
+		if not root then return end
+		for _, object in root:GetDescendants() do
+			if object:IsA("Sound") and object.Name == "Kill" and object.Parent and object.Parent.Name == "Handle"
+				and object.Parent.Parent and object.Parent.Parent:IsA("Tool") and object.Parent.Parent.Name == "Knife" then
+				hookKill(object)
+			end
+		end
+	end
+	environment.task.spawn(function()
+		while context.isAlive() do
+			scanKnife(context.player.Character)
+			scanKnife(context.player:FindFirstChildOfClass("Backpack"))
+			for sound, entry in state.killHooks do
+				if sound.Parent then
+					local mute = settings.killSnd ~= "Off"
+					if mute and sound.Volume ~= 0 then entry.volume, sound.Volume = sound.Volume, 0
+					elseif not mute and sound.Volume == 0 then sound.Volume = entry.volume end
+				end
+			end
+			environment.task.wait(0.4)
+		end
+	end)
 	environment.task.spawn(function()
 		local services = context.storage:WaitForChild("ClientServices", 30)
 		local weapons = services and services:WaitForChild("WeaponService", 30)
@@ -27955,6 +28280,11 @@ function CustomSounds.install(context)
 		context.connect(fired.OnClientEvent, function(...) CustomSounds.onFired(state, ...) end)
 	end)
 	return state, function()
+		for sound, entry in state.killHooks do
+			for _, connection in entry.connections do pcall(function() connection:Disconnect() end) end
+			pcall(function() sound.Volume = entry.volume end)
+		end
+		state.killHooks = {}
 		for sound, saved in state.muted do pcall(function() sound.Volume = saved.vol end) end
 		state.muted = {}
 	end
@@ -28443,7 +28773,10 @@ function SaladSkin.build(state, skin)
 	local spec = skin.cx
 	local template = spec and SaladSkin.template(state, spec.asset)
 	if not template then return nil end
-	local environment, scale = state.context.environment, spec.k
+	local environment = state.context.environment
+	 
+	local mul = tonumber(rawget(environment.getgenv(), "__saladSkinSize")) or 1.4
+	local scale = spec.k * mul
 	local origin = SkinModel.frame(environment, spec.X)
 	local root = environment.Instance.new("Part")
 	root.Name, root.Size, root.Transparency = "SaladCX", environment.Vector3.new(0.2, 0.2, 0.2), 1
@@ -38007,9 +38340,14 @@ function AuraFeature.controls(state)
 	local function reapply()
 		if state.selected[state.key] then environment.task.spawn(function() AuraFeature.apply(state) end) end
 	end
+	local function push(field, value)
+		local hook = rawget(environment.getgenv(), "__saladAuraShared")
+		if type(hook) == "function" then pcall(hook, field, value) end
+	end
 	local function set(field, value)
 		if binding or not state.key then return end
 		record()[field] = value
+		push(field, value)
 		reapply()
 	end
 	local function synchronize()
@@ -38068,35 +38406,36 @@ function AuraFeature.controls(state)
 	end})
 	for _, spec in {{"Size", "size", 30, 200, 100, 100, "%"}, {"Height", "lift", -3, 3, 0, 1, ""},
 		{"Density", "density", 10, 200, 100, 100, "%"}, {"Brightness", "bright", 0, 300, 100, 100, "%"}, {"Opacity", "alpha", 10, 100, 100, 100, "%"}} do
-		handles[spec[2]] = section:Slider({Text = spec[1], NoSave = true, Min = spec[3], Max = spec[4], Default = spec[5], Decimals = spec[2] == "lift" and 1 or 0, Suffix = spec[7], Callback = function(value) set(spec[2], value / spec[6]) end})
+		handles[spec[2]] = section:Slider({Text = spec[1], Min = spec[3], Max = spec[4], Default = spec[5], Decimals = spec[2] == "lift" and 1 or 0, Suffix = spec[7], Callback = function(value) set(spec[2], value / spec[6]) end})
 	end
-	handles.custom = section:Toggle({Text = "Custom Color", NoSave = true, Default = false, Callback = function(value)
+	handles.custom = section:Toggle({Text = "Custom Color", Default = false, Callback = function(value)
 		if binding or not state.key then return end
 		local saved = record()
 		if value then saved.r, saved.g, saved.b = tonumber(saved.r) or 255, tonumber(saved.g) or 255, tonumber(saved.b) or 255 end
 		saved.glow = saved.glow or 100
 		set("custom", not not value)
 	end})
-	handles.color = section:Colorpicker({Text = "Color", NoSave = true, Default = environment.Color3.fromRGB(255, 255, 255), Callback = function(color)
+	handles.color = section:Colorpicker({Text = "Color", Default = environment.Color3.fromRGB(255, 255, 255), Callback = function(color)
 		if binding or not state.key or environment.typeof(color) ~= "Color3" then return end
 		local saved = record()
 		saved.r, saved.g, saved.b = math.floor(color.R * 255 + 0.5), math.floor(color.G * 255 + 0.5), math.floor(color.B * 255 + 0.5)
 		saved.custom, saved.glow = true, saved.glow or 100
+		push("color", color)
 		if handles.custom then handles.custom.SetSilent(true) end
 		local tint = environment.getgenv().__saladVFXTint
 		if tint then pcall(tint) end
 	end})
-	handles.glow = section:Slider({Text = "Glow", NoSave = true, Min = 0, Max = 250, Default = 100, Decimals = 0, Suffix = "%", Callback = function(value) set("glow", value) end})
+	handles.glow = section:Slider({Text = "Glow", Min = 0, Max = 250, Default = 100, Decimals = 0, Suffix = "%", Callback = function(value) set("glow", value) end})
 	local function choices(values)
 		local result = {}
 		for _, value in values do table.insert(result, {code = value, label = value}) end
 		return result
 	end
-	handles.motion = section:Dropdown({Text = "Hat Animation", NoSave = true, Default = "None", Options = choices({"None", "Spin", "Float", "Spin + Float", "Sway", "Wobble", "Hover", "Bounce"}), Callback = function(value) set("motion", value) end})
-	handles.fx = section:Dropdown({Text = "Hat Effect", NoSave = true, Default = "None", Options = choices({"None", "Rainbow", "Wave", "Beat"}), Callback = function(value) set("cfx", value) end})
-	handles.aspd = section:Slider({Text = "Hat Speed", NoSave = true, Min = 10, Max = 300, Default = 100, Decimals = 0, Suffix = "%", Callback = function(value) set("aspd", value / 100) end})
-	handles.hideHat = section:Toggle({Text = "Hide Hats", NoSave = true, Default = true, Callback = function(value) set("hideHat", not not value) end})
-	handles.hideHair = section:Toggle({Text = "Hide Hair", NoSave = true, Default = false, Callback = function(value) set("hideHair", not not value) end})
+	handles.motion = section:Dropdown({Text = "Hat Animation", Default = "None", Options = choices({"None", "Spin", "Float", "Spin + Float", "Sway", "Wobble", "Hover", "Bounce"}), Callback = function(value) set("motion", value) end})
+	handles.fx = section:Dropdown({Text = "Hat Effect", Default = "None", Options = choices({"None", "Rainbow", "Wave", "Beat"}), Callback = function(value) set("cfx", value) end})
+	handles.aspd = section:Slider({Text = "Hat Speed", Min = 10, Max = 300, Default = 100, Decimals = 0, Suffix = "%", Callback = function(value) set("aspd", value / 100) end})
+	handles.hideHat = section:Toggle({Text = "Hide Hats", Default = true, Callback = function(value) set("hideHat", not not value) end})
+	handles.hideHair = section:Toggle({Text = "Hide Hair", Default = false, Callback = function(value) set("hideHair", not not value) end})
 	handles.parts = section:Dropdown({Text = "Parts", NoSave = true, Default = "", Options = {}, Callback = function(value)
 		state.group = value
 		if binding then return end
@@ -38119,9 +38458,21 @@ end
 function AuraFeature.install(context)
 	local environment, globals = context.environment, context.environment.getgenv()
 	context.configuration.vfx = type(context.configuration.vfx) == "table" and context.configuration.vfx or {}
+	 
+	for key in pairs(context.configuration.vfx) do context.configuration.vfx[key] = nil end
 	context.configuration.vfxCol = type(context.configuration.vfxCol) == "table" and context.configuration.vfxCol or {}
 	local state = {context = context, data = createAuraData(), selected = context.configuration.vfx, options = context.configuration.vfxCol,
 		hats = {}, hidden = {}, alive = true, key = AURA_CATALOG[1].key, group = nil, category = "All", query = ""}
+	 
+	do
+		local shared
+		for _, value in pairs(state.options) do
+			if type(value) == "table" then shared = value break end
+		end
+		shared = shared or {}
+		context.configuration.vfxCol = {shared = shared}
+		state.options = setmetatable({}, {__index = function() return shared end, __newindex = function() end})
+	end
 	local apply = function(character, selected) AuraFeature.apply(state, character, selected) end
 	local clear = function(character) AuraFeature.clear(state, character) end
 	local mine = function() return AuraFeature.mine(state) end
@@ -39002,7 +39353,6 @@ function Optimizer.installControls(state)
 			end
 		end})
 	end
-	toggle("No Shadows", "noShadows", {"shadow", "lshadow"}, true)
 	toggle("No Map Lights", "noLights", {"light"})
 	toggle("No Post Effects", "noPost", nil, true)
 	toggle("No Particles", "noFx", {"fx"})
@@ -40036,7 +40386,7 @@ function VisualWorld.install(context)
 		color("Color", "atmosphereColour"); color("Horizon", "decay")
 	end)
 	toggle("No atmosphere", "noAtmosphere")
-	toggle("Fog control", "fogOn", function() slider("Fog start", "fogStart", 0, 2000); slider("Fog end", "fogEnd", 100, 2000); color("Color", "fogColour") end)
+	toggle("Fog control", "fogOn", function() slider("Fog start", "fogStart", 0, 2000); slider("Fog end", "fogEnd", 100, 2000); color("Fog color", "fogColour") end)
 	section:Group({Title = "Sky", Side = "Right", Pin = true})
 	dropdown("Skybox", "skybox", {"Game", "Photoreal Day"})
 	toggle("Sky details", "skyOn", function()
@@ -40201,65 +40551,19 @@ function VisualSky.register(state, key, spec, name)
 	state.skies[key] = {spec = spec, name = name, ui = {Set = function(enabled) VisualSky.activate(state, key, enabled == true) end}}
 end
 function VisualSky.gallery(state)
+	if true then return end
 	local context, env, section = state.context, state.context.environment, state.context.section
 	section:Group({Title = "Custom Skies", Side = "Right", Pin = true})
-	local container = section:Container()
-	if not container then return end
-	local create = context.create
-	local frame = create("Frame", {BackgroundTransparency = 1, Size = env.UDim2.new(1, 0, 0, 0), AutomaticSize = env.Enum.AutomaticSize.Y}, container)
-	create("UIGridLayout", {CellSize = env.UDim2.new(0.5, -4, 0, 66), CellPadding = env.UDim2.fromOffset(8, 8),
-		SortOrder = env.Enum.SortOrder.LayoutOrder}, frame)
-	local ok, atlas = pcall(env.getcustomasset, "SaladHub/sky_gallery_v2.jpg")
-	if not ok then atlas = nil end
-	local indices = {animesky = 1, pinksky = 2, heavensky = 3, realsky = 4, rainsky = 5, spacesky = 6, cloudyday = 7,
-		valley = 8, mirror = 9, darkstorm = 10, animeocean = 11, violet = 12, rainbow = 13, cartoon = 14,
-		pastel = 15, blood = 16, moonlit = 17, starry = 18, orbit = 19, nebula = 20, galaxy = 21, mcsky = 22}
-	local tiles = {}
-	local entries = {{name = "Default sky", key = ""}}
-	for _, item in ipairs(CUSTOM_SKIES) do table.insert(entries, item) end
-	for order, item in ipairs(entries) do
-		local button = create("TextButton", {Text = "", AutoButtonColor = false, BorderSizePixel = 0, LayoutOrder = order,
-			BackgroundColor3 = env.Color3.new(1, 1, 1)}, frame)
-		context.corner(button, 10)
-		local picture = create("ImageLabel", {BackgroundTransparency = 1, Size = env.UDim2.fromScale(1, 1),
-			ScaleType = env.Enum.ScaleType.Crop}, button)
-		context.corner(picture, 10)
-		local index = indices[item.key]
-		if index and atlas then
-			picture.Image = atlas
-			picture.ImageRectOffset = env.Vector2.new((index - 1) % 4 * 256, math.floor((index - 1) / 4) * 160)
-			picture.ImageRectSize = env.Vector2.new(256, 160)
-		elseif item.spec and item.spec.faces then
-			picture.Image = "rbxassetid://" .. tostring(item.spec.faces[3] or item.spec.faces[1])
-		end
-		local shade = create("Frame", {AnchorPoint = env.Vector2.new(0, 1), Position = env.UDim2.new(0, 5, 1, -5),
-			Size = env.UDim2.new(1, -10, 0, 18), BorderSizePixel = 0, BackgroundColor3 = env.Color3.new(0, 0, 0),
-			BackgroundTransparency = 0.4}, button)
-		context.corner(shade, 6)
-		local label = context.nova.label({Parent = shade, Text = context.translation.tr(item.name), Font = context.nova.Font.Semi(),
-			Size = 11, Pos = env.UDim2.fromOffset(7, 0), Box = env.UDim2.new(1, -12, 1, 0), Truncate = true, Color = "Text"})
-		context.translation.bind(label, item.name)
-		local stroke = create("UIStroke", {Thickness = 1, Transparency = 0.8, ApplyStrokeMode = env.Enum.ApplyStrokeMode.Border}, button)
-		context.nova.Theme.bind(stroke, "Color", "Glass")
-		local tile = {key = item.key, stroke = stroke, shade = shade, hover = false}
-		table.insert(tiles, tile)
-		context.connect(button.MouseButton1Click, function()
-			if item.key == "" then
-				if state.active then VisualSky.activate(state, state.active, false) end
-			else VisualSky.activate(state, item.key, true) end
-		end)
-		context.connect(button.MouseEnter, function() tile.hover = true; state.paint() end)
-		context.connect(button.MouseLeave, function() tile.hover = false; state.paint() end)
-	end
+	local options = {{code = "", label = "Default sky"}}
+	for _, item in ipairs(CUSTOM_SKIES) do table.insert(options, {code = item.key, label = item.name}) end
+	local control = section:Dropdown({Text = "Sky", Options = options, Default = "", NoSave = true, Callback = function(key)
+		if key == nil or key == "" then
+			if state.active then VisualSky.activate(state, state.active, false) end
+		else VisualSky.activate(state, key, true) end
+	end})
 	state.paint = function()
-		for _, tile in ipairs(tiles) do
-			local selected = tile.key == (state.active or "")
-			context.nova.paint(tile.stroke, "Color", (selected or tile.hover) and "Accent" or "Glass", "Quick")
-			tile.stroke.Transparency, tile.stroke.Thickness = selected and 0 or (tile.hover and 0.4 or 0.8), selected and 2 or 1
-			tile.shade.BackgroundTransparency = selected and 0.62 or 0.4
-		end
+		if control and control.SetSilent then control.SetSilent(state.active or "") end
 	end
-	state.paint()
 end
 function VisualSky.install(context)
 	local original
@@ -41164,6 +41468,7 @@ function Weather.applyExtra(state, preset)
 	Weather.syncUI(state)
 end
 function Weather.sceneGallery(state)
+	if true then return false end
 	local context, env = state.context, state.context.environment
 	local container = context.section:Container()
 	if not container then return false end
@@ -41218,6 +41523,7 @@ function Weather.sceneGallery(state)
 	return true
 end
 function Weather.skyGallery(state)
+	if true then return false end
 	local context, env = state.context, state.context.environment
 	local container = context.section:Container()
 	if not container then return false end
@@ -41342,6 +41648,14 @@ function Weather.install(context)
 	if not skiesReady or not skiesShown then
 		local skies = {{code = "", label = "Default sky"}}
 		for _, sky in ipairs(state.skies) do table.insert(skies, {code = sky.key, label = sky.name}) end
+		do
+			local skyApi, extra = env.getgenv().__saladSkyAPI, {}
+			for key, info in pairs(skyApi and skyApi.skies or {}) do
+				if info.name then table.insert(extra, {code = key, label = info.name}) end
+			end
+			table.sort(extra, function(a, b) return a.label < b.label end)
+			for _, item in ipairs(extra) do table.insert(skies, item) end
+		end
 		local skyControl = section:Dropdown({Text = "Sky", Options = skies, Default = "", NoSave = true, Callback = function(key)
 			if state.batch then return end
 			if key == "" then Weather.setSky(state, nil); if v.matchLight then Weather.restoreLook(state) end
@@ -42059,8 +42373,6 @@ function SkyFx.install(context)
 	end
 	section:Sub("SkyFX")
 	section:Columns()
-	section:Group({Title = "Sky Effects", Side = "Left", Pin = true})
-	pcall(SkyFx.gallery, state)
 	section:Group({Title = "Sky Settings", Side = "Left", Pin = true})
 	slider("Effect brightness", "general", "bright", 30, 200, "%")
 	section:Button({Text = "Turn all off", Callback = function()
@@ -49193,9 +49505,7 @@ function SaladApplication.installGeneral(context)
 	context.section:Header("General", "Left")
 	context.section:Toggle({Text = "Anti AFK", Default = context.defaults.afk.on,
 		Callback = function(enabled) settings.afk.on = enabled end})
-	context.section:Slider({Text = "Screen Stretch", Min = 0, Max = 100,
-		Default = math.floor((context.defaults.ui.stretch or 0) + 0.5), Decimals = 0, Suffix = "%",
-		Callback = function(value) settings.ui.stretch = value end})
+	if type(settings.ui) == "table" then settings.ui.stretch = 0 end
 	context.section:Toggle({Text = "Trolly NPC", Default = type(context.defaults.npc) ~= "table" or context.defaults.npc.on ~= false,
 		Callback = function(enabled)
 			if type(settings.npc) ~= "table" then settings.npc = {} end
@@ -49218,7 +49528,10 @@ function SaladApplication.installGeneral(context)
 		end})
 	if context.window then
 		context.section:Button({Text = "Unload hub", DoubleClick = true, Callback = function()
-			environment.task.defer(function() context.window:Destroy() end)
+			environment.task.defer(function()
+				local all = environment.getgenv().ZolarUnloadAll
+				if type(all) == "function" then all() else context.window:Destroy() end
+			end)
 		end})
 	end
 	context.connect(context.runService.RenderStepped, function()
@@ -49704,10 +50017,11 @@ end
 do
 local ok, err = pcall(function()
 local env = getgenv()
+local function unloadAll()
 local UNLOADERS = {
-	"ZolarWatermarkUnload", "ZolarFxUnload", "ZolarSanityUnload", "ZolarExtrasUnload", "ZolarSaladUnload",
+	"ZolarWatermarkUnload", "ZolarCatalogUnload", "ZolarFxUnload", "ZolarSanityUnload", "ZolarExtrasUnload", "ZolarSaladUnload",
 	"ZolarPulseUnload", "ZolarMediaUnload", "ZolarModulesUnload", "ZolarVisualsUnload", "ZolarCombatUnload",
-	"AURA_UNLOAD", "AUTOFARM_UNLOAD", "AUTOGRAB_UNLOAD", "CHARACTER_UNLOAD", "CROSSHAIR_UNLOAD", "FAKE_POS_UNLOAD",
+	"AURA_UNLOAD", "__ZolarSelfChamsClear", "chibi_unload", "footsteps_unload", "ktrail_unload", "kwarn_unload", "rtimer_unload", "bhop_unload", "AUTOFARM_UNLOAD", "AUTOGRAB_UNLOAD", "CHARACTER_UNLOAD", "CROSSHAIR_UNLOAD", "FAKE_POS_UNLOAD",
 	"FAKE_UNLOAD", "FLINGROLES_UNLOAD", "GUN_ESP_UNLOAD", "KILLAURA_UNLOAD", "KILL_UNLOAD", "KNIFE_UNLOAD",
 	"LOCAL_VIS_UNLOAD", "MISC_TOOLS_UNLOAD", "MISC_UNLOAD", "NOTIFY_UNLOAD", "PIXEL_SURF_UNLOAD",
 	"PLAYERS_DEATH_UNLOAD", "SHOWVALUES_UNLOAD", "SILENT_UNLOAD", "SKIN_UNLOAD", "SOUNDS_UNLOAD", "TARGET_UNLOAD",
@@ -49758,6 +50072,9 @@ local run = game:GetService("RunService")
 for _, name in ipairs({ "shitaro_fakepos_cam", "shitaro_aspect", "SaladFakePos", "PulseFakePos" }) do
 	pcall(function() run:UnbindFromRenderStep(name) end)
 end
+end
+env.ZolarUnloadAll = unloadAll
+unloadAll()
 end)
 if not ok then warn("[Salad] cleanup.lua: " .. tostring(err)) end
 end
@@ -50007,7 +50324,21 @@ local Library = { } do
     end
     DeriveTheme()
     Library.Flags = { }
-    Library.SetFlags = { }
+    Library.FlagOrder = { }
+    Library.FlagSeen = { }
+    Library.SetFlags = setmetatable({ }, {
+        __newindex = function(Self, Key, Value)
+            rawset(Self, Key, Value)
+            if not Library.FlagSeen[Key] then
+                Library.FlagSeen[Key] = true
+                table.insert(Library.FlagOrder, Key)
+            end
+        end
+    })
+     
+    Library.ConfigSkip = {
+        catalog_section = true, catalog_sort = true, target_players = true,
+    }
     Library.Connections = { }
     Library.Threads = { }
     Library.ThemingStuff = { }
@@ -50448,6 +50779,7 @@ local Library = { } do
         end)
     end
     Library.Unload = function(Self)
+        Library.Unloaded = true
         for _, Connection in Library.Connections do
             pcall(function()
                 Connection:Disconnect()
@@ -50886,6 +51218,7 @@ local Library = { } do
             if Popup.IsOpen == Bool then return end
             Popup.IsOpen = Bool
             Popup.Debounce = true
+            if Library.SoundHook then Library:SafeCall(Library.SoundHook, "popup", Bool) end
             if Popup.OnState then Popup.OnState(Bool) end
             if Popup.Host and Popup.Host.SetChildDim then
                 Popup.Host.SetChildDim(Bool)
@@ -51384,6 +51717,9 @@ local Library = { } do
             if type(Color) == "string" then
                 Color = Color3.fromHex(Color)
             end
+            if typeof(Color) ~= "Color3" then return end
+             
+            Color = Color3.new(math.clamp(Color.R, 0, 1), math.clamp(Color.G, 0, 1), math.clamp(Color.B, 0, 1))
             Picker.Hue, Picker.Saturation, Picker.Value = Color:ToHSV()
             Picker.Transparency = Alpha or Picker.Transparency or 0
             if Silent then
@@ -51546,8 +51882,10 @@ local Library = { } do
                 if Item.Key and not Item.Picking and KeyMatches(Input, Item.Key) then
                     if Item.Mode == "Hold" then
                         Item.Held = true
+                        if Library.SoundHook then Library:SafeCall(Library.SoundHook, "toggle", true) end
                         Item.Toggle:Set(true)
                     else
+                        if Library.SoundHook then Library:SafeCall(Library.SoundHook, "toggle", not Item.Toggle.Value) end
                         Item.Toggle:Set(not Item.Toggle.Value)
                     end
                 end
@@ -51557,6 +51895,7 @@ local Library = { } do
             for _, Item in Library.BindList do
                 if Item.Held and Item.Key and KeyMatches(Input, Item.Key) then
                     Item.Held = false
+                    if Library.SoundHook then Library:SafeCall(Library.SoundHook, "toggle", false) end
                     Item.Toggle:Set(false)
                 end
             end
@@ -52131,11 +52470,37 @@ local Library = { } do
             Swing({ "Left Arm" })
             Swing({ "Right Arm" })
         end
-        local function Rebuild()
+         
+        local Shells = { }
+        local function PathOf(Part, Character)
+            local Path = { }
+            local At = Part
+            while At and At ~= Character do
+                table.insert(Path, 1, At.Name)
+                At = At.Parent
+            end
+            return At == Character and Path or nil
+        end
+        local function SyncShells()
+            for Index = #Shells, 1, -1 do
+                local Entry = Shells[Index]
+                if Entry.Copy.Parent and Entry.Target.Parent then
+                    Entry.Copy.CFrame = Entry.Target.CFrame
+                    if Entry.Source.Parent then
+                        Entry.Copy.Color = Entry.Source.Color
+                        Entry.Copy.Transparency = Entry.Source.Transparency
+                    end
+                else
+                    table.remove(Shells, Index)
+                end
+            end
+        end
+        local function Rebuild(Keep)
             if Model then
                 Model:Destroy()
                 Model = nil
             end
+            table.clear(Shells)
             local Character = Players.LocalPlayer.Character
             if Character then
                 local Was = Character.Archivable
@@ -52154,15 +52519,77 @@ local Library = { } do
                     if Humanoid then
                         Humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
                     end
+                     
+                    local Getter = getgenv().__ZolarSelfShells
+                    local Ok2, List = pcall(function() return type(Getter) == "function" and Getter() or { } end)
+                    for _, Pair in (Ok2 and List or { }) do
+                        local Path = PathOf(Pair.source, Character)
+                        local Target = Clone
+                        for _, Name in Path or { } do
+                            Target = Target and Target:FindFirstChild(Name)
+                        end
+                        if Path and Target and Target:IsA("BasePart") then
+                            local Okc, Copy = pcall(function() return Pair.clone:Clone() end)
+                            if Okc and Copy then
+                                Copy.Name = "SelfShell"
+                                Copy.Anchored = true
+                                Copy.CFrame = Target.CFrame
+                                Copy.Parent = Clone
+                                table.insert(Shells, { Copy = Copy, Target = Target, Source = Pair.clone })
+                            end
+                        end
+                    end
                     Clone:PivotTo(CFrame.new(0, 0, 0))
                     Pose(Clone)
+                    SyncShells()
                     Clone.Parent = Items.View.Instance
                     Model = Clone
                 end
             end
+            if Keep and Model then
+                Model:PivotTo(CFrame.Angles(0, Yaw, 0))
+                SyncShells()
+                Layout(false)
+                return
+            end
             Yaw, Zoom, BaseDistance = 0, 1, nil
             Layout(true)
         end
+         
+         
+        local function Signature()
+            local Character = Players.LocalPlayer.Character
+            if not Character then return "none" end
+            local Bits = { }
+            for _, Part in Character:GetDescendants() do
+                if Part:IsA("BasePart") then
+                    table.insert(Bits, Part.Name .. Part.Material.Value .. Part.Color:ToHex() .. math.floor(Part.Transparency * 20))
+                elseif Part:IsA("Clothing") or Part:IsA("ShirtGraphic") or Part:IsA("Accessory") or Part:IsA("Decal") or Part:IsA("BodyColors") then
+                    table.insert(Bits, Part.ClassName .. Part.Name)
+                end
+            end
+            local Getter = getgenv().__ZolarSelfShells
+            local Ok, List = pcall(function() return type(Getter) == "function" and Getter() or { } end)
+            table.insert(Bits, "shells" .. (Ok and #List or 0))
+            return table.concat(Bits, "|")
+        end
+        local LastSignature
+        task.spawn(function()
+            while Library and not Library.Unloaded do
+                task.wait(0.6)
+                if Preview.Open then
+                    local Ok, Now = pcall(Signature)
+                    if Ok and Now ~= LastSignature then
+                        local First = LastSignature == nil
+                        LastSignature = Now
+                        pcall(Rebuild, not First and Model ~= nil)
+                    end
+                end
+            end
+        end)
+        Library:Connect(RunService.Heartbeat, function()
+            if Preview.Open and #Shells > 0 then SyncShells() end
+        end)
         function Preview:Refresh()
             Rebuild()
         end
@@ -52604,6 +53031,50 @@ local Library = { } do
             TextSize = 15,
             Z = 4
         })
+         
+        for Index, Social in {
+            { "telegram", "https://t.me/+9ccf8lyjyXs1YmM1", "Telegram" },
+            { "tiktok", "https://www.tiktok.com/@yanderovs", "TikTok" }
+        } do
+            local Holder = MakeFrame({
+                Parent = Items.TopBar.Instance,
+                Pos = UDim2.fromOffset(336 + (Index - 1) * 36, 11),
+                Size = UDim2.fromOffset(30, 30),
+                Color = "Element",
+                Round = 5,
+                Z = 3
+            })
+            local Glyph = Instance.new("ImageLabel")
+            Glyph.BackgroundTransparency = 1
+            Glyph.AnchorPoint = Vector2.new(0.5, 0.5)
+            Glyph.Position = UDim2.fromScale(0.5, 0.5)
+            Glyph.Size = UDim2.fromOffset(18, 18)
+            Glyph.ZIndex = 4
+            Glyph.ImageColor3 = Library.Theme.DimText
+            Glyph.Parent = Holder.Instance
+            pcall(function()
+                Glyph.Image = getcustomasset(Library.Directory .. "/Assets/social/" .. Social[1] .. ".png")
+            end)
+            local Hit = MakeButton({
+                Parent = Holder.Instance,
+                Z = 5
+            })
+            Hit:OnHover(function()
+                Library:Tween({ ImageColor3 = Library.Theme.Text }, nil, Glyph)
+            end, function()
+                Library:Tween({ ImageColor3 = Library.Theme.DimText }, nil, Glyph)
+            end)
+            Hit:Connect("MouseButton1Click", function()
+                local Copied = pcall(function()
+                    (setclipboard or toclipboard)(Social[2])
+                end)
+                Library:Notification({
+                    Name = Copied and (Social[3] .. " link copied") or Social[3],
+                    Description = Social[2],
+                    Icon = Copied and "copy" or "link"
+                })
+            end)
+        end
         Items.Username = MakeText({
             Parent = Items.TopBar.Instance,
             Text = LocalPlayer.DisplayName,
@@ -53107,7 +53578,7 @@ local Library = { } do
             return Veil
         end
         local function FadeVeils(Opaque, Time, Only)
-            local Info = TweenInfo.new(Time, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+            local Info = TweenInfo.new(Time, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
             for Name, Veil in Window.Veils do
                 if not Only or Only[Name] then
                     Library:Tween({ BackgroundTransparency = Opaque and 0 or 1 }, Info, Veil.Instance)
@@ -53116,6 +53587,7 @@ local Library = { } do
         end
         local OpenToken = 0
         function Window:SetOpen(Bool)
+            if Library.SoundHook and Window.IsOpen ~= Bool then Library:SafeCall(Library.SoundHook, "window", Bool) end
             Window.IsOpen = Bool
             OpenToken += 1
             local Token = OpenToken
@@ -53129,8 +53601,8 @@ local Library = { } do
             if Bool then
                 Window:PlayIntro()
             else
-                FadeVeils(true, 0.18)
-                task.delay(0.2, function()
+                FadeVeils(true, 0.22)
+                task.delay(0.24, function()
                     if OpenToken == Token and not Window.IsOpen then
                         Items.Root.Instance.Visible = false
                     end
@@ -53210,15 +53682,13 @@ local Library = { } do
             if not Root.Visible or not Window.RestPosition then
                 Window.RestPosition = Root.Position
             end
-            local Base = Window.RestPosition
-            local Rise = TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-            Root.Position = UDim2.new(Base.X.Scale, Base.X.Offset, Base.Y.Scale, Base.Y.Offset + 14)
+             
+            Root.Position = Window.RestPosition
             Root.Visible = true
             for _, Veil in Window.Veils do
                 Veil.Instance.BackgroundTransparency = 0
             end
-            FadeVeils(false, 0.34)
-            Library:Tween({ Position = Base }, Rise, Root)
+            FadeVeils(false, 0.22)
         end
         Window:AddVeil(Items.Main, "Background", 10, "main")
         Window:AddVeil(Items.Rail, "Section", 10, "rail")
@@ -54076,6 +54546,7 @@ local Library = { } do
             Tag.Position = UDim2.new(0, 15 + LabelW + 8, 0.5, 0)
             Tag.Visible = true
         end
+        Bind.Refresh = RefreshBind
         Library:Connect(Items.Label.Instance:GetPropertyChangedSignal("TextBounds"), RefreshBind)
         task.defer(RefreshBind)
         local ModePanel = MakeFrame({
@@ -55561,7 +56032,7 @@ local Library = { } do
                 table.insert(List.Order, Name)
             end
             if List.Flag then
-                Library.Flags[List.Flag] = Value()
+                Library.Flags[List.Flag] = Value() or ""
             end
             PaintAll()
             Library:SafeCall(List.Callback, Value(), Entry)
@@ -55847,16 +56318,44 @@ local Library = { } do
                 end
             end
              
+             
+            local Arrived = false
+            for Name in List.Pending or { } do
+                if Seen[Name] then
+                    List.Pending[Name] = nil
+                    if not List.Selected[Name] then
+                        if not Multi then List.Selected, List.Order = { }, { } end
+                        List.Selected[Name] = true
+                        table.insert(List.Order, Name)
+                    end
+                    Arrived = true
+                end
+            end
+             
             for Name in List.Selected do
-                if not Seen[Name] then
+                if not Seen[Name] and not (List.Pending and List.Pending[Name]) then
                     List.Selected[Name] = nil
                     local At = table.find(List.Order, Name)
                     if At then table.remove(List.Order, At) end
                 end
             end
             Refilter(true)
+            if Arrived then
+                if List.Flag then Library.Flags[List.Flag] = Value() or "" end
+                PaintAll()
+                Library:SafeCall(List.Callback, Value())
+            end
         end
         function List:SetValue(Names, Silent)
+             
+            List.Pending = { }
+            if not Silent then
+                local Known = { }
+                for _, Item in List.Data or { } do Known[tostring(Item.name)] = true end
+                for _, Name in (type(Names) == "string" and { Names } or Names or { }) do
+                    if not Known[Name] then List.Pending[Name] = true end
+                end
+            end
             List.Selected, List.Order = { }, { }
             if type(Names) == "string" then
                 Names = { Names }
@@ -55866,7 +56365,7 @@ local Library = { } do
                 table.insert(List.Order, Name)
             end
             if List.Flag then
-                Library.Flags[List.Flag] = Value()
+                Library.Flags[List.Flag] = Value() or ""
             end
             PaintAll()
             if not Silent then
@@ -55880,8 +56379,9 @@ local Library = { } do
             return Favorites[Key][Name] == true
         end
         if List.Flag then
-            Library.Flags[List.Flag] = Value()
+            Library.Flags[List.Flag] = Value() or ""
             Library.SetFlags[List.Flag] = function(Saved)
+                if Saved == "" or Saved == nil then Saved = { } end
                 List:SetValue(Saved)
             end
         end
@@ -56305,15 +56805,17 @@ local Library = { } do
                 Data = HttpService:JSONDecode(readfile(ConfigPath(Name)))
             end)
             local Count = 0
-            for Key in Data do
+            local Flags = type(Data.flags) == "table" and Data.flags or Data
+            for Key in Flags do
                 if string.sub(Key, 1, 2) ~= "__" then
                     Count += 1
                 end
             end
-            local Same = Data.__version == Library.Version
-            InfoRows.Version.Instance.Text = Data.__version or "Unknown"
+            local Version = Data.version or Data.__version
+            local Same = Version == Library.Version
+            InfoRows.Version.Instance.Text = Version or "Unknown"
             InfoRows.Compatible.Instance.Text = Same and "Compatible" or "Outdated"
-            InfoRows.Created.Instance.Text = Data.__created or "Unknown"
+            InfoRows.Created.Instance.Text = (Data.updated and ("saved " .. Data.updated)) or Data.__created or "Unknown"
             InfoRows.Creator.Instance.Text = Data.__creator or "Unknown"
             InfoRows.Elements.Instance.Text = tostring(Count) .. " flags"
         end
@@ -56535,6 +57037,8 @@ local Library = { } do
                     Created = HttpService:JSONDecode(readfile(ConfigPath(Name))).__created
                 end)
                 writefile(ConfigPath(Name), Library:GetConfig(Created))
+                Library:MirrorConfig(Name)
+                Library:SetActiveConfig(Name)
                 ShowInfo(Name)
                 Library:Notification({
                     Name = "Config saved",
@@ -56560,10 +57064,16 @@ local Library = { } do
                 if delfile and isfile and isfile(ConfigPath(Name)) then
                     delfile(ConfigPath(Name))
                 end
+                 
+                pcall(function()
+                    local Backup = Library.Directory .. "/Data/ConfigBackup/" .. Name .. ".json"
+                    if isfile(Backup) then delfile(Backup) end
+                end)
                 if Config.Selected == Name then
                     Config.Selected = nil
                     ShowInfo(nil)
                 end
+                if Library.ActiveConfig == Name then Library:SetActiveConfig(nil) end
                 local Index = table.find(Config.Rows, Data)
                 if Index then table.remove(Config.Rows, Index) end
                 local Sink = TweenInfo.new(0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
@@ -56602,6 +57112,7 @@ local Library = { } do
                 end
                 ShowInfo(Name)
                 Library:LoadConfigFile(Name)
+                Library:SetActiveConfig(Name)
                 if RefreshThemeUI then
                     RefreshThemeUI()
                 end
@@ -56646,6 +57157,8 @@ local Library = { } do
                 return
             end
             writefile(ConfigPath(Name), Library:GetConfig())
+            Library:MirrorConfig(Name)
+            Library:SetActiveConfig(Name)
             Items.NameInput.Instance.Text = ""
             Config.Selected = Name
             RefreshList()
@@ -56815,59 +57328,188 @@ local Library = { } do
         end
         return Watermark
     end
+     
+     
+     
+     
+     
+    local CONFIG_FORMAT = 2
+    local function Encode(Value)
+        local Kind = typeof(Value)
+        if Kind == "Color3" then return { __color = Value:ToHex() } end
+        if Kind == "EnumItem" then return tostring(Value) end
+        if Kind == "table" then
+            local Copy = { }
+            for Key, Item in Value do Copy[Key] = Encode(Item) end
+            return Copy
+        end
+        if Kind == "number" or Kind == "boolean" or Kind == "string" then return Value end
+        return nil
+    end
+    local function Same(A, B)
+        local OkA, JsonA = pcall(function() return HttpService:JSONEncode({ A }) end)
+        local OkB, JsonB = pcall(function() return HttpService:JSONEncode({ B }) end)
+        return OkA and OkB and JsonA == JsonB
+    end
     Library.GetConfig = function(Self, Created)
-        local Config = { }
+        local Flags = { }
         for Index, Value in Library.Flags do
-            if typeof(Value) == "Color3" then
-                Config[Index] = { __color = Value:ToHex() }
-            else
-                Config[Index] = Value
+            if not Library.ConfigSkip[Index] then
+                local Encoded = Encode(Value)
+                if Encoded ~= nil then Flags[Index] = Encoded end
+            end
+        end
+        local Binds = { }
+        for _, Bind in Library.BindList or { } do
+            if Bind.Key then
+                Binds[Bind.Id] = { Key = tostring(Bind.Key), Mode = Bind.Mode }
             end
         end
         local ThemeColors = { }
         for _, Key in Library.ThemeKeys do
             ThemeColors[Key] = Library.Theme[Key]:ToHex()
         end
-        Config.__accent = Library.Theme.Accent:ToHex()
-        Config.__theme = ThemeColors
-        Config.__created = Created or os.date("%d.%m.%Y %H:%M")
-        Config.__version = Library.Version
-        Config.__creator = LocalPlayer.DisplayName
-        return HttpService:JSONEncode(Config)
+        return HttpService:JSONEncode({
+            format = CONFIG_FORMAT,
+            created = Created or os.date("%d.%m.%Y %H:%M"),
+            updated = os.date("%d.%m.%Y %H:%M"),
+            creator = LocalPlayer.DisplayName,
+            version = Library.Version,
+            flags = Flags,
+            binds = Binds,
+            theme = ThemeColors,
+            accent = Library.Theme.Accent:ToHex(),
+             
+            __created = Created or os.date("%d.%m.%Y %H:%M"),
+            __creator = LocalPlayer.DisplayName,
+        })
+    end
+    local function ApplyOne(Index, Value)
+        local SetFunction = Library.SetFlags[Index]
+        if not SetFunction then return false end
+        local Ok = pcall(function()
+            if type(Value) == "table" and Value.__color then
+                local OkColor, Color = pcall(Color3.fromHex, Value.__color)
+                if OkColor then SetFunction(Color, Value.__alpha) end
+            else
+                SetFunction(Value)
+            end
+        end)
+        return Ok
+    end
+    local function Matches(Index, Value)
+        local Current = Library.Flags[Index]
+        if type(Value) == "table" and Value.__color and type(Current) == "table" and Current.__color then
+            return string.lower(Value.__color) == string.lower(Current.__color)
+        end
+        return Same(Current, Value)
     end
     Library.LoadConfig = function(Self, Config)
         local Ok, Decoded = pcall(function()
             return HttpService:JSONDecode(Config)
         end)
-        if not Ok or type(Decoded) ~= "table" then return false end
+        if not Ok or type(Decoded) ~= "table" then return false, "the file is not a config" end
+         
+        local Flags = type(Decoded.flags) == "table" and Decoded.flags or Decoded
+        local Theme = Decoded.theme or Decoded.__theme
+        local Accent = Decoded.accent or Decoded.__accent
         Library.Silent = true
-        for Index, Value in Decoded do
-            local SetFunction = Library.SetFlags[Index]
-            if not SetFunction then continue end
-            if type(Value) == "table" and Value.__color then
-                SetFunction(Color3.fromHex(Value.__color), Value.__alpha)
-            else
-                SetFunction(Value)
+        Library.LoadingConfig = true
+         
+        local Done, Pending = { }, { }
+        for _, Index in Library.FlagOrder do
+            local Value = Flags[Index]
+            if Value ~= nil and not Library.ConfigSkip[Index] then
+                Done[Index] = true
+                if not Matches(Index, Value) then ApplyOne(Index, Value) end
             end
         end
-        if type(Decoded.__theme) == "table" then
-            for Key, Hex in Decoded.__theme do
+        for Index, Value in Flags do
+            if not Done[Index] and type(Index) == "string" and string.sub(Index, 1, 2) ~= "__"
+                and Library.SetFlags[Index] and not Library.ConfigSkip[Index] then
+                ApplyOne(Index, Value)
+            end
+        end
+         
+        if type(Decoded.binds) == "table" then
+            for _, Bind in Library.BindList or { } do
+                local Saved = Decoded.binds[Bind.Id]
+                if type(Saved) == "table" and Saved.Key then
+                    Bind.Key = ParseKey(Saved.Key)
+                    Bind.Mode = Saved.Mode == "Hold" and "Hold" or "Toggle"
+                else
+                    Bind.Key = nil
+                end
+                if Bind.Refresh then pcall(Bind.Refresh) end
+            end
+            pcall(function() Library:SaveBinds() end)
+        end
+        if type(Theme) == "table" then
+            for Key, Hex in Theme do
                 local OkColor, Color = pcall(Color3.fromHex, Hex)
                 if OkColor then Library.Theme[Key] = Color end
             end
             DeriveTheme()
             Library.ThemeDirty = true
         end
-        if type(Decoded.__accent) == "string" then
-            local OkColor, Color = pcall(Color3.fromHex, Decoded.__accent)
+        if type(Accent) == "string" then
+            local OkColor, Color = pcall(Color3.fromHex, Accent)
             if OkColor then Library:SetAccent(Color) end
         end
+         
+         
+        task.delay(0.4, function()
+            for _, Index in Library.FlagOrder do
+                local Value = Flags[Index]
+                if Value ~= nil and not Library.ConfigSkip[Index] and not Matches(Index, Value) then
+                    ApplyOne(Index, Value)
+                end
+            end
+            Library.LoadingConfig = false
+        end)
         Library.Silent = false
         return true
+    end
+     
+    Library.ActiveConfig = nil
+     
+     
+    function Library:SetActiveConfig(Name)
+        Library.ActiveConfig = Name
+        if not (writefile and listfiles) then return end
+        pcall(function()
+            for _, File in listfiles(Library.ConfigFolder) do
+                local Own = string.match(File, "([^/\\]+)%.json$")
+                if Own then
+                    local Ok, Data = pcall(function() return HttpService:JSONDecode(readfile(File)) end)
+                    if Ok and type(Data) == "table" then
+                        local Want = Own == Name or nil
+                        if Data.__active ~= Want then
+                            Data.__active = Want
+                            writefile(Library.ConfigFolder .. "/" .. Own .. ".json", HttpService:JSONEncode(Data))
+                        end
+                    end
+                end
+            end
+        end)
+    end
+    function Library:ReadActiveConfig()
+        local Name
+        pcall(function()
+            for _, File in listfiles(Library.ConfigFolder) do
+                local Own = string.match(File, "([^/\\]+)%.json$")
+                if Own then
+                    local Ok, Data = pcall(function() return HttpService:JSONDecode(readfile(File)) end)
+                    if Ok and type(Data) == "table" and Data.__active == true then Name = Own end
+                end
+            end
+        end)
+        return Name
     end
     Library.SaveConfigFile = function(Self, Name)
         if not writefile then return false end
         writefile(Library.ConfigFolder .. "/" .. Name .. ".json", Library:GetConfig())
+        Library:MirrorConfig(Name)
         return true
     end
     Library.LoadConfigFile = function(Self, Name)
@@ -56876,9 +57518,31 @@ local Library = { } do
         if not isfile(Path) then return false end
         return Library:LoadConfig(readfile(Path))
     end
+     
+     
+    function Library:MirrorConfig(Name)
+        pcall(function()
+            local Folder = Library.Directory .. "/Data/ConfigBackup"
+            if not isfolder(Folder) then makefolder(Folder) end
+            writefile(Folder .. "/" .. Name .. ".json", readfile(Library.ConfigFolder .. "/" .. Name .. ".json"))
+        end)
+    end
+    function Library:RestoreConfigs()
+        pcall(function()
+            local Folder = Library.Directory .. "/Data/ConfigBackup"
+            if not isfolder(Folder) then return end
+            for _, File in listfiles(Folder) do
+                local Name = string.match(File, "([^/\\]+)%.json$")
+                if Name and not isfile(Library.ConfigFolder .. "/" .. Name .. ".json") then
+                    writefile(Library.ConfigFolder .. "/" .. Name .. ".json", readfile(File))
+                end
+            end
+        end)
+    end
     Library.ListConfigs = function(Self)
         local Result = { }
         if not listfiles then return Result end
+        Library:RestoreConfigs()
         for _, File in listfiles(Library.ConfigFolder) do
             if string.sub(File, -5) ~= ".json" then continue end
             local Name = string.match(File, "([^/\\]+)%.json$")
@@ -56970,1454 +57634,6 @@ local function adapt(section)
 end
  
 local knife_ind = { Set = function() end }
-local function loadSheriff(Sec)
-do
-	local rs = game:GetService("ReplicatedStorage")
-	local players = game:GetService("Players")
-	local collection = game:GetService("CollectionService")
-	local run = game:GetService("RunService")
-	local lp = players.LocalPlayer
-	local stats = game:GetService("Stats")
-	getgenv().SILENT_S = {
-		enabled = false,
-		predict = false,
-		force = false,
-		auto_on = false,
-		auto_delay = 0,
-		am_sheriff = false,
-		fire_gap = 0,
-		last_shot = 0,
-		stand_off = 15,
-	}
-	local S = getgenv().SILENT_S
-	local silent_section = Sec
-	local MAX_RANGE = 300
-	local gap_min = 0
-	local gap_seen = false
-	local gap_gun = nil
-	local want_since = 0
-	local function gap_reset()
-		gap_min = 0
-		gap_seen = false
-		S.fire_gap = 0
-	end
-	local function gap_push(value)
-		if value <= 0 then return end
-		if not gap_seen or value < gap_min then
-			gap_min = value
-			gap_seen = true
-			S.fire_gap = value
-		end
-	end
-	local round_mod = nil
-	local function get_round()
-		if round_mod then return round_mod end
-		local ok, m = pcall(function()
-			return require(rs:WaitForChild("Modules"):WaitForChild("CurrentRoundClient"))
-		end)
-		if ok and type(m) == "table" then round_mod = m end
-		return round_mod
-	end
-	local function holds(container, name)
-		return container ~= nil and container:FindFirstChild(name) ~= nil
-	end
-	local function lp_has_gun()
-		return holds(lp.Character, "Gun") or holds(lp:FindFirstChildOfClass("Backpack"), "Gun")
-	end
-	local target_player = nil
-	local target_char = nil
-	local target_part = nil
-	local target_hum = nil
-	local function refresh_target()
-		local found = nil
-		local m = get_round()
-		local data = m and m.PlayerData or nil
-		if type(data) == "table" then
-			local me = data[lp.Name]
-			S.am_sheriff = (me ~= nil and (me.Role == "Sheriff" or me.Role == "Hero")) or lp_has_gun()
-			for name, d in pairs(data) do
-				if type(d) == "table" and d.Role == "Murderer" and not d.Dead then
-					found = players:FindFirstChild(name)
-					break
-				end
-			end
-		else
-			S.am_sheriff = lp_has_gun()
-		end
-		if not found then
-			for _, plr in ipairs(players:GetPlayers()) do
-				if plr ~= lp and holds(plr.Character, "Knife") then
-					found = plr
-					break
-				end
-			end
-		end
-		if found ~= target_player then
-			target_player = found
-			target_char = nil
-			target_part = nil
-			target_hum = nil
-		end
-		if not found then return end
-		local char = found.Character
-		if char ~= target_char then
-			target_char = char
-			target_part = nil
-			target_hum = nil
-		end
-		if not char then return end
-		if not target_part or not target_part.Parent then
-			target_part = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso")
-		end
-		if not target_hum or not target_hum.Parent then
-			target_hum = char:FindFirstChildOfClass("Humanoid")
-		end
-	end
-	local function target_alive()
-		if not target_part or not target_part.Parent then return false end
-		if not target_hum or not target_hum.Parent then return false end
-		return target_hum.Health > 0
-	end
-	local ray_params = RaycastParams.new()
-	ray_params.FilterType = Enum.RaycastFilterType.Exclude
-	ray_params.IgnoreWater = false
-	local ignore_base = {}
-	local ignore_work = {}
-	local ignore_time = 0
-	local function refresh_ignore()
-		local now = os.clock()
-		if #ignore_base > 0 and now - ignore_time < 0.5 then return end
-		ignore_time = now
-		table.clear(ignore_base)
-		local char = lp.Character
-		if char then ignore_base[1] = char end
-		local ok, tagged = pcall(function() return collection:GetTagged("WeaponPassthrough") end)
-		if ok and type(tagged) == "table" then
-			for k = 1, #tagged do
-				ignore_base[#ignore_base + 1] = tagged[k]
-			end
-		end
-	end
-	local function trace(origin, direction)
-		refresh_ignore()
-		table.clear(ignore_work)
-		for k = 1, #ignore_base do ignore_work[k] = ignore_base[k] end
-		local result = nil
-		for _ = 1, 6 do
-			ray_params.FilterDescendantsInstances = ignore_work
-			result = workspace:Raycast(origin, direction, ray_params)
-			if not result then break end
-			local inst = result.Instance
-			if not inst then break end
-			local ok, tr = pcall(function() return inst.Transparency end)
-			if not ok or tr ~= 1 then break end
-			ignore_work[#ignore_work + 1] = inst
-		end
-		return result
-	end
-	local function gun_attachment()
-		local char = lp.Character
-		local hrp = char and char:FindFirstChild("HumanoidRootPart")
-		if not hrp then return nil, nil end
-		return hrp:FindFirstChild("GunRaycastAttachment"), hrp
-	end
-	local function origin_cframe()
-		local att, hrp = gun_attachment()
-		if att then return att.WorldCFrame end
-		if hrp then return hrp.CFrame end
-		return nil
-	end
-	local function grav()
-		local ok, g = pcall(function() return workspace.Gravity end)
-		if ok and type(g) == "number" and g > 0 then return g end
-		return 0
-	end
-	local P = {
-		snap = 48,
-		ring = 48,
-		hit_r = 2.1,
-		pad = 2.6,
-		min_span = 5,
-		max_span = 90,
-		acc_t = 0.15,
-		acc_max = 280,
-		acc_min = 40,
-		speed_floor = 26,
-		speed_head = 1.3,
-	}
-	local snap_t = table.create(P.snap, 0)
-	local snap_p = table.create(P.snap, Vector3.zero)
-	local snap_n = 0
-	local snap_i = 0
-	local TR = {
-		part = nil,
-		pos = nil,
-		time = 0,
-		vel = Vector3.zero,
-		gap = 0,
-		ready = false,
-		fresh = Vector3.zero,
-		air = false,
-		air_since = 0,
-		jumping = false,
-		jump_v = 0,
-		fresh_ok = false,
-		turn = 0,
-		spoof = 0,
-		clr = 0,
-		air_edge = 0,
-		jump_fresh = false,
-	}
-	local SK = {
-		vt = table.create(P.ring, 0),
-		dx = table.create(P.ring, 0),
-		dz = table.create(P.ring, 0),
-		vn = 0,
-		vi = 0,
-	}
-	local EC = {
-		ping = 0,
-		rtt = 0,
-		jitter = 0,
-		seen = false,
-		step = 0,
-		step_seen = false,
-	}
-	local function step_push(dt)
-		if dt <= 0 or dt > 0.5 then return end
-		if EC.step_seen then
-			EC.step = EC.step * 0.85 + dt * 0.15
-		else
-			EC.step = dt
-			EC.step_seen = true
-		end
-	end
-	local function sample_span()
-		local span = math.max(EC.step, TR.gap)
-		if span <= 0 then return 0 end
-		return span
-	end
-	local HY = {
-		pos = {},
-		w = {},
-		n = 0,
-		weight = 0,
-		primary = nil,
-		stamp = 0,
-		conf = 0,
-	}
-	local ground_params = RaycastParams.new()
-	ground_params.FilterType = Enum.RaycastFilterType.Exclude
-	ground_params.IgnoreWater = true
-	local ground_filter = {}
-	local axis_pool = {}
-	local function ground_below(pos, reach)
-		table.clear(ground_filter)
-		local n = 0
-		local char = target_char
-		if char then
-			n = n + 1
-			ground_filter[n] = char
-		end
-		local mine = lp.Character
-		if mine then
-			n = n + 1
-			ground_filter[n] = mine
-		end
-		ground_params.FilterDescendantsInstances = ground_filter
-		local res = workspace:Raycast(pos, Vector3.new(0, -reach, 0), ground_params)
-		if res then return res.Position.Y end
-		return nil
-	end
-	local function snap_push(now, pos)
-		snap_i = snap_i % P.snap + 1
-		snap_t[snap_i] = now
-		snap_p[snap_i] = pos
-		if snap_n < P.snap then snap_n = snap_n + 1 end
-	end
-	local function snap_get(k)
-		local idx = (snap_i - k - 1) % P.snap + 1
-		return snap_t[idx], snap_p[idx]
-	end
-	local function fit_velocity()
-		if snap_n < 3 then return nil end
-		local newest = snap_get(0)
-		local used = 0
-		local sum_d = 0
-		local win = sample_span() * 4
-		for k = 0, snap_n - 1 do
-			local t = snap_get(k)
-			if newest - t > win then break end
-			used = used + 1
-			sum_d = sum_d + t - newest
-		end
-		if used < 3 then return nil end
-		local mean_d = sum_d / used
-		local num = Vector3.zero
-		local den = 0
-		for k = 0, used - 1 do
-			local t, p = snap_get(k)
-			local d = t - newest - mean_d
-			num = num + p * d
-			den = den + d * d
-		end
-		if den < 1e-8 then return nil end
-		return num / den, -mean_d
-	end
-	local function recent_velocity()
-		if snap_n < 2 then return nil end
-		local newest, head = snap_get(0)
-		local fallback, fallback_age = nil, nil
-		local target_span = sample_span() * 2
-		local max_span = target_span * 2
-		for k = 1, snap_n - 1 do
-			local t, p = snap_get(k)
-			local dt = newest - t
-			if dt > max_span then break end
-			if dt > 0 then
-				fallback = (head - p) / dt
-				fallback_age = dt * 0.5
-				if dt >= target_span then
-					return fallback, fallback_age
-				end
-			end
-		end
-		return fallback, fallback_age
-	end
-	local KIN = {
-		ok = false,
-		ax = 0,
-		az = 0,
-		smax = 0,
-	}
-	local function kin_clear()
-		KIN.ok = false
-		KIN.ax = 0
-		KIN.az = 0
-		KIN.smax = 0
-	end
-	local function fit_kin()
-		if snap_n < 5 then return nil end
-		local t0 = snap_get(0)
-		local win = math.max(sample_span() * 5, 0.12)
-		local scale = win
-		local n, s1, s2, s3, s4 = 0, 0, 0, 0, 0
-		local bx0, bx1, bx2 = 0, 0, 0
-		local bz0, bz1, bz2 = 0, 0, 0
-		for k = 0, snap_n - 1 do
-			local t, p = snap_get(k)
-			local age = t0 - t
-			if age > win then break end
-			local u = -age / scale
-			local u2 = u * u
-			n = n + 1
-			s1 = s1 + u
-			s2 = s2 + u2
-			s3 = s3 + u2 * u
-			s4 = s4 + u2 * u2
-			bx0 = bx0 + p.X
-			bx1 = bx1 + p.X * u
-			bx2 = bx2 + p.X * u2
-			bz0 = bz0 + p.Z
-			bz1 = bz1 + p.Z * u
-			bz2 = bz2 + p.Z * u2
-		end
-		if n < 5 then return nil end
-		local det = n * (s2 * s4 - s3 * s3)
-			- s1 * (s1 * s4 - s3 * s2)
-			+ s2 * (s1 * s3 - s2 * s2)
-		if math.abs(det) < 1e-9 then return nil end
-		local function solve(b0, b1, b2)
-			local d1 = n * (b1 * s4 - s3 * b2)
-				- b0 * (s1 * s4 - s3 * s2)
-				+ s2 * (s1 * b2 - b1 * s2)
-			local d2 = n * (s2 * b2 - b1 * s3)
-				- s1 * (s1 * b2 - b1 * s2)
-				+ b0 * (s1 * s3 - s2 * s2)
-			return d1 / det, d2 / det
-		end
-		local cx1, cx2 = solve(bx0, bx1, bx2)
-		local cz1, cz2 = solve(bz0, bz1, bz2)
-		local vx, vz = cx1 / scale, cz1 / scale
-		local ax, az = 2 * cx2 / (scale * scale), 2 * cz2 / (scale * scale)
-		if vx ~= vx or vz ~= vz or ax ~= ax or az ~= az then return nil end
-		return Vector3.new(vx, 0, vz), Vector3.new(ax, 0, az)
-	end
-	local function kin_update()
-		local kv, ka = fit_kin()
-		if not kv then
-			KIN.ok = false
-			KIN.ax = 0
-			KIN.az = 0
-			return nil
-		end
-		KIN.ok = true
-		local sp = math.sqrt(kv.X * kv.X + kv.Z * kv.Z)
-		if sp > KIN.smax then
-			KIN.smax = sp
-		else
-			KIN.smax = KIN.smax * 0.985 + sp * 0.015
-		end
-		if ka and not TR.air then
-			local am = math.sqrt(ka.X * ka.X + ka.Z * ka.Z)
-			local ax, az = ka.X, ka.Z
-			if am > P.acc_max and am > 0 then
-				ax = ax * P.acc_max / am
-				az = az * P.acc_max / am
-			end
-			KIN.ax = KIN.ax * 0.5 + ax * 0.5
-			KIN.az = KIN.az * 0.5 + az * 0.5
-		else
-			KIN.ax = KIN.ax * 0.5
-			KIN.az = KIN.az * 0.5
-		end
-		return kv
-	end
-	local function snap_vel(k)
-		local t0, p0 = snap_get(k)
-		local t1, p1 = snap_get(k + 1)
-		local d = t0 - t1
-		if d <= 0 then return nil end
-		return (p0 - p1) / d, d
-	end
-	local function vert_accel()
-		if snap_n < 3 then return nil end
-		local v0, d0 = snap_vel(0)
-		local v1, d1 = snap_vel(1)
-		if not v0 or not v1 then return nil end
-		local span = (d0 + d1) * 0.5
-		if span <= 1e-4 then return nil end
-		return (v0.Y - v1.Y) / span
-	end
-	local function air_vy()
-		if snap_n < 2 then return nil end
-		local edge = TR.air_edge
-		if edge <= 0 then return nil end
-		local g = grav()
-		local newest, head = snap_get(0)
-		local want = sample_span() * 2
-		local best = nil
-		for k = 1, snap_n - 1 do
-			local t, p = snap_get(k)
-			if t < edge then break end
-			local dt = newest - t
-			if dt > 1e-4 then
-				best = (head.Y - p.Y) / dt - 0.5 * g * dt
-				if dt >= want then break end
-			end
-		end
-		return best
-	end
-	local function body_clearance()
-		local part = target_part
-		local hum = target_hum
-		if not part or not hum then return 0 end
-		local ok, value = pcall(function() return part.Size.Y * 0.5 + hum.HipHeight end)
-		if ok and type(value) == "number" and value > 0 then return value end
-		return 0
-	end
-	local GC = {
-		base = 0,
-		seen = false,
-	}
-	local JL = {
-		v = 0,
-		seen = false,
-	}
-	local function stand_clearance()
-		if GC.seen then return GC.base end
-		return body_clearance()
-	end
-	local function engine_vel(part)
-		local ok, v = pcall(function() return part.AssemblyLinearVelocity end)
-		if not ok or typeof(v) ~= "Vector3" then
-			ok, v = pcall(function() return part.Velocity end)
-		end
-		if not ok or typeof(v) ~= "Vector3" then return nil end
-		if v.Magnitude ~= v.Magnitude then return nil end
-		return v
-	end
-	local function vel_trust(pv, ev)
-		if not pv or not ev then return 0 end
-		local ph = Vector3.new(pv.X, 0, pv.Z)
-		local eh = Vector3.new(ev.X, 0, ev.Z)
-		local pm, em = ph.Magnitude, eh.Magnitude
-		if pm < 1 and em < 1 then return 1 end
-		if pm < 1 or em < 1 then return 0 end
-		local ratio = em / pm
-		if ratio > 1.5 or ratio < 0.6 then return 0 end
-		local align = ph.Unit:Dot(eh.Unit)
-		if align < 0.7 then return 0 end
-		local a = math.clamp((align - 0.7) / 0.25, 0, 1)
-		local r = 1 - math.clamp(math.abs(ratio - 1) / 0.4, 0, 1)
-		return a * r
-	end
-	local function phase_velocity(v, age, air)
-		if not v then return nil end
-		local y = 0
-		if air then
-			y = v.Y - grav() * math.clamp(age or 0, 0, sample_span() * 4)
-		end
-		return Vector3.new(v.X, y, v.Z)
-	end
-	local function merge_vel(fit, fit_age, fast, fast_age, engine, engine_age, air)
-		local stable = phase_velocity(fit, fit_age, air)
-		local instant = phase_velocity(fast, fast_age, air)
-		local turn = 0
-		if stable and instant then
-			local sh = Vector3.new(stable.X, 0, stable.Z)
-			local ih = Vector3.new(instant.X, 0, instant.Z)
-			if sh.Magnitude > 1 and ih.Magnitude > 1 then
-				turn = math.acos(math.clamp(sh.Unit:Dot(ih.Unit), -1, 1)) / math.pi
-			end
-		end
-		local base = instant or stable
-		if not base then return Vector3.zero, 0, nil, 0 end
-		if stable and instant then
-			local agility = math.clamp(turn * 2.2, 0, 1)
-			base = stable:Lerp(instant, 0.4 + 0.6 * agility)
-		end
-		local trust = 0
-		if engine then
-			local live = phase_velocity(engine, engine_age, air)
-			trust = vel_trust(base, live)
-			if trust > 0 and air then
-				base = Vector3.new(base.X, base.Y, base.Z):Lerp(Vector3.new(base.X, live.Y, base.Z), trust * 0.35)
-			end
-		end
-		return base, turn, instant or stable, trust
-	end
-	local function vel_push(now, hx, hz)
-		SK.vi = SK.vi % P.ring + 1
-		SK.vt[SK.vi] = now
-		SK.dx[SK.vi] = hx
-		SK.dz[SK.vi] = hz
-		if SK.vn < P.ring then SK.vn = SK.vn + 1 end
-	end
-	local function track_clear()
-		TR.part = nil
-		TR.pos = nil
-		TR.vel = Vector3.zero
-		TR.gap = 0
-		TR.ready = false
-		TR.fresh = Vector3.zero
-		TR.air = false
-		TR.jumping = false
-		TR.jump_v = 0
-		TR.fresh_ok = false
-		TR.turn = 0
-		TR.spoof = 0
-		TR.clr = 0
-		TR.air_edge = 0
-		TR.jump_fresh = false
-		GC.base = 0
-		GC.seen = false
-		JL.v = 0
-		JL.seen = false
-		snap_n, snap_i = 0, 0
-		SK.vn, SK.vi = 0, 0
-		kin_clear()
-	end
-	local function track_seed(part, pos, now)
-		TR.part = part
-		TR.pos = pos
-		TR.time = now
-		TR.vel = Vector3.zero
-		TR.fresh = Vector3.zero
-		TR.fresh_ok = false
-		TR.turn = 0
-		TR.jump_v = 0
-		TR.gap = 0
-		TR.ready = false
-		TR.spoof = 0
-		TR.air_edge = 0
-		TR.jump_fresh = false
-		GC.base = 0
-		GC.seen = false
-		snap_n, snap_i = 0, 0
-		kin_clear()
-		snap_push(now, pos)
-	end
-	local function track_fresh(now)
-		local part = target_part
-		if not part or not part.Parent then
-			TR.fresh_ok = false
-			return
-		end
-		local pos = part.Position
-		local g = grav()
-		local sv = snap_vel(0)
-		local vy = sv and sv.Y or 0
-		local accel = vert_accel()
-		local falling = accel ~= nil and accel < -g * 0.5
-		local guess = stand_clearance()
-		local reach = guess + 6 + math.abs(vy) * sample_span() * 4
-		local air
-		local gy = ground_below(pos, reach)
-		if gy then
-			local clr = pos.Y - gy
-			TR.clr = clr
-			if math.abs(vy) < 1 and not falling then
-				if GC.seen then
-					if clr < GC.base then
-						GC.base = GC.base * 0.7 + clr * 0.3
-					else
-						GC.base = GC.base * 0.98 + clr * 0.02
-					end
-				else
-					GC.base = clr
-					GC.seen = true
-				end
-			end
-			local floor = GC.seen and GC.base or guess
-			local tol = math.max(floor * 0.35, 1)
-			air = clr > floor + tol
-			if not air and falling and math.abs(vy) > 4 and clr > floor + 0.35 then
-				air = true
-			end
-		else
-			air = true
-		end
-		if air ~= TR.air then
-			TR.air_edge = now
-			if air then
-				TR.air_since = now
-				TR.jump_fresh = true
-				TR.jump_v = JL.seen and JL.v or math.max(vy, 0)
-			else
-				TR.jump_fresh = false
-				TR.jump_v = 0
-			end
-		end
-		local model_vy = TR.jump_v - g * math.max(0, now - TR.air_since)
-		TR.air = air
-		TR.jumping = air and (vy > 1 or model_vy > 1)
-	end
-	local function track(now)
-		local part = target_part
-		if not part or not part.Parent then
-			if TR.part then track_clear() end
-			return
-		end
-		track_fresh(now)
-		local pos = part.Position
-		if part ~= TR.part or not TR.pos then
-			track_seed(part, pos, now)
-			return
-		end
-		local dt = now - TR.time
-		if dt > 0.75 or (pos - TR.pos).Magnitude > 140 then
-			track_seed(part, pos, now)
-			return
-		end
-		if dt <= 0 then return end
-		if (pos - TR.pos).Magnitude == 0 then
-			if TR.gap > 0 and dt >= TR.gap then
-				TR.vel = Vector3.zero
-				TR.fresh = Vector3.zero
-			end
-			return
-		end
-		step_push(dt)
-		TR.gap = dt
-		snap_push(now, pos)
-		TR.pos = pos
-		TR.time = now
-		local fit, fit_age = fit_velocity()
-		local fast, fast_age = recent_velocity()
-		local engine = engine_vel(part)
-		local fresh, turn, instant, trust = merge_vel(fit, fit_age, fast, fast_age, engine, sample_span() * 0.5, TR.air)
-		local kv = kin_update()
-		if kv then
-			fresh = Vector3.new(kv.X, fresh.Y, kv.Z)
-		end
-		if engine and trust <= 0 then
-			if TR.spoof < 20 then TR.spoof = TR.spoof + 1 end
-		elseif TR.spoof > 0 then
-			TR.spoof = TR.spoof - 1
-		end
-		if TR.air then
-			local vy = air_vy()
-			if vy then
-				fresh = Vector3.new(fresh.X, vy, fresh.Z)
-				local since = math.max(0, now - TR.air_edge)
-				if TR.jump_fresh and since <= 0.2 then
-					local imsalad = vy + grav() * since
-					if imsalad > 1 then
-						if JL.seen then
-							JL.v = JL.v * 0.7 + imsalad * 0.3
-						else
-							JL.v = imsalad
-							JL.seen = true
-						end
-						if imsalad > TR.jump_v then TR.jump_v = imsalad end
-					end
-				else
-					TR.jump_fresh = false
-				end
-			end
-		end
-		TR.vel = fresh
-		TR.ready = fit ~= nil or fast ~= nil
-		TR.fresh = TR.vel
-		TR.fresh_ok = TR.ready
-		TR.turn = turn
-		local raw = instant or fresh
-		vel_push(now, raw.X, raw.Z)
-	end
-	local function raw_rtt()
-		local ok, ms = pcall(function()
-			return stats.Network.ServerStatsItem["Data Ping"]:GetValue()
-		end)
-		if ok and type(ms) == "number" and ms > 0 then return ms / 1000 end
-		local fine, value = pcall(function() return lp:GetNetworkPing() end)
-		if fine and type(value) == "number" and value > 0 then return value * 2 end
-		return nil
-	end
-	local function sample_ping()
-		local rtt = raw_rtt()
-		if not rtt or rtt ~= rtt then return end
-		rtt = math.clamp(rtt, 0, 1)
-		if EC.seen then
-			EC.jitter = EC.jitter * 0.9 + math.abs(rtt - EC.rtt) * 0.1
-			EC.rtt = EC.rtt * 0.82 + rtt * 0.18
-		else
-			EC.rtt = rtt
-			EC.jitter = 0
-			EC.seen = true
-		end
-		EC.ping = EC.rtt
-	end
-	local function lead_time()
-		if not EC.seen then return 0 end
-		local stale = 0
-		if TR.time > 0 and EC.step_seen then
-			stale = math.clamp(os.clock() - TR.time, 0, EC.step)
-		end
-		return math.clamp(EC.rtt + EC.jitter * 0.5 + stale, 0, 1)
-	end
-	local function rotate_y(v, ang)
-		local c, s = math.cos(ang), math.sin(ang)
-		return Vector3.new(v.X * c - v.Z * s, v.Y, v.X * s + v.Z * c)
-	end
-	local function dir_stats(win)
-		if SK.vn < 4 then return 1, 0 end
-		win = math.max(win, sample_span() * 3)
-		local newest = SK.vt[SK.vi]
-		local sx, sz, n = 0, 0, 0
-		local prev = nil
-		local turn, turn_n = 0, 0
-		local oldest = newest
-		for k = 0, SK.vn - 1 do
-			local idx = (SK.vi - k - 1) % P.ring + 1
-			local t = SK.vt[idx]
-			if newest - t > win then break end
-			local hx, hz = SK.dx[idx], SK.dz[idx]
-			local m = math.sqrt(hx * hx + hz * hz)
-			if m > 0 then
-				sx = sx + hx / m
-				sz = sz + hz / m
-				n = n + 1
-				local ang = math.atan2(hz, hx)
-				if prev then
-					local d = ang - prev
-					while d > math.pi do d = d - 6.2831853 end
-					while d < -math.pi do d = d + 6.2831853 end
-					turn = turn + d
-					turn_n = turn_n + 1
-				end
-				prev = ang
-				oldest = t
-			end
-		end
-		if n < 2 then return 1, 0 end
-		local coh = math.clamp(math.sqrt(sx * sx + sz * sz) / n, 0, 1)
-		local omega = 0
-		local elapsed = newest - oldest
-		if turn_n >= 1 and elapsed > 1e-3 then
-			omega = -turn / elapsed
-		end
-		return coh, omega
-	end
-	local function predict_from(base, sa, sb, fh, now)
-		local span = math.max(0, sa + sb)
-		local g = grav()
-		local dir = fh
-		if dir.Magnitude == 0 then
-			dir = Vector3.new(TR.vel.X, 0, TR.vel.Z)
-		end
-		local x, z
-		if span > 0 and KIN.ok then
-			local age = math.clamp(now - TR.time, 0, sample_span() * 2)
-			local ax, az = KIN.ax, KIN.az
-			if TR.air or math.sqrt(ax * ax + az * az) < P.acc_min then ax, az = 0, 0 end
-			local vx = dir.X + ax * age
-			local vz = dir.Z + az * age
-			local ta = math.min(span, P.acc_t)
-			local dx = vx * span + 0.5 * ax * ta * ta
-			local dz = vz * span + 0.5 * az * ta * ta
-			local reach = math.sqrt(dx * dx + dz * dz)
-			local cap = math.max(KIN.smax * P.speed_head, P.speed_floor) * span
-			if reach > cap and reach > 1e-6 then
-				dx = dx * cap / reach
-				dz = dz * cap / reach
-			end
-			x = base.X + dx
-			z = base.Z + dz
-		else
-			local hspan = span
-			if span > 0 and dir.Magnitude > 0 and not TR.air then
-				local coh, omega = dir_stats(span)
-				local conf = math.clamp(coh, 0, 1) * (1 - math.clamp(TR.turn, 0, 1) * 0.5)
-				if omega ~= 0 then
-					dir = rotate_y(dir, math.clamp(omega * span * 0.5 * conf, -0.6, 0.6))
-				end
-				hspan = span * (0.85 + 0.15 * conf)
-			end
-			x = base.X + dir.X * hspan
-			z = base.Z + dir.Z * hspan
-		end
-		local y = base.Y
-		if TR.air and span > 0 then
-			local vy = TR.vel.Y
-			local phase = math.max(0, now - TR.air_since)
-			local modeled = TR.jump_v - g * phase
-			if TR.jumping and TR.jump_v > 0 and g > 0 and phase <= TR.jump_v / g and modeled > vy then
-				vy = modeled
-			end
-			y = base.Y + vy * span - 0.5 * g * span * span
-			if y < base.Y then
-				local clearance = stand_clearance()
-				local reach = base.Y - y + clearance
-				local gy = ground_below(Vector3.new(x, base.Y, z), reach)
-				if gy then
-					local floor = gy + clearance
-					if y < floor then y = floor end
-				end
-			end
-		end
-		return Vector3.new(x, y, z)
-	end
-	local function build_hyps(base, now)
-		table.clear(HY.pos)
-		table.clear(HY.w)
-		local horizon = S.predict and TR.ready and lead_time() or 0
-		local fh = Vector3.new(TR.fresh.X, 0, TR.fresh.Z)
-		HY.primary = predict_from(base, 0, horizon, fh, now)
-		HY.n = 1
-		HY.pos[1] = HY.primary
-		HY.w[1] = 1
-		HY.weight = 1
-		HY.stamp = now
-	end
-	local function score_axis(anchor, axis)
-		local covered = 0
-		local lo, hi = 0, 0
-		for k = 1, HY.n do
-			local d = HY.pos[k] - anchor
-			local a = d:Dot(axis)
-			local perp = (d - axis * a).Magnitude
-			if perp <= P.hit_r then
-				covered = covered + HY.w[k]
-				if a < lo then lo = a end
-				if a > hi then hi = a end
-			end
-		end
-		return covered, lo, hi
-	end
-	local function corridor_axes(anchor)
-		table.clear(axis_pool)
-		local n = 0
-		local function add(v)
-			if typeof(v) ~= "Vector3" or v.Magnitude < 1e-4 then return end
-			local u = v.Unit
-			for k = 1, n do
-				if axis_pool[k]:Dot(u) > 0.985 then return end
-			end
-			n = n + 1
-			axis_pool[n] = u
-		end
-		local fh = Vector3.new(TR.fresh.X, 0, TR.fresh.Z)
-		if TR.air then add(TR.fresh) end
-		add(fh)
-		for k = 1, HY.n do
-			add(HY.pos[k] - anchor)
-		end
-		add(TR.fresh)
-		add(Vector3.new(0, 1, 0))
-		return n
-	end
-	local function build_corridor(now)
-		local part = target_part
-		if not part or not part.Parent then return nil end
-		local base = part.Position
-		build_hyps(base, now)
-		local anchor = HY.primary or base
-		local count = corridor_axes(anchor)
-		local best_axis, best_cov, best_lo, best_hi = nil, -1, 0, 0
-		for k = 1, count do
-			local axis = axis_pool[k]
-			local cov, lo, hi = score_axis(anchor, axis)
-			if cov > best_cov then
-				best_axis, best_cov, best_lo, best_hi = axis, cov, lo, hi
-			end
-		end
-		if not best_axis then return nil end
-		HY.conf = HY.weight > 0 and best_cov / HY.weight or 0
-		local pad = P.pad
-		local origin = anchor + best_axis * (best_lo - pad)
-		local aim = anchor + best_axis * (best_hi + pad)
-		if (aim - origin).Magnitude < 4 then
-			origin = anchor - best_axis * 4
-			aim = anchor + best_axis * 4
-		end
-		return origin, aim, HY.conf, anchor
-	end
-	local pred_off = Vector3.zero
-	local pred_stamp = 0
-	local function lead_offset()
-		local part = target_part
-		if not part or not part.Parent then return Vector3.zero end
-		if not S.predict or not TR.ready then return Vector3.zero end
-		local base = part.Position
-		local now = os.clock()
-		local fh = Vector3.new(TR.fresh.X, 0, TR.fresh.Z)
-		local point = predict_from(base, 0, lead_time(), fh, now)
-		local off = point - base
-		pred_stamp = now
-		pred_off = off
-		return pred_off
-	end
-	local function cloud_confidence()
-		local anchor = HY.primary
-		if not anchor or HY.n == 0 or HY.weight <= 0 then return 0 end
-		local covered = 0
-		for k = 1, HY.n do
-			if (HY.pos[k] - anchor).Magnitude <= P.hit_r then
-				covered = covered + HY.w[k]
-			end
-		end
-		return covered / HY.weight
-	end
-	local hit_names = {
-		"HumanoidRootPart", "UpperTorso", "Torso", "LowerTorso", "Head",
-		"RightUpperArm", "LeftUpperArm", "Right Arm", "Left Arm",
-		"RightUpperLeg", "LeftUpperLeg", "Right Leg", "Left Leg",
-		"RightLowerLeg", "LeftLowerLeg",
-	}
-	local hit_parts = {}
-	local hit_count = 0
-	local hit_char = nil
-	local function refresh_parts()
-		local char = target_char
-		if char == hit_char then return end
-		table.clear(hit_parts)
-		hit_count = 0
-		hit_char = char
-		if not char then return end
-		for k = 1, #hit_names do
-			local part = char:FindFirstChild(hit_names[k])
-			if part and part:IsA("BasePart") then
-				hit_count = hit_count + 1
-				hit_parts[hit_count] = part
-			end
-		end
-	end
-	local function los_clear(origin, point)
-		if not origin or not point then return false end
-		local delta = point - origin
-		local dist = delta.Magnitude
-		if dist < 0.5 then return true end
-		if dist > MAX_RANGE then return false end
-		local hit = trace(origin, delta)
-		if not hit then return true end
-		local inst = hit.Instance
-		local char = target_char
-		if inst and char and (inst == char or inst:IsDescendantOf(char)) then return true end
-		return (hit.Position - origin).Magnitude >= dist - 0.75
-	end
-	local function pick_point(origin, strict)
-		refresh_parts()
-		if hit_count == 0 then return nil end
-		local off = lead_offset()
-		local first = nil
-		for k = 1, hit_count do
-			local part = hit_parts[k]
-			if not part.Parent then
-				hit_char = nil
-			else
-				local point = part.Position + off
-				if not origin then return point end
-				if not first then first = point end
-				if los_clear(origin, point) then return point end
-			end
-		end
-		if strict then return nil end
-		return first
-	end
-	local force_att = nil
-	local force_saved = nil
-	local force_stamp = 0
-	local function restore_origin()
-		local att = force_att
-		if not att then return end
-		local saved = force_saved
-		force_att = nil
-		force_saved = nil
-		if saved then
-			pcall(function()
-				if att.Parent then att.CFrame = saved end
-			end)
-		end
-	end
-	local function push_origin(cf)
-		local att = gun_attachment()
-		if not att then return false end
-		if force_att and force_att ~= att then restore_origin() end
-		if not force_att then
-			local ok, saved = pcall(function() return att.CFrame end)
-			if not ok or typeof(saved) ~= "CFrame" then return false end
-			force_att = att
-			force_saved = saved
-		end
-		force_stamp = os.clock()
-		local ok = pcall(function() att.WorldCFrame = cf end)
-		if not ok then
-			restore_origin()
-			return false
-		end
-		task.defer(restore_origin)
-		return true
-	end
-	local function is_target_hit(inst)
-		local char = target_char
-		if not inst or not char then return false end
-		return inst == char or inst:IsDescendantOf(char)
-	end
-	local function force_clear(origin, aim)
-		local hit = trace(origin, aim - origin)
-		if not hit then return false end
-		return is_target_hit(hit.Instance)
-	end
-	local function force_velocity()
-		if TR.fresh_ok and TR.fresh.Magnitude > 0.5 then return TR.fresh end
-		if TR.ready and TR.vel.Magnitude > 0.5 then return TR.vel end
-		return Vector3.zero
-	end
-	local function resolve_force()
-		local part = target_part
-		if not part or not part.Parent then return nil end
-		local live = part.Position
-		local now = os.clock()
-		local origin, aim, conf, anchor = build_corridor(now)
-		if origin and aim then
-			local axis = aim - origin
-			local span = axis.Magnitude
-			if span > 1e-3 then
-				local u = axis / span
-				local mark = anchor or live
-				local behind = (mark - origin):Dot(u)
-				if behind < P.pad then
-					origin = origin - u * (P.pad - behind)
-				end
-				local ahead = (aim - mark):Dot(u)
-				if ahead < P.min_span then
-					aim = mark + u * P.min_span
-				end
-				local want = S.stand_off
-				while want > 0 do
-					local probe = origin - u * want
-					if (aim - probe).Magnitude <= P.max_span
-						and los_clear(probe, mark)
-						and los_clear(probe, live) then
-						origin = probe
-						break
-					end
-					want = want - 3
-				end
-				if (aim - origin).Magnitude > P.max_span then
-					origin = aim - u * P.max_span
-				end
-				return CFrame.new(origin, aim), CFrame.new(aim), conf or 0, mark
-			end
-		end
-		local vel = force_velocity()
-		local dir = Vector3.new(0, -1, 0)
-		if vel.Magnitude > 3 then
-			dir = vel.Unit
-		else
-			local mine = origin_cframe()
-			if mine then
-				local delta = live - mine.Position
-				if delta.Magnitude > 2 then dir = delta.Unit end
-			end
-		end
-		local back = live - dir * 6
-		local front = live + dir * math.max(P.min_span, vel.Magnitude * lead_time() + 8)
-		if not force_clear(back, front) then
-			back = live - dir * 2.5
-		end
-		return CFrame.new(back, front), CFrame.new(front), 0, live
-	end
-	local function shot_shift(dt)
-		if not S.predict or not TR.ready or dt <= 0 then return Vector3.zero end
-		local shift = Vector3.new(TR.vel.X * dt, 0, TR.vel.Z * dt)
-		if TR.air then
-			local g = grav()
-			local horizon = lead_time()
-			local vy = TR.vel.Y
-			local phase = math.max(0, os.clock() - TR.air_since)
-			local modeled = TR.jump_v - g * phase
-			if TR.jumping and TR.jump_v > 0 and g > 0 and phase <= TR.jump_v / g and modeled > vy then vy = modeled end
-			shift = Vector3.new(shift.X, vy * dt - g * horizon * dt - 0.5 * g * dt * dt, shift.Z)
-		end
-		return shift
-	end
-	local function compensate_force(origin_cf, aim_cf, started)
-		local shift = shot_shift(math.max(0, os.clock() - started))
-		if shift == Vector3.zero then return origin_cf, aim_cf end
-		local origin = origin_cf.Position + shift
-		local aim = aim_cf.Position + shift
-		return CFrame.new(origin, aim), CFrame.new(aim)
-	end
-	local function resolve_shot()
-		if not S.enabled or not S.am_sheriff or not target_alive() then return nil end
-		if S.force then
-			local started = os.clock()
-			local origin_cf, aim_cf = resolve_force()
-			if origin_cf and aim_cf then
-				origin_cf, aim_cf = compensate_force(origin_cf, aim_cf, started)
-				if push_origin(origin_cf) then return aim_cf end
-			end
-		end
-		local cf = origin_cframe()
-		local aim = pick_point(cf and cf.Position or nil, false)
-		if not aim then return nil end
-		return CFrame.new(aim)
-	end
-	local function compensate_resolve(cf)
-		if S.force or typeof(cf) ~= "CFrame" then return cf end
-		return CFrame.new(cf.Position + shot_shift(math.max(0, os.clock() - pred_stamp)))
-	end
-	local weapon_service = nil
-	local orig_mouse = nil
-	local orig_screen = nil
-	local hook_mouse = nil
-	local hook_screen = nil
-	local function get_weapon_service()
-		if weapon_service then return weapon_service end
-		local ok, m = pcall(function()
-			return require(rs:WaitForChild("ClientServices"):WaitForChild("WeaponService"))
-		end)
-		if ok and type(m) == "table" then weapon_service = m end
-		return weapon_service
-	end
-	local function install_hooks()
-		local m = get_weapon_service()
-		if not m then return end
-		if not hook_mouse then
-			local function knife_aim()
-				local fn = getgenv().KNIFE_AIM_RESOLVE
-				if type(fn) ~= "function" then return nil end
-				local ok, cf = pcall(fn)
-				if ok and typeof(cf) == "CFrame" then return cf end
-				return nil
-			end
-			hook_mouse = function(self, ...)
-				sample_ping()
-				local ok, cf = pcall(resolve_shot)
-				if ok and cf then return compensate_resolve(cf) end
-				local kcf = knife_aim()
-				if kcf then return kcf end
-				return orig_mouse(self, ...)
-			end
-			hook_screen = function(self, x, y, ...)
-				sample_ping()
-				local ok, cf = pcall(resolve_shot)
-				if ok and cf then return compensate_resolve(cf) end
-				local kcf = knife_aim()
-				if kcf then return kcf end
-				return orig_screen(self, x, y, ...)
-			end
-		end
-		pcall(function() setreadonly(m, false) end)
-		if type(m.GetMouseTargetCFrame) == "function" and m.GetMouseTargetCFrame ~= hook_mouse then
-			orig_mouse = m.GetMouseTargetCFrame
-			pcall(function() m.GetMouseTargetCFrame = hook_mouse end)
-		end
-		if type(m.GetTargetPosition) == "function" and m.GetTargetPosition ~= hook_screen then
-			orig_screen = m.GetTargetPosition
-			pcall(function() m.GetTargetPosition = hook_screen end)
-		end
-	end
-	local gun_fired_conn = nil
-	local last_fire_stamp = 0
-	local function on_gun_fired(tool)
-		if typeof(tool) ~= "Instance" then return end
-		local char = lp.Character
-		if not char then return end
-		local ok, mine = pcall(function() return tool:IsDescendantOf(char) end)
-		if not ok or not mine then return end
-		local now = os.clock()
-		if last_fire_stamp > 0 and want_since > 0 and want_since <= last_fire_stamp then
-			gap_push(now - last_fire_stamp)
-		end
-		last_fire_stamp = now
-	end
-	local function connect_gun_fired()
-		if gun_fired_conn then return end
-		local m = get_weapon_service()
-		if not m then return end
-		local ev = m.GunFired
-		if typeof(ev) ~= "Instance" then return end
-		gun_fired_conn = ev.OnClientEvent:Connect(function(tool)
-			pcall(on_gun_fired, tool)
-		end)
-	end
-	local function get_gun()
-		local char = lp.Character
-		if char then
-			local g = char:FindFirstChild("Gun")
-			if g then return g, true end
-		end
-		local bp = lp:FindFirstChildOfClass("Backpack")
-		if bp then
-			local g = bp:FindFirstChild("Gun")
-			if g then return g, false end
-		end
-		return nil, false
-	end
-	local function fire_gun(gun, start_cf, aim_cf)
-		if not gun or not start_cf or not aim_cf then return false end
-		local remote = gun:FindFirstChild("Shoot")
-		if not remote or not remote:IsA("RemoteEvent") then return false end
-		return (pcall(function() remote:FireServer(start_cf, aim_cf) end))
-	end
-	local function auto_step(now)
-		if not S.auto_on or not S.enabled or not S.am_sheriff or getgenv().AUTOFARM_HOLD or not target_alive() then
-			want_since = 0
-			return
-		end
-		local gun, equipped = get_gun()
-		if not gun then
-			want_since = 0
-			return
-		end
-		if gun ~= gap_gun then
-			gap_gun = gun
-			gap_reset()
-		end
-		if not equipped then
-			want_since = 0
-			local hum = lp.Character and lp.Character:FindFirstChildOfClass("Humanoid")
-			if hum then pcall(function() hum:EquipTool(gun) end) end
-			return
-		end
-		if want_since == 0 then want_since = now end
-		local hold = S.auto_delay
-		if hold < S.fire_gap then hold = S.fire_gap end
-		local since = last_fire_stamp > 0 and last_fire_stamp or S.last_shot
-		if now - since < hold then return end
-		if S.force then
-			local started = os.clock()
-			local origin_cf, aim_cf = resolve_force()
-			if not origin_cf or not aim_cf then return end
-			origin_cf, aim_cf = compensate_force(origin_cf, aim_cf, started)
-			if fire_gun(gun, origin_cf, aim_cf) then
-				S.last_shot = now
-			end
-			return
-		end
-		local cf = origin_cframe()
-		if not cf then return end
-		local aim = pick_point(cf.Position, true)
-		if not aim then return end
-		local aim_cf = compensate_resolve(CFrame.new(aim))
-		if fire_gun(gun, cf, aim_cf) then
-			S.last_shot = now
-		end
-	end
-	local watch_conns = {}
-	local function clear_watch()
-		for k = 1, #watch_conns do
-			local conn = watch_conns[k]
-			pcall(function() conn:Disconnect() end)
-		end
-		table.clear(watch_conns)
-	end
-	local function setup_watch()
-		clear_watch()
-		local m = get_round()
-		if m and m.PlayerDataChanged then
-			watch_conns[#watch_conns + 1] = m.PlayerDataChanged.Event:Connect(function()
-				pcall(refresh_target)
-			end)
-		end
-		watch_conns[#watch_conns + 1] = lp.CharacterAdded:Connect(function()
-			task.wait(0.3)
-			pcall(refresh_target)
-		end)
-	end
-	local next_role = 0
-	local next_hook = 0
-	local function tick()
-		if force_att and os.clock() - force_stamp > 0.05 then restore_origin() end
-		if not S.enabled then return end
-		local now = os.clock()
-		if now >= next_role then
-			next_role = now + 0.2
-			refresh_target()
-		end
-		sample_ping()
-		track(now)
-		if now >= next_hook then
-			next_hook = now + 1
-			install_hooks()
-			connect_gun_fired()
-		end
-		auto_step(now)
-	end
-	local main_conn = run.Heartbeat:Connect(function()
-		pcall(tick)
-	end)
-	silent_section:AddToggle({
-		Name = "silent",
-		Default = false,
-		Flag = "silent",
-		Callback = function(v)
-			S.enabled = v
-			getgenv().SILENT_AIM_ACTIVE = v
-			if v then
-				task.spawn(function()
-					pcall(install_hooks)
-					pcall(connect_gun_fired)
-					pcall(setup_watch)
-					pcall(refresh_target)
-				end)
-			else
-				clear_watch()
-				track_clear()
-			end
-		end
-	})
-	local predict_tog = silent_section:AddToggle({
-		Name = "prediction",
-		Default = false,
-		Flag = "Silent Prediction",
-		Callback = function(v)
-			S.predict = v
-			if not v then track_clear() end
-		end
-	})
-	local force_tog = silent_section:AddToggle({
-		Name = "force shoot",
-		ToolTip = "Shoots through walls",
-		Default = false,
-		Flag = "Silent Force",
-		Option = true,
-		Callback = function(v)
-			S.force = v
-			if not v then restore_origin() end
-		end
-	})
-	force_tog.Option:AddSlider({
-		Name = "origin",
-		Default = 15,
-		Min = 0,
-		Max = 40,
-		Round = 0,
-		Type = " studs",
-		Flag = "silent_stand_off",
-		Callback = function(v)
-			S.stand_off = v
-		end
-	})
-	local auto_tog = silent_section:AddToggle({
-		Name = "auto shoot",
-		ToolTip = "Auto shoot on murder",
-		Default = false,
-		Flag = "Auto Shoot",
-		Option = true,
-		Callback = function(v)
-			S.auto_on = v
-		end
-	})
-	auto_tog.Option:AddSlider({
-		Name = "delay",
-		Default = 0,
-		Min = 0,
-		Max = 600,
-		Round = 0,
-		Type = "ms",
-		Flag = "silent_auto_delay",
-		Callback = function(v)
-			S.auto_delay = v / 1000
-		end
-	})
-	getgenv().SILENT_INSTALL_HOOKS = function()
-		pcall(install_hooks)
-	end
-	getgenv().SILENT_DBG = function()
-		local coh, omega = dir_stats(lead_time())
-		return {
-			target = target_player and target_player.Name or "none",
-			ping = EC.ping,
-			rtt = EC.rtt,
-			jitter = EC.jitter,
-			step = EC.step,
-			lead = lead_time(),
-			coherence = coh,
-			omega = omega,
-			turn = TR.turn,
-			spoof = TR.spoof,
-			clearance = TR.clr,
-			ground = GC.seen and GC.base or 0,
-			jump_learned = JL.seen and JL.v or 0,
-			jump_v = TR.jump_v,
-			fire_gap = S.fire_gap,
-			want_since = want_since,
-			conf_point = cloud_confidence(),
-			conf_ray = HY.conf,
-			gap = TR.gap,
-			airborne = TR.air,
-			vel_fresh = TR.fresh,
-			vel_pos = TR.vel,
-		}
-	end
-	task.spawn(function()
-		pcall(install_hooks)
-		pcall(connect_gun_fired)
-	end)
-	getgenv().SILENT_UNLOAD = function()
-		S.enabled = false
-		S.predict = false
-		S.force = false
-		S.auto_on = false
-		getgenv().SILENT_AIM_ACTIVE = false
-		restore_origin()
-		clear_watch()
-		track_clear()
-		if gun_fired_conn then
-			pcall(function() gun_fired_conn:Disconnect() end)
-			gun_fired_conn = nil
-		end
-		if main_conn then
-			pcall(function() main_conn:Disconnect() end)
-			main_conn = nil
-		end
-		local m = weapon_service
-		if m then
-			pcall(function() setreadonly(m, false) end)
-			if orig_mouse then
-				pcall(function() m.GetMouseTargetCFrame = orig_mouse end)
-			end
-			if orig_screen then
-				pcall(function() m.GetTargetPosition = orig_screen end)
-			end
-		end
-	end
-end
-end
 local function loadKill(Sec)
 do
 	local kill_section = Sec
@@ -58509,7 +57725,9 @@ do
 			if genv.AUTOFARM_HOLD then
 				continue
 			end
-			local knife = ensure_knife_equipped()
+			 
+			 
+			local knife = get_knife()
 			if not knife then
 				continue
 			end
@@ -58582,735 +57800,25 @@ do
 	end
 end
 end
-local function loadKnife(Sec)
-do
-	local rs = game:GetService("ReplicatedStorage")
-	local players = game:GetService("Players")
-	local run = game:GetService("RunService")
-	local stats = game:GetService("Stats")
-	local collection = game:GetService("CollectionService")
-	local lp = players.LocalPlayer
-	getgenv().KNIFE_S = {
-		silent = false,
-		predict = false,
-		instance_kill = false,
-		range = 400,
-		lead_scale = 1,
-		lead_add = 0,
-		air_scale = 0.35,
-		throw_speed = 96,
-		impact_radius = 12,
-	}
-	local K = getgenv().KNIFE_S
-	local GRAV = workspace.Gravity
-	local MAX_HSPEED = 34
-	local MAX_VSPEED = 170
-	local SNAP_CAP = 20
-	local FIT_WINDOW = 0.13
-	local STAB_WINDOW = 0.35
-	local LEAD_CAP = 1
-	local OFF_CAP = 60
-	local AIR_OFF_CAP = 1.8
-	local AIR_VEL_CAP = 80
-	local round_mod = nil
-	local am_murderer = false
-	local trackers = {}
-	local ground_params = RaycastParams.new()
-	ground_params.FilterType = Enum.RaycastFilterType.Exclude
-	ground_params.IgnoreWater = true
-	local ground_filter = {}
-	local function ground_below(char, pos, reach)
-		table.clear(ground_filter)
-		local n = 0
-		if char then
-			n = n + 1
-			ground_filter[n] = char
-		end
-		local mine = lp.Character
-		if mine then
-			n = n + 1
-			ground_filter[n] = mine
-		end
-		ground_params.FilterDescendantsInstances = ground_filter
-		local res = workspace:Raycast(pos + Vector3.new(0, 2, 0), Vector3.new(0, -(reach + 2), 0), ground_params)
-		if res then return res.Position.Y end
-		return nil
-	end
-	local function clamp_vel(v)
-		local hx, hz = v.X, v.Z
-		local hm = math.sqrt(hx * hx + hz * hz)
-		if hm > MAX_HSPEED then
-			local s = MAX_HSPEED / hm
-			hx = hx * s
-			hz = hz * s
-		end
-		return Vector3.new(hx, math.clamp(v.Y, -MAX_VSPEED, MAX_VSPEED), hz)
-	end
-	local function engine_vel(part)
-		local ok, v = pcall(function() return part.AssemblyLinearVelocity end)
-		if ok and typeof(v) == "Vector3" then return clamp_vel(v) end
-		return Vector3.zero
-	end
-	local function merge_vel(fit, lag, eng)
-		if not fit then return eng end
-		fit = clamp_vel(fit)
-		local fh = Vector3.new(fit.X, 0, fit.Z)
-		local eh = Vector3.new(eng.X, 0, eng.Z)
-		local fm = fh.Magnitude
-		local em = eh.Magnitude
-		local h
-		if fm < 1 and em < 1 then
-			h = Vector3.zero
-		elseif em < 1 then
-			h = fh
-		elseif fm < 1 then
-			h = eh
-		elseif fh.Unit:Dot(eh.Unit) < 0.25 then
-			h = fh
-		else
-			h = eh * 0.75 + fh * 0.25
-		end
-		local y
-		if math.abs(eng.Y) > 0.5 then
-			y = eng.Y
-		elseif math.abs(fit.Y) > 1 then
-			y = math.clamp(fit.Y - GRAV * (lag or 0), -MAX_VSPEED, MAX_VSPEED)
-		else
-			y = 0
-		end
-		return Vector3.new(h.X, y, h.Z)
-	end
-	local function new_tracker()
-		return {
-			t = table.create(SNAP_CAP, 0),
-			p = table.create(SNAP_CAP, Vector3.zero),
-			n = 0,
-			i = 0,
-			part = nil,
-			pos = nil,
-			time = 0,
-			vel = Vector3.zero,
-			gap = 0.05,
-			jitter = 0,
-			ready = false,
-			stab = 1,
-			rest_gap = 3,
-			rest_ready = false,
-		}
-	end
-	local function snap_push(tr, now, pos)
-		tr.i = tr.i % SNAP_CAP + 1
-		tr.t[tr.i] = now
-		tr.p[tr.i] = pos
-		if tr.n < SNAP_CAP then tr.n = tr.n + 1 end
-	end
-	local function snap_get(tr, k)
-		local idx = (tr.i - k - 1) % SNAP_CAP + 1
-		return tr.t[idx], tr.p[idx]
-	end
-	local function fit_velocity(tr)
-		if tr.n < 3 then return nil end
-		local newest = snap_get(tr, 0)
-		local used = 0
-		local sum_d = 0
-		for k = 0, tr.n - 1 do
-			local t = snap_get(tr, k)
-			if newest - t > FIT_WINDOW then break end
-			used = used + 1
-			sum_d = sum_d + (t - newest)
-		end
-		if used < 3 then return nil end
-		local mean_d = sum_d / used
-		local num = Vector3.zero
-		local den = 0
-		for k = 0, used - 1 do
-			local t, p = snap_get(tr, k)
-			local d = (t - newest) - mean_d
-			num = num + p * d
-			den = den + d * d
-		end
-		if den < 1e-8 then return nil end
-		return num / den, -mean_d
-	end
-	local function path_stability(tr)
-		if tr.n < 4 then return 1 end
-		local newest, head = snap_get(tr, 0)
-		local path = 0
-		local prev = head
-		local tail = head
-		local used = 0
-		for k = 1, tr.n - 1 do
-			local t, p = snap_get(tr, k)
-			if newest - t > STAB_WINDOW then break end
-			local step = prev - p
-			path = path + Vector3.new(step.X, 0, step.Z).Magnitude
-			prev = p
-			tail = p
-			used = used + 1
-		end
-		if used < 3 or path < 1 then return 1 end
-		local net = head - tail
-		return math.clamp(Vector3.new(net.X, 0, net.Z).Magnitude / path, 0, 1)
-	end
-	local function tracker_seed(tr, part, pos, now)
-		tr.part = part
-		tr.pos = pos
-		tr.time = now
-		tr.vel = Vector3.zero
-		tr.gap = 0.05
-		tr.jitter = 0
-		tr.ready = false
-		tr.stab = 1
-		tr.n = 0
-		tr.i = 0
-		snap_push(tr, now, pos)
-	end
-	local function update_tracker(tr, char, part, now)
-		local pos = part.Position
-		if part ~= tr.part or not tr.pos then
-			tracker_seed(tr, part, pos, now)
-			return
-		end
-		local dt = now - tr.time
-		local shift = (pos - tr.pos).Magnitude
-		if dt > 0.75 or shift > 140 then
-			tracker_seed(tr, part, pos, now)
-			return
-		end
-		if shift < 0.004 or dt <= 0 then
-			if tr.ready and dt > 0.12 and engine_vel(part).Magnitude < 1 then
-				tr.vel = tr.vel * 0.6
-			end
-			return
-		end
-		local old_gap = tr.gap
-		tr.gap = math.clamp(old_gap * 0.8 + dt * 0.2, 0.012, 0.25)
-		tr.jitter = math.clamp(tr.jitter * 0.8 + math.abs(dt - old_gap) * 0.2, 0, 0.15)
-		snap_push(tr, now, pos)
-		tr.pos = pos
-		tr.time = now
-		local fit, lag = fit_velocity(tr)
-		local fresh = merge_vel(fit, lag, engine_vel(part))
-		if tr.ready then
-			local a = 0.45
-			local oh = Vector3.new(tr.vel.X, 0, tr.vel.Z)
-			local nh = Vector3.new(fresh.X, 0, fresh.Z)
-			if oh.Magnitude > 1 and nh.Magnitude > 1 and oh.Unit:Dot(nh.Unit) < 0.5 then
-				a = 0.85
-			end
-			local vx = tr.vel.X + (fresh.X - tr.vel.X) * a
-			local vz = tr.vel.Z + (fresh.Z - tr.vel.Z) * a
-			local vy
-			if math.abs(fresh.Y) > 3 then
-				vy = fresh.Y
-			else
-				vy = tr.vel.Y + (fresh.Y - tr.vel.Y) * 0.6
-			end
-			tr.vel = Vector3.new(vx, vy, vz)
-		else
-			tr.vel = fresh
-			tr.ready = true
-		end
-		tr.stab = path_stability(tr)
-		if math.abs(fresh.Y) < 3 then
-			local gy = ground_below(char, pos, 12)
-			if gy then
-				local gap = pos.Y - gy
-				if gap > 0.5 and gap < 8 then
-					if tr.rest_ready then
-						tr.rest_gap = tr.rest_gap * 0.85 + gap * 0.15
-					else
-						tr.rest_gap = gap
-						tr.rest_ready = true
-					end
-				end
-			end
-		end
-	end
-	local function clear_trackers()
-		table.clear(trackers)
-	end
-	local lead_ping = 0
-	local ping_seen = false
-	local function sample_ping()
-		local ms = 0
-		local ok, v = pcall(function()
-			return stats.Network.ServerStatsItem["Data Ping"]:GetValue()
-		end)
-		if ok and type(v) == "number" then ms = v end
-		local s = math.clamp(ms / 1000, 0, 1)
-		if ping_seen then
-			lead_ping = lead_ping * 0.85 + s * 0.15
-		else
-			lead_ping = s
-			ping_seen = true
-		end
-	end
-	local function target_part_of(char)
-		if not char then return nil end
-		return char:FindFirstChild("HumanoidRootPart")
-			or char:FindFirstChild("UpperTorso")
-			or char:FindFirstChild("Torso")
-			or char:FindFirstChild("Head")
-	end
-	local function player_alive(plr)
-		local char = plr.Character
-		if not char then return false end
-		local hum = char:FindFirstChildOfClass("Humanoid")
-		if not hum or hum.Health <= 0 then return false end
-		local data = round_mod and round_mod.PlayerData
-		if type(data) == "table" then
-			local entry = data[plr.Name]
-			if entry and entry.Dead then return false end
-		end
-		return true
-	end
-	local function update_trackers(now)
-		for plr in pairs(trackers) do
-			if plr.Parent ~= players then trackers[plr] = nil end
-		end
-		for _, plr in ipairs(players:GetPlayers()) do
-			if plr == lp then continue end
-			if not player_alive(plr) then
-				trackers[plr] = nil
-				continue
-			end
-			local char = plr.Character
-			local part = target_part_of(char)
-			if not part then
-				trackers[plr] = nil
-				continue
-			end
-			local tr = trackers[plr]
-			if not tr then
-				tr = new_tracker()
-				trackers[plr] = tr
-			end
-			update_tracker(tr, char, part, now)
-		end
-	end
-	local function pick_target()
-		local my_char = lp.Character
-		local root = my_char and my_char:FindFirstChild("HumanoidRootPart")
-		if not root then return nil, nil, nil end
-		local origin = root.Position
-		local best_char, best_part, best_tr = nil, nil, nil
-		local best_dist = K.range
-		for _, plr in ipairs(players:GetPlayers()) do
-			if plr == lp then continue end
-			if not player_alive(plr) then continue end
-			local char = plr.Character
-			local part = target_part_of(char)
-			if not part then continue end
-			local dist = (part.Position - origin).Magnitude
-			if dist <= best_dist then
-				best_dist = dist
-				best_char = char
-				best_part = part
-				best_tr = trackers[plr]
-			end
-		end
-		return best_char, best_part, best_tr
-	end
-	local function lead_offset(tr, char, base, t)
-		if not K.predict or not tr or not tr.ready then return Vector3.zero end
-		if t <= 0 then return Vector3.zero end
-		local vel = tr.vel
-		local scale = math.clamp(tr.stab, 0.3, 1) * t
-		local off_x = vel.X * scale
-		local off_z = vel.Z * scale
-		local vy = vel.Y
-		local off_y = 0
-		local reach = math.max(24, math.abs(vy) * t + tr.rest_gap + 12)
-		local gy = ground_below(char, base + Vector3.new(off_x, 0, off_z), reach)
-		local floor = nil
-		if gy then
-			local rest_y = gy + tr.rest_gap
-			if rest_y <= base.Y + 0.5 then floor = rest_y end
-		end
-		local grounded = math.abs(vy) < 3
-		if grounded and floor then
-			grounded = (base.Y - floor) <= 1.5
-		end
-		if not grounded and math.abs(vy) < AIR_VEL_CAP then
-			local tv = t * K.air_scale
-			off_y = math.clamp(vy * tv - 0.5 * GRAV * tv * tv, -AIR_OFF_CAP, AIR_OFF_CAP)
-		end
-		local off = Vector3.new(off_x, off_y, off_z)
-		if off.Magnitude > OFF_CAP then return Vector3.zero end
-		if floor and base.Y + off.Y < floor then
-			return Vector3.new(off.X, floor - base.Y, off.Z)
-		end
-		return off
-	end
-	local function throw_aim(tr, char, part, origin)
-		local base = part.Position
-		local travel = 0
-		local point = base
-		for _ = 1, 3 do
-			local t = math.clamp(lead_ping * K.lead_scale + K.lead_add + travel, 0, LEAD_CAP)
-			point = base + lead_offset(tr, char, base, t)
-			if not origin or K.throw_speed <= 1 then break end
-			travel = math.clamp((point - origin).Magnitude / K.throw_speed, 0, 0.7)
-		end
-		return point
-	end
-	local function get_knife()
-		local char = lp.Character
-		if char then
-			local equipped = char:FindFirstChild("Knife")
-			if equipped then return equipped, true end
-		end
-		local backpack = lp:FindFirstChildOfClass("Backpack")
-		if backpack then
-			local stored = backpack:FindFirstChild("Knife")
-			if stored then return stored, false end
-		end
-		return nil, false
-	end
-	local function knife_events()
-		local knife = get_knife()
-		if not knife then return nil end
-		return knife:FindFirstChild("Events")
-	end
-	local function direct_kill(part)
-		if not part or not part.Parent then return false end
-		local events = knife_events()
-		if not events then return false end
-		local stabbed = events:FindFirstChild("KnifeStabbed")
-		local touched = events:FindFirstChild("HandleTouched")
-		if not stabbed or not touched then return false end
-		local ok = pcall(function()
-			stabbed:FireServer()
-			touched:FireServer(part)
-		end)
-		return ok
-	end
-	local pending = nil
-	local function clear_pending()
-		pending = nil
-	end
-	local function projectile_position(inst)
-		if not inst or not inst.Parent then return nil end
-		if inst:IsA("BasePart") then return inst.Position end
-		local blade = inst:FindFirstChild("BladePosition")
-		if blade and blade:IsA("BasePart") then return blade.Position end
-		local ok, pivot = pcall(function() return inst:GetPivot() end)
-		if ok and typeof(pivot) == "CFrame" then return pivot.Position end
-		local first = inst:FindFirstChildWhichIsA("BasePart")
-		if first then return first.Position end
-		return nil
-	end
-	local function target_still_alive()
-		if not pending then return false end
-		local char = pending.char
-		if not char or not char.Parent then return false end
-		local hum = char:FindFirstChildOfClass("Humanoid")
-		if not hum or hum.Health <= 0 then return false end
-		return true
-	end
-	local function resolve_impact()
-		if not pending then return end
-		if not target_still_alive() then
-			clear_pending()
-			return
-		end
-		local part = pending.part
-		if not part or not part.Parent then
-			part = target_part_of(pending.char)
-			pending.part = part
-		end
-		if not part then
-			clear_pending()
-			return
-		end
-		local land = pending.last_pos or pending.aim
-		if land and (land - part.Position).Magnitude <= K.impact_radius then
-			direct_kill(part)
-		end
-		clear_pending()
-	end
-	local function adopt_projectile()
-		if not pending or pending.knife then return end
-		local char = lp.Character
-		local root = char and char:FindFirstChild("HumanoidRootPart")
-		if not root then return end
-		local ok, tagged = pcall(function() return collection:GetTagged("ThrowingKnife") end)
-		if not ok or type(tagged) ~= "table" then return end
-		local best, best_dist = nil, 24
-		for k = 1, #tagged do
-			local inst = tagged[k]
-			if inst and inst.Parent then
-				local pos = projectile_position(inst)
-				if pos then
-					local dist = (pos - root.Position).Magnitude
-					if dist < best_dist then
-						best_dist = dist
-						best = inst
-					end
-				end
-			end
-		end
-		if best then
-			pending.knife = best
-			pending.last_pos = projectile_position(best)
-		end
-	end
-	local function segment_gap(a, b, p)
-		if not a then return (b - p).Magnitude end
-		local ab = b - a
-		local len2 = ab:Dot(ab)
-		if len2 < 1e-6 then return (b - p).Magnitude end
-		local t = math.clamp((p - a):Dot(ab) / len2, 0, 1)
-		return (a + ab * t - p).Magnitude
-	end
-	local function pending_part()
-		if not pending then return nil end
-		local part = pending.part
-		if not part or not part.Parent then
-			part = target_part_of(pending.char)
-			pending.part = part
-		end
-		return part
-	end
-	local function try_flyby(pos)
-		if not pending or pending.fired then return end
-		local part = pending_part()
-		if not part then return end
-		if segment_gap(pending.last_pos, pos, part.Position) > K.impact_radius then return end
-		if direct_kill(part) then pending.fired = true end
-	end
-	local function watch_pending(now)
-		if not pending then return end
-		if now - pending.time > 6 then
-			clear_pending()
-			return
-		end
-		if not target_still_alive() then
-			clear_pending()
-			return
-		end
-		adopt_projectile()
-		local inst = pending.knife
-		if not inst then
-			if now - pending.time > 1 then clear_pending() end
-			return
-		end
-		if inst.Parent then
-			local pos = projectile_position(inst)
-			if pos then
-				try_flyby(pos)
-				pending.last_pos = pos
-			end
-			pending.gone_at = nil
-			return
-		end
-		if not pending.gone_at then
-			pending.gone_at = now
-			return
-		end
-		resolve_impact()
-	end
-	local function refresh_role()
-		if not round_mod then
-			local ok, m = pcall(function()
-				return require(rs:WaitForChild("Modules"):WaitForChild("CurrentRoundClient"))
-			end)
-			if ok and type(m) == "table" then round_mod = m end
-		end
-		local data = round_mod and round_mod.PlayerData
-		if type(data) == "table" then
-			local me = data[lp.Name]
-			if me then
-				am_murderer = me.Role == "Murderer" and not me.Dead
-				return
-			end
-		end
-		am_murderer = get_knife() ~= nil
-	end
-	local function resolve_throw_aim()
-		if not K.silent then return nil end
-		local char = lp.Character
-		if not char or not char:FindFirstChild("Knife") then return nil end
-		local target_char, part, tr = pick_target()
-		if not part then return nil end
-		local root = char:FindFirstChild("HumanoidRootPart")
-		local origin = root and root.Position or nil
-		local point = throw_aim(tr, target_char, part, origin)
-		if K.instance_kill then
-			pending = {
-				char = target_char,
-				part = part,
-				time = os.clock(),
-				aim = point,
-				knife = nil,
-				last_pos = nil,
-				gone_at = nil,
-				fired = false,
-			}
-		else
-			clear_pending()
-		end
-		return CFrame.new(point)
-	end
-	getgenv().KNIFE_AIM_RESOLVE = function()
-		local ok, cf = pcall(resolve_throw_aim)
-		if ok then return cf end
-		return nil
-	end
-	local function ensure_hooks()
-		local fn = getgenv().SILENT_INSTALL_HOOKS
-		if type(fn) == "function" then pcall(fn) end
-	end
-	local next_role = 0
-	local next_ping = 0
-	local next_hook = 0
-	local function tick()
-		if not (K.silent or pending) then return end
-		local now = os.clock()
-		if now >= next_role then
-			next_role = now + 0.25
-			refresh_role()
-		end
-		if now >= next_ping then
-			next_ping = now + 0.25
-			sample_ping()
-		end
-		if now >= next_hook then
-			next_hook = now + 1
-			ensure_hooks()
-		end
-		update_trackers(now)
-		watch_pending(now)
-	end
-	local main_conn = run.Heartbeat:Connect(function()
-		pcall(tick)
-	end)
-	local silent_tog = Sec:AddToggle({
-		Name = "throw silent",
-		ToolTip = "Redirects ur knife throw at the closest target",
-		Default = false,
-		Flag = "Knife Silent",
-		Option = true,
-		Callback = function(v)
-			K.silent = v
-			if v then
-				task.spawn(function()
-					ensure_hooks()
-					refresh_role()
-				end)
-			else
-				clear_trackers()
-				clear_pending()
-			end
-		end
-	})
-	silent_tog.Option:AddToggle({
-		Name = "insta kill",
-		Default = false,
-		Flag = "Knife Instance Kill",
-		Callback = function(v)
-			K.instance_kill = v
-			if not v then clear_pending() end
-		end
-	})
-	silent_tog.Option:AddSlider({
-		Name = "radius",
-		Default = 12,
-		Min = 2,
-		Max = 40,
-		Round = 0,
-		Flag = "knife_impact_radius",
-		Callback = function(v)
-			K.impact_radius = v
-		end
-	})
-	local pred_tog = Sec:AddToggle({
-		Name = "prediction",
-		ToolTip = "Leads the throw by ping and knife travel time",
-		Default = false,
-		Flag = "Knife Prediction",
-		Option = true,
-		Callback = function(v)
-			K.predict = v
-			if not v then clear_trackers() end
-		end
-	})
-	pred_tog.Option:AddSlider({
-		Name = "lead",
-		Default = 100,
-		Min = 0,
-		Max = 320,
-		Round = 0,
-		Type = "%",
-		Flag = "knife_lead_scale",
-		Callback = function(v)
-			K.lead_scale = v / 100
-		end
-	})
-	pred_tog.Option:AddSlider({
-		Name = "air",
-		Default = 35,
-		Min = 0,
-		Max = 120,
-		Round = 0,
-		Type = "%",
-		Flag = "knife_air_scale",
-		Callback = function(v)
-			K.air_scale = v / 100
-		end
-	})
-	pred_tog.Option:AddSlider({
-		Name = "offset",
-		Default = 0,
-		Min = -80,
-		Max = 220,
-		Round = 0,
-		Type = "ms",
-		Flag = "knife_lead_add",
-		Callback = function(v)
-			K.lead_add = v / 1000
-		end
-	})
-	pred_tog.Option:AddSlider({
-		Name = "speed",
-		Default = 96,
-		Min = 40,
-		Max = 400,
-		Round = 0,
-		Flag = "knife_throw_speed",
-		Callback = function(v)
-			K.throw_speed = v
-		end
-	})
-	getgenv().KNIFE_UNLOAD = function()
-		K.silent = false
-		K.predict = false
-		K.instance_kill = false
-		knife_ind:Set(false)
-		clear_trackers()
-		clear_pending()
-		getgenv().KNIFE_AIM_RESOLVE = nil
-		if main_conn then
-			pcall(function() main_conn:Disconnect() end)
-			main_conn = nil
-		end
-	end
-end
-end
  
  
 getgenv().ZolarExtra = function(S)
 	if not IS_MM2 then
-		for _, section in { S.Sheriff, S.Kill, S.Knife } do
+		for _, section in { S.Sheriff, S.Kill, S.Knife, S.Gun } do
 			section:Label({ Name = "Murder Mystery 2 only." })
 		end
 		return
 	end
+	 
+	local okAim, errAim = pcall(getgenv().ZolarAimMM2, {
+		Sheriff = adapt(S.Sheriff), Knife = adapt(S.Knife), Gun = adapt(S.Gun or S.Sheriff),
+	})
+	if not okAim then
+		warn("[combat] aim failed to load: " .. tostring(errAim))
+		S.Sheriff:Label({ Name = "Failed to load, see console." })
+	end
 	for _, entry in {
-		{ "sheriff", loadSheriff, S.Sheriff },
 		{ "kill aura", loadKill, S.Kill },
-		{ "knife throw", loadKnife, S.Knife },
 	} do
 		local ok, err = pcall(entry[2], adapt(entry[3]))
 		if not ok then
@@ -59320,7 +57828,7 @@ getgenv().ZolarExtra = function(S)
 	end
 end
 getgenv().ZolarCombatUnload = function()
-	for _, name in { "SILENT_UNLOAD", "KILLAURA_UNLOAD", "KNIFE_UNLOAD" } do
+	for _, name in { "SILENT_UNLOAD", "KILLAURA_UNLOAD", "KNIFE_UNLOAD", "AUTOGRAB_UNLOAD" } do
 		local fn = getgenv()[name]
 		if type(fn) == "function" then
 			pcall(fn)
@@ -59329,6 +57837,8556 @@ getgenv().ZolarCombatUnload = function()
 end
 end)
 if not ok then warn("[Salad] combat.lua: " .. tostring(err)) end
+end
+do
+local ok, err = pcall(function()
+local function appendPacked(destination, offset, ...)
+    local values=table.pack(...)
+    table.move(values,1,values.n,offset+1,destination)
+end
+local function unpackPacked(values) return table.unpack(values,1,values.n) end
+getgenv().ZolarAimMM2 = function(Sections)
+    local environment = getfenv()
+    local f, K, r, _, P, d, b, E, c, o
+    local fx = (function()
+  return setmetatable({}, {__call = function(s10, s11, s12)
+    if rawget(s10, s11) == nil then
+      rawset(s10, s11, s12)
+    end
+    return function(...)
+      return rawget(s10, s11)(...)
+    end
+  end})
+    end)()
+    local C = { load = function(name) if name == "n" then return fx end return {} end }
+    local a = { AddSection = function() return Sections.Sheriff end }
+    local e = Sections.Knife
+    local l, Z, q = {}, {}, {}
+    do
+        f = environment.game:GetService("Players")
+        local o = f.LocalPlayer
+        K = environment.Enum.HumanoidStateType
+        local V = K.Dead
+        local p = K.Physics
+        local i = K.FallingDown
+        local k = K.GettingUp
+        local S = K.Seated
+        local I = K.Freefall
+        local R = K.Jumping
+        local Q = K.Landed
+        local Fo = K.Climbing
+        local so = environment.Vector3.zero
+        local zo = environment.Vector3.new
+        local Co, Lo = environment.math.sqrt, {}
+        local function vo(Do)
+            local To = Lo[Do]
+            if not (To) then
+                return
+            end
+            local no = To.links
+            for To = 1, #no, 1 do
+                no[To]:Disconnect()
+            end
+            Lo[Do] = nil
+        end
+        local function Do(To, no)
+            vo(To)
+            local xo = no:FindFirstChildOfClass("Humanoid")
+            local jo = xo and xo.RootPart
+            if not (jo) then
+                return nil
+            end
+            local Ao, eo = xo.MoveDirection, {}
+            eo.links = {}
+            eo.character = no
+            eo.humanoid = xo
+            eo.root = jo
+            eo.direction = Ao
+            eo.live = xo:GetState()
+            eo.speed = 0
+            eo.seen = false
+            eo.state = {player = To, character = no, humanoid = xo, root = jo, position = jo.Position, direction = Ao, live = xo:GetState(), speed = 0}
+            Lo[To] = eo
+            jo = eo.links
+            jo[1] = xo.Running:Connect(function(no)
+                eo.speed = no
+                eo.seen = true
+            end)
+            jo[2] = xo.StateChanged:Connect(function(no, no)
+                eo.live = no
+            end)
+            jo[3] = xo:GetPropertyChangedSignal("MoveDirection"):Connect(function()
+                eo.direction = xo.MoveDirection
+            end)
+            jo[4] = xo.Died:Connect(function()
+                vo(To)
+            end)
+            return eo
+        end
+        local function To(no)
+            if no == o then
+                return
+            end
+            local o, xo = "CharacterAdded", function()
+                vo(no)
+            end
+            no[o]:Connect(xo)
+            o, xo = "CharacterRemoving", function()
+                vo(no)
+            end
+            no[o]:Connect(xo)
+        end
+        r, _, P = environment.next, f:GetPlayers()
+        for o, o in r, _, P do
+            To(o)
+        end
+        f.PlayerAdded:Connect(To)
+        f.PlayerRemoving:Connect(vo)
+        local function o(vo)
+            local To = vo.Character
+            if To then
+                if not (To.Parent) then
+                    return nil
+                end
+            else
+                return nil
+            end
+            local no = Lo[vo]
+            if no then
+                if no.character == To then
+                    if no.humanoid.Parent then
+                        if no.root.Parent then
+                            return no
+                        end
+                    end
+                end
+            end
+            return Do(vo, To)
+        end
+        l.tracked = function(vo)
+            return o(vo) ~= nil
+        end
+        l.read = function(vo)
+            local Do = o(vo)
+            if not (Do) then
+                return nil
+            end
+            vo = Do.humanoid
+            if vo.Health <= 0 then
+                return nil
+            end
+            local o, To, no = Do.root, Do.direction, Do.state
+            no.position = o.Position
+            no.direction = To
+            no.live = Do.live
+            if Do.seen then
+                no.speed = Do.speed
+            else
+                no.speed = To.Magnitude * vo.WalkSpeed
+            end
+            return no
+        end
+        l.quality = function(o)
+            local vo = o.live
+            if vo == V then
+                return "invalid"
+            elseif vo == p then
+                return "invalid"
+            elseif vo == i then
+                return "invalid"
+            elseif vo == k then
+                return "invalid"
+            elseif vo == S then
+                return "invalid"
+            end
+            if vo == I then
+                return "air"
+            elseif vo == R then
+                return "air"
+            elseif vo == Q then
+                return "air"
+            end
+            if vo == Fo then
+                return "climb"
+            end
+            return "ground"
+        end
+        l.axis = function(o)
+            local V = o.direction
+            o = (V.X * V.X) + (V.Z * V.Z)
+            if o <= 0 then
+                return nil
+            end
+            local p = 1 / Co(o)
+            return zo(V.X * p, 0, V.Z * p)
+        end
+        l.velocity = function(o)
+            local V = o.direction
+            local p = (V.X * V.X) + (V.Z * V.Z)
+            if p <= 0 then
+                return so
+            elseif o.speed <= 0 then
+                return so
+            end
+            local i = o.speed / Co(p)
+            return zo(V.X * i, 0, V.Z * i)
+        end
+        l.extent = function(o)
+            local V = o.root.Size
+            return Co((V.X * V.X) + (V.Z * V.Z)) * 0.5
+        end
+        local o = {}
+        appendPacked(o, 0, "UpperTorso", "HumanoidRootPart", "LowerTorso", "Torso", "Head", "RightUpperLeg", "LeftUpperLeg", "RightUpperArm", "LeftUpperArm", "RightLowerLeg", "LeftLowerLeg", "Right Arm", "Left Arm", "Right Leg", "Left Leg")
+        l.parts = function(V)
+            local p = Lo[V.player]
+            if not (p) then
+                return nil
+            end
+            local i = p.rig
+            if i then
+                if p.rig_owner == V.character then
+                    return i
+                end
+            end
+            i = {}
+            for k = 1, #o, 1 do
+                local S = V.character:FindFirstChild(o[k])
+                if S then
+                    k = "BasePart"
+                    if S:IsA(k) then
+                        i[#i + 1] = S
+                    end
+                end
+            end
+            p.rig = i
+            p.rig_owner = V.character
+            return i
+        end
+        l.spread = function(o)
+            local V = l.parts(o)
+            if not (V) then
+                return l.extent(o)
+            end
+            local p, i = o.position, 0
+            for k = 1, #V, 1 do
+                local S = V[k]
+                if S.Parent then
+                    k = S.Size
+                    local V = (S.Position - p).Magnitude + (Co(((k.X * k.X) + (k.Y * k.Y)) + (k.Z * k.Z)) * 0.5)
+                    i = if V > i then V else i
+                else
+                end
+            end
+            if i <= 0 then
+                return l.extent(o)
+            end
+            return i
+        end
+        l.point = function(o, V)
+            local p = o.position
+            if V <= 0 then
+                return p
+            elseif o.speed <= 0 then
+                return p
+            end
+            if l.quality(o) == "invalid" then
+                return p
+            end
+            local i = o.direction
+            local k = (i.X * i.X) + (i.Z * i.Z)
+            if k <= 0 then
+                return p
+            end
+            local S = (o.speed * V) / Co(k)
+            return zo(p.X + (i.X * S), p.Y, p.Z + (i.Z * S))
+        end
+        l.sweep = function(o, V, p)
+            local i = l.axis(o)
+            if not (i) then
+                return nil
+            end
+            local k = o.speed * V
+            k = if k < 0 then 0 else k
+            V = o.position
+            return V - (i * p), V + (i * (k + p)), i, k
+        end
+        l.nearest = function(o, V)
+            local environment58 = getfenv()
+            local i, k = environment58.math.huge
+            for S, I in o:GetChildren() do
+                environment58 = "BasePart"
+                if I:IsA(environment58) then
+                    S = (I.Position - V).Magnitude
+                    if S < i then
+                        i, k = S, I
+                    else
+                    end
+                else
+                end
+            end
+            return i, k
+        end
+    end
+    do
+        local ReplicatedStorageService1, V, p, i, k, S, I, R = environment.game:GetService("ReplicatedStorage"), {}
+        local function Q()
+            local environment59 = getfenv()
+            for so = 1, #V, 1 do
+                local zo = V[so].fn()
+                if environment59["typeof"](zo) == "CFrame" then
+                    return zo
+                end
+            end
+            return nil
+        end
+        Z.register = function(Fo, so)
+            local environment60 = getfenv()
+            V[#V + 1] = {order = Fo, fn = so}
+            environment60.table.sort(V, function(V, Fo)
+                return V.order < Fo.order
+            end)
+        end
+        Z.service = function()
+            local environment61 = getfenv()
+            if p then
+                local Fo = p
+                return Fo
+            end
+            local Fo = ReplicatedStorageService1:FindFirstChild("ClientServices")
+            local o = Fo and Fo:FindFirstChild("WeaponService")
+            if o then
+                Fo = "ModuleScript"
+                if not (o:IsA(Fo)) then
+                    return nil
+                end
+            else
+                return nil
+            end
+            Fo = environment61.require(o)
+            if environment61["type"](Fo) ~= "table" then
+                return nil
+            end
+            p = Fo
+            o = p
+            return o
+        end
+        Z.range = function()
+            local environment62 = getfenv()
+            if R then
+                local V = R
+                return V
+            end
+            local V = Z.service()
+            local Fo = V and V.GetTargetPosition
+            if environment62["type"](Fo) ~= "function" then
+                return nil
+            end
+            V = environment62.debug and environment62.debug.getconstants
+            if environment62["type"](V) ~= "function" then
+                return nil
+            end
+            local so = V(Fo)
+            if environment62["type"](so) ~= "table" then
+                return nil
+            end
+            Fo = nil
+            for zo, zo in environment62.next, so, nil do
+                Fo = if environment62["type"](zo) == "number" then if Fo then if zo > Fo then zo else Fo else zo else Fo
+            end
+            R = Fo
+            V = R
+            return V
+        end
+        Z.intact = function()
+            if p then
+                if not (S) then
+                    return false
+                end
+            else
+                return false
+            end
+            local o = p
+            local V, R = o.GetMouseTargetCFrame == S
+            if V then
+                o = p
+                R = o.GetTargetPosition == I
+            else
+                R = V
+            end
+            return R
+        end
+        Z.install = function()
+            local environment63, V = getfenv(), Z.service()
+            if not (V) then
+                return false
+            end
+            if not (S) then
+                function S(R, ...)
+                    local Fo = Q()
+                    if Fo then
+                        return Fo
+                    end
+                    Fo = i
+                    return Fo(R, ...)
+                end
+                function I(R, Fo, so, ...)
+                    local zo = Q()
+                    if zo then
+                        return zo
+                    end
+                    zo = k
+                    return zo(R, Fo, so, ...)
+                end
+            end
+            if environment63["type"](environment63.setreadonly) == "function" then
+                environment63.setreadonly(V, false)
+            end
+            if environment63["type"](V.GetMouseTargetCFrame) == "function" then
+                if V.GetMouseTargetCFrame ~= S then
+                    i = V.GetMouseTargetCFrame
+                    V.GetMouseTargetCFrame = S
+                end
+            end
+            if environment63["type"](V.GetTargetPosition) == "function" then
+                if V.GetTargetPosition ~= I then
+                    k = V.GetTargetPosition
+                    V.GetTargetPosition = I
+                end
+            end
+            return true
+        end
+        Z.restore = function()
+            local environment64 = getfenv()
+            if not (p) then
+                return
+            end
+            if environment64["type"](environment64.setreadonly) == "function" then
+                environment64.setreadonly(p, false)
+            end
+            if i then
+                environment64 = p
+                environment64.GetMouseTargetCFrame = i
+            end
+            if k then
+                environment64 = p
+                environment64.GetTargetPosition = k
+            end
+        end
+    end
+    do
+        local PlayersService1 = environment.game:GetService("Players")
+        local ReplicatedStorageService2 = environment.game:GetService("ReplicatedStorage")
+        local p, i = PlayersService1.LocalPlayer
+        local function k()
+            local environment65 = getfenv()
+            if i then
+                local I = i
+                return I
+            end
+            local I = ReplicatedStorageService2:FindFirstChild("Modules")
+            local V = I and I:FindFirstChild("CurrentRoundClient")
+            if V then
+                I = "ModuleScript"
+                if not (V:IsA(I)) then
+                    return nil
+                end
+            else
+                return nil
+            end
+            I = environment65.require(V)
+            if environment65["type"](I) ~= "table" then
+                return nil
+            end
+            i = I
+            V = i
+            return V
+        end
+        q.data = function()
+            local environment66, i = getfenv(), k()
+            local k = i and i.PlayerData
+            if environment66["type"](k) ~= "table" then
+                return nil
+            end
+            return k
+        end
+        q.entry = function(V)
+            local i = q.data()
+            if not (i) then
+                return nil
+            end
+            return i[V.Name]
+        end
+        q.role = function(V)
+            local i = q.entry(V)
+            local k, S = (i and i.Role) or nil, V.Character
+            if k == "Zombie" then
+                return "Murderer"
+            elseif k then
+                if S then
+                    if S:GetAttribute("Zombie") == true then
+                        return "Murderer"
+                    end
+                end
+            end
+            if k == "Survivor" then
+                return "Sheriff"
+            end
+            return k
+        end
+        q.perk = function(V)
+            local i = q.entry(V)
+            return (i and i.Perk) or nil
+        end
+        q.alive = function(V)
+            local i = q.entry(V)
+            if i then
+                if i.Dead then
+                    return false
+                end
+            end
+            i = V.Character
+            V = i and i:FindFirstChildOfClass("Humanoid")
+            return (V ~= nil) and (V.Health > 0)
+        end
+        q.stored = function(V, i)
+            local k = V.Character
+            local S = k and (k:FindFirstChild(i))
+            if S then
+                return S, true
+            end
+            k = V:FindFirstChildOfClass("Backpack")
+            S = k and (k:FindFirstChild(i))
+            if S then
+                return S, false
+            end
+            return nil, false
+        end
+        q.sheriff = function()
+            if q.stored(p, "Gun") ~= nil then
+                return true
+            end
+            local V = q.role(p)
+            return (V == "Sheriff") or (V == "Hero")
+        end
+        q.murderer = function()
+            local V = q.data()
+            if not (V) then
+                return nil
+            end
+            for i, k in V, nil, nil do
+                local V = PlayersService1:FindFirstChild(i)
+                i = V and V.Character
+                if k.Role == "Murderer" then
+                    if k.Dead then
+                    elseif V then
+                        return V
+                    end
+                elseif k.Role == "Zombie" then
+                    if k.Dead then
+                    elseif V then
+                        return V
+                    end
+                elseif i then
+                    if i:GetAttribute("Zombie") == true then
+                        if k.Dead then
+                        elseif V then
+                            return V
+                        end
+                    end
+                end
+            end
+            return nil
+        end
+        q.team = function(V, i)
+            local environment67 = getfenv()
+            if environment67["type"](V) ~= "table" then
+                return nil
+            end
+            local S = i and i.Character
+            if S then
+                if S:GetAttribute("Zombie") == true then
+                    return "Zombie"
+                end
+            end
+            if V.KnifeEnabled == nil then
+                if V.GunEnabled == nil then
+                    if V.Role ~= "Zombie" then
+                        if V.Role ~= "Survivor" then
+                            return nil
+                        end
+                    end
+                end
+            end
+            S = V.Team or V.Role
+            return ((environment67["type"](S) == "string") and S) or nil
+        end
+        q.ally = function(V)
+            local i = q.data()
+            if i then
+                if V == p then
+                    return false
+                end
+            else
+                return false
+            end
+            local k = q.team(i[p.Name], p)
+            return (k ~= nil) and (q.team(i[V.Name], V) == k)
+        end
+        q.target = function(V)
+            local environment68, k = getfenv(), q.data()
+            if not (k) then
+                return nil
+            end
+            local S = q.team(k[p.Name], p)
+            if not (S) then
+                return q.murderer()
+            end
+            local p = environment68.workspace.CurrentCamera
+            local I, R, Q, Fo = p and p.CFrame
+            for so, zo in k, nil, nil do
+                p = PlayersService1:FindFirstChild(so)
+                so = q.team(zo, p)
+                if so then
+                    if so ~= S then
+                        if zo.Dead then
+                        else
+                            environment68 = p and p.Character
+                            local o = environment68 and environment68:FindFirstChild("HumanoidRootPart")
+                            if o then
+                                if q.alive(p) then
+                                    local i = 0
+                                    if I then
+                                        local k = o.Position - I.Position
+                                        i = if k.Magnitude > 0 then k.Unit:Dot(I.LookVector) else i
+                                    else
+                                    end
+                                    R = if p == V then i else R
+                                    if Q then
+                                        if i > Q then
+                                            Q, Fo = i, p
+                                        else
+                                        end
+                                    else
+                                        Q, Fo = i, p
+                                    end
+                                else
+                                end
+                            else
+                            end
+                        end
+                    else
+                    end
+                else
+                end
+            end
+            if R then
+                if (Q - R) < 0.05 then
+                    return V
+                end
+            end
+            return Fo
+        end
+    end
+    do
+        local PlayersService2 = environment.game:GetService("Players")
+        local RunService, HttpService1 = environment.game:GetService("RunService"), environment.game:GetService("HttpService")
+        local CollectionService = environment.game:GetService("CollectionService")
+        local k = PlayersService2.LocalPlayer
+        local S = environment.os.clock
+        local I = environment.Vector3.new
+        local R = environment.Vector3.zero
+        local Q = environment.Vector3.yAxis
+        local Fo = environment.math.sqrt
+        local so = environment.math.atan2
+        local zo = environment.math.sin
+        local Co = environment.math.cos
+        local Lo = environment.math.clamp
+        local vo = environment.math.abs
+        local Do = environment.math.max
+        local To = environment.math.min
+        local no = 3.141592653589793
+        local xo = environment.math.exp
+        local jo = environment.math.log
+        local Ao, eo = environment.Enum.HumanoidStateType, {}
+        eo[Ao.Jumping] = true
+        eo[Ao.Freefall] = true
+        local co = {}
+        co[Ao.Jumping.Value] = true
+        co[Ao.Freefall.Value] = true
+        local ro = {}
+        ro[Ao.Physics] = true
+        ro[Ao.PlatformStanding] = true
+        ro[Ao.Flying] = true
+        ro[Ao.Swimming] = true
+        ro[Ao.Ragdoll] = true
+        local Ko = 480
+        local Xo, yo = 0.008333333333333333, {}
+        local Po = 0
+        local _o = environment.RaycastParams.new()
+        _o.FilterType = environment.Enum.RaycastFilterType.Exclude
+        _o.RespectCanCollide = true
+        local uo, wo, mo
+        local Eo = {}
+        Eo.base = 0.09
+        Eo.learn = true
+        l.cfg = Eo
+        local bo = {}
+        appendPacked(bo, 0, 0.13, 0.165, 0.2, 0.24, "turn", "ring")
+        local Uo = {}
+        appendPacked(Uo, 0, "t", "cf", "pp", "vel", "ay", "md", "st")
+        local Wo = {}
+        appendPacked(Wo, 0, {-1.8, 0.0725}, {-0.9, 0.2443}, {0, 0.3664}, {0.9, 0.2443}, {1.8, 0.0725})
+        local Bo = {}
+        appendPacked(Bo, 0, {0, 0, 0, 0.2}, {1, 0, 0, 0.1}, {-1, 0, 0, 0.1}, {0, 1, 0, 0.1}, {0, -1, 0, 0.1}, {0, 0, 1, 0.1}, {0, 0, -1, 0.1}, {0.7, 0.7, 0, 0.05}, {-0.7, 0.7, 0, 0.05}, {0.7, -0.7, 0, 0.05}, {-0.7, -0.7, 0, 0.05})
+        local Jo = {}
+        Jo.Head = true
+        Jo.UpperTorso = true
+        Jo.LowerTorso = true
+        Jo.Torso = true
+        local fo = {}
+        fo.LeftUpperArm = true
+        fo.LeftLowerArm = true
+        fo.LeftHand = true
+        fo.RightUpperArm = true
+        fo.RightLowerArm = true
+        fo.RightHand = true
+        fo.LeftUpperLeg = true
+        fo.LeftLowerLeg = true
+        fo.LeftFoot = true
+        fo.RightUpperLeg = true
+        fo.RightLowerLeg = true
+        fo.RightFoot = true
+        fo["Left Arm"] = true
+        fo["Right Arm"] = true
+        fo["Left Leg"] = true
+        fo["Right Leg"] = true
+        local Mo = {}
+        Mo.lo = -0.1
+        Mo.step = 0.01
+        Mo.n = 51
+        Mo.ll = {}
+        Mo.mean = Eo.base
+        Mo.sd = 0.05
+        Mo.jit = 0.03
+        Mo.shots = 0
+        Mo.acc = {1, 2}
+        for Go = 1, Mo.n, 1 do
+            Mo.ll[Go] = 0
+        end
+        l.cal = Mo
+        local Go, go = {}, {}
+        local function ao(Ho)
+            return I(Ho.X, 0, Ho.Z)
+        end
+        local function Ho(to)
+            local environment69, No = getfenv(), #to.t
+            if No <= (Ko + 120) then
+                return
+            end
+            local Oo = No - Ko
+            for Ko, ho in Uo, nil, nil do
+                Ko = to[ho]
+                environment69.table.move(Ko, Oo + 1, No, 1)
+                for to = (No - Oo) + 1, No, 1 do
+                    Ko[to] = nil
+                end
+            end
+        end
+        local function Ko(to)
+            local environment70 = getfenv()
+            for No, No in to.links, nil, nil do
+                No:Disconnect()
+            end
+            environment70.table.clear(to.links)
+        end
+        local function to(Yo, No)
+            local environment71, ho = getfenv(), yo[Yo]
+            if ho then
+            else
+                ho = {t = {}, cf = {}, pp = {}, vel = {}, ay = {}, md = {}, st = {}, links = {}, evq = {}, res = {}, ws = {}, dl = {}, body = {}, lerr = {}, lw = {}, pick = 2, lag = 0.165, spd = 16, jump = 50, hop = 0, ev_at = 0, lag_at = 0, track_at = 0, body_at = 0, reach = 3, cy_at = 0}
+                yo[Yo] = ho
+            end
+            Ko(ho)
+            for lo, lo in Uo, nil, nil do
+                environment71.table.clear(ho[lo])
+            end
+            Yo = {ho.evq, ho.res, ho.body}
+            for lo, lo in Yo, nil, nil do
+                environment71.table.clear(lo)
+            end
+            for Oo = 1, #bo, 1 do
+                ho.lerr[Oo], ho.lw[Oo] = 0, 0
+            end
+            ho.char, ho.hum, ho.root, ho.part, ho.air_at, ho.body_at, ho.clamped, ho.ev_at, ho.hop, ho.lag, ho.spd, ho.pick, ho.cy_at, ho.cy = No, nil, nil, nil, nil, 0, false, 0, 0, 0.165, 16, 2, 0, nil
+            Yo = No:FindFirstChildOfClass("Humanoid")
+            local Oo = Yo and Yo.RootPart
+            if not (Oo) then
+                return nil
+            end
+            ho.hum, ho.root = Yo, Oo
+            ho.part = (No:FindFirstChild("UpperTorso") or No:FindFirstChild("Torso")) or Oo
+            return ho
+        end
+        local function Yo(No)
+            local Oo, ho = k.Character, uo
+            if (ho ~= No.char) or (wo ~= Oo) then
+                uo, wo = No.char, Oo
+                _o.FilterDescendantsInstances = {No.char, Oo}
+            end
+            ho = No.root.CollisionGroup
+            if mo ~= ho then
+                mo = ho
+                _o.CollisionGroup = ho
+            end
+        end
+        local function uo(wo, mo)
+            local No, Oo = wo.t, wo.cf
+            local ho, lo, Zo, qo, oo, Vo, po, io, ko, So, Io, Ro, Qo, Fw, sw, zw, Cw, Lw = No[mo], Oo[mo].Position, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            for vw = mo, 1, -1 do
+                wo = No[vw] - ho
+                if wo < (-0.15) then
+                    break
+                end
+                local Dw = Oo[vw].Position - lo
+                if wo >= (-0.07) then
+                    Zo += 1
+                    qo += wo
+                    oo += wo * wo
+                    Vo += Dw.X
+                    po += Dw.Z
+                    io += wo * Dw.X
+                    ko = ko + (wo * Dw.Z)
+                else
+                end
+                local Tw = wo * wo
+                So += 1
+                Io += wo
+                Ro += Tw
+                Qo += Tw * wo
+                Fw += Tw * Tw
+                sw += Dw.Y
+                zw += wo * Dw.Y
+                Cw, Lw = Cw + (Tw * Dw.Y), vw
+            end
+            local wo, vw, Dw, Tw, nw = 0, 0, 0, 0, (Zo * oo) - (qo * qo)
+            if (Zo >= 3) and (nw > 1e-10) then
+                wo, vw = ((Zo * io) - (qo * Vo)) / nw, ((Zo * ko) - (qo * po)) / nw
+            else
+                if Lw then
+                    if Lw < mo then
+                        local Zo, qo = lo - Oo[Lw].Position, ho - No[Lw]
+                        local oo, Vo = Zo.X / qo, Zo.Z / qo
+                        wo, vw = oo, Vo
+                    else
+                    end
+                else
+                end
+            end
+            nw = ((So * ((Ro * Fw) - (Qo * Qo))) - (Io * ((Io * Fw) - (Qo * Ro)))) + (Ro * ((Io * Qo) - (Ro * Ro)))
+            if (So >= 5) and (vo(nw) > 1e-14) then
+                Dw, Tw = (((So * ((zw * Fw) - (Qo * Cw))) - (sw * ((Io * Fw) - (Qo * Ro)))) + (Ro * ((Io * Cw) - (zw * Ro)))) / nw, (2 * (((So * ((Ro * Cw) - (zw * Qo))) - (Io * ((Io * Cw) - (zw * Ro)))) + (sw * ((Io * Qo) - (Ro * Ro))))) / nw
+            else
+                Dw = if Lw then if Lw < mo then (lo.Y - Oo[Lw].Position.Y) / (ho - No[Lw]) else Dw else Dw
+            end
+            return I(wo, Dw, vw), Tw
+        end
+        local function wo(mo)
+            return mo.vel[#mo.vel] or R
+        end
+        local function mo(No)
+            local Oo = No.Character
+            if Oo then
+                if not (Oo.Parent) then
+                    return nil
+                end
+            else
+                return nil
+            end
+            local ho = yo[No]
+            if ho then
+                if ho.char == Oo then
+                    if ho.hum then
+                        if ho.hum.Parent then
+                            if ho.root.Parent then
+                                if ho.part.Parent == Oo then
+                                    return ho
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+            return to(No, Oo)
+        end
+        l.hist = mo
+        Ao, _ = "PlayerRemoving", function(to)
+            local No = yo[to]
+            if No then
+                Ko(No)
+                yo[to] = nil
+            end
+        end
+        PlayersService2[Ao]:Connect(_)
+        local Ao
+        local to = RunService.Heartbeat:Connect(function()
+            local environment72, No = getfenv(), S()
+            if (No - Po) < Xo then
+                return
+            end
+            Po = No
+            for Xo, Po in PlayersService2:GetPlayers() do
+                if Po ~= k then
+                    Xo = mo(Po)
+                    if Xo and (Xo.hum.Health > 0) then
+                        local o, Po = Xo.root.CFrame, #Xo.t
+                        if Po > 0 then
+                            local Oo = (o.Position - Xo.cf[Po].Position).Magnitude
+                            if Oo > 8 then
+                                if Oo > (300 * (No - Xo.t[Po])) then
+                                    for Oo, Oo in Uo, nil, nil do
+                                        environment72.table.clear(Xo[Oo])
+                                    end
+                                    environment72.table.clear(Xo.evq)
+                                    Po = 0
+                                else
+                                end
+                            else
+                            end
+                        else
+                        end
+                        Po += 1
+                        Xo.t[Po] = No
+                        Xo.cf[Po] = o
+                        Xo.pp[Po] = Xo.part.Position
+                        Xo.md[Po] = Xo.hum.MoveDirection
+                        Xo.st[Po] = Xo.hum:GetState().Value
+                        Xo.vel[Po], Xo.ay[Po] = uo(Xo, Po)
+                        Ho(Xo)
+                    end
+                end
+            end
+            for o = #go, 1, -1 do
+                local Xo = go[o]
+                local Po = Xo.root
+                if (No < Xo.stop) and Po.Parent then
+                    local uo = Xo.ts
+                    if No > (uo[#uo] or (-1)) then
+                        uo[#uo + 1] = No
+                        Xo.cs[#Xo.cs + 1] = Po.CFrame
+                    end
+                else
+                    environment72.table.remove(go, o)
+                    environment72.pcall(Ao, Xo)
+                end
+            end
+        end)
+        l.stop = function()
+            local environment73 = getfenv()
+            if to then
+                to:Disconnect()
+                to = nil
+            end
+            for V, V in yo, nil, nil do
+                Ko(V)
+            end
+            environment73.table.clear(yo)
+            environment73.table.clear(Go)
+            environment73.table.clear(go)
+        end
+        local function o(V, Ko)
+            local Xo = V.t
+            V = #Xo
+            if V == 0 then
+                return nil
+            end
+            if Ko >= Xo[V] then
+                return V
+            end
+            if Ko <= Xo[1] then
+                return 1
+            end
+            local yo, Po = V, 1
+            while true do
+                local V, uo = yo - Po, 1
+                if not (V > uo) then
+                    break
+                end
+                uo = (Po + yo) // 2
+                if Xo[uo] <= Ko then
+                    Po = uo
+                else
+                    yo = uo
+                end
+            end
+            return Po
+        end
+        local function V(Ko, Xo)
+            local yo, Po = Ko.t, Ko.pp
+            local uo = #yo
+            if uo == 0 then
+                return nil
+            end
+            if Xo >= yo[uo] then
+                return Po[uo]
+            end
+            if Xo <= yo[1] then
+                return Po[1]
+            end
+            uo = o(Ko, Xo)
+            local Uo, Ho, to = yo[uo], Po[uo], Po[uo + 1]
+            Ko = (Xo - Uo) / Do(yo[uo + 1] - Uo, 1e-06)
+            return Ho:Lerp(to, Ko)
+        end
+        local function Ko(Xo, yo, Po)
+            local environment74 = getfenv()
+            Yo(Xo)
+            Xo = environment74.workspace:Raycast(I(yo.X, Po + 0.5, yo.Z), I(0, -120, 0), _o)
+            return Xo and Xo.Position.Y
+        end
+        local function Xo(yo)
+            local Po = S()
+            if (Po - yo.cy_at) > 0.03 then
+                yo.cy_at = Po
+                yo.cy = Ko(yo, yo.root.Position, yo.part.Position.Y)
+            end
+            return yo.cy
+        end
+        local function yo(Po, uo, Uo, Ho)
+            local environment75 = getfenv()
+            if Ho <= (Uo + 0.3) then
+                return Ho
+            end
+            Yo(Po)
+            Po = environment75.workspace:Raycast(I(uo.X, Uo, uo.Z), I(0, (Ho - Uo) + 2, 0), _o)
+            if Po then
+                return To(Ho, Do(Uo, Po.Position.Y - 2))
+            end
+            return Ho
+        end
+        local function Po(uo)
+            local environment76, Ho, to, No = getfenv(), uo.t, uo.md, uo.vel
+            local Oo, ho = #Ho, {}
+            for lo = Oo, 1, -3 do
+                if (Ho[Oo] - Ho[lo]) > 1 then
+                    break
+                end
+                local Ho = to[lo]
+                if ((Ho.X * Ho.X) + (Ho.Z * Ho.Z)) > 0.25 then
+                    local Ho = No[lo]
+                    ho[#ho + 1] = Fo((Ho.X * Ho.X) + (Ho.Z * Ho.Z))
+                end
+            end
+            if #ho < 6 then
+                uo.spd = uo.hum.WalkSpeed
+                return
+            end
+            environment76.table.sort(ho)
+            uo.spd = Do(ho[environment76.math.floor(#ho * 0.6) + 1] or ho[#ho], uo.hum.WalkSpeed)
+        end
+        local function uo(Uo)
+            local Ho, to, No = Uo.t, Uo.st, Uo.vel
+            local Oo = #Ho
+            for ho = Do(2, Oo - 300), Oo - 1, 1 do
+                local lo = Ho[ho]
+                if lo > Uo.ev_at then
+                    local Zo, qo = co[to[ho - 1]], co[to[ho]]
+                    if qo and not Zo then
+                        if (Ho[Oo] - lo) < 0.4 then
+                            break
+                        end
+                        local oo = 0
+                        for Vo = ho, Oo, 1 do
+                            if (Ho[Vo] - lo) > 0.4 then
+                                break
+                            end
+                            oo = if No[Vo].Y > oo then No[Vo].Y else oo
+                        end
+                        if oo > 20 then
+                            Uo.jump = (Uo.jump * 0.6) + (oo * 0.4)
+                        end
+                        Uo.ev_at = lo
+                    elseif Zo and not qo then
+                        if (Ho[Oo] - lo) < 0.2 then
+                            break
+                        end
+                        local No = false
+                        for Zo = ho + 1, Oo, 1 do
+                            if (Ho[Zo] - lo) > 0.2 then
+                                break
+                            end
+                            if co[to[Zo]] then
+                                No = true
+                                break
+                            end
+                        end
+                        Uo.hop = (Uo.hop * 0.6) + ((No and 0.4) or 0)
+                        Uo.ev_at = lo
+                    end
+                end
+            end
+        end
+        local function Uo(Ho)
+            local to, No = Ho.t, Ho.st
+            Ho = #to
+            for Oo = Ho, 2, -1 do
+                if (to[Ho] - to[Oo]) > 0.4 then
+                    return nil
+                end
+                if co[No[Oo]] then
+                    if not (co[No[Oo - 1]]) then
+                        return to[Oo]
+                    end
+                end
+            end
+            return nil
+        end
+        local function co(Ho)
+            local to = S()
+            if (to - Ho.lag_at) > 0.25 then
+                Ho.lag_at = to
+                Po(Ho)
+                uo(Ho)
+            end
+        end
+        local function Po(uo)
+            local environment77, to, No, Oo = getfenv(), uo.hum, uo.root, wo(uo)
+            local ho = to:GetState()
+            if Oo.Magnitude > 250 then
+                return "erratic"
+            end
+            if ro[ho] then
+                return "fly"
+            elseif to.PlatformStand then
+                return "fly"
+            end
+            local ro, lo = to.HipHeight + (No.Size.Y / 2), Ko(uo, No.Position, No.Position.Y)
+            local Zo = (((lo and ((No.Position.Y - lo) - ro)) or 99) > 0.8) or (vo(Oo.Y) > 6)
+            if eo[ho] then
+                if not (uo.air_at) then
+                    uo.air_at = S()
+                end
+            else
+                uo.air_at = nil
+            end
+            if eo[ho] then
+                if not (Zo) then
+                    return "prejump"
+                end
+            end
+            if Zo then
+                if vo((uo.ay[#uo.ay] or -environment77.workspace.Gravity) + environment77.workspace.Gravity) < (environment77.workspace.Gravity * 0.5) then
+                    return "air"
+                elseif eo[ho] then
+                    return "air"
+                end
+                return "fly"
+            end
+            lo, ro = ao(to.MoveDirection), ao(Oo)
+            Zo = ro.Magnitude
+            if Zo < 1 then
+                if lo.Magnitude < 0.1 then
+                    return "idle"
+                end
+            end
+            if Zo > 6 then
+                if lo.Magnitude < 0.3 then
+                    if Zo > (to.WalkSpeed * 1.6) then
+                        return "fly"
+                    end
+                elseif lo.Unit:Dot(ro.Unit) < 0.2 then
+                    if Zo > (to.WalkSpeed * 1.6) then
+                        return "fly"
+                    end
+                end
+            end
+            return "ground"
+        end
+        l.mode = function(eo)
+            local ro = mo(eo)
+            return ((ro and (#ro.t > 10)) and Po(ro)) or nil
+        end
+        local function eo(ro, uo, Ho, to)
+            local No, Oo = ro.t, ro.md
+            local ho = #No
+            local lo = No[ho]
+            local Zo = lo - to
+            local qo, oo, Vo = To(lo, Zo + uo), o(ro, Zo) or ho, R
+            while (oo < ho) and (No[oo] < qo) do
+                lo, to = Do(No[oo], Zo), To(No[oo + 1], qo)
+                if to > lo then
+                    local No = ao(Oo[oo])
+                    local Oo = No.Magnitude
+                    Vo = if Oo > 0 then Vo + (((No.Unit * Ho) * To(1, Oo)) * (to - lo)) else Vo
+                else
+                end
+                oo = oo + 1
+            end
+            to, lo = uo - (qo - Zo), ao(ro.hum.MoveDirection)
+            return if to > 0 then if lo.Magnitude > 0 then Vo + (((lo.Unit * Ho) * To(1, lo.Magnitude)) * to) else Vo else Vo
+        end
+        local function ro(uo, Ho, to)
+            local No, Oo = uo.t, uo.vel
+            local ho, lo = #No
+            local Zo, qo, oo, Vo, po, io = 0, 0, 0, 0, 0, 0
+            for ko = o(uo, No[ho] - 0.22) or ho, ho, 1 do
+                local So = Oo[ko]
+                if ((So.X * So.X) + (So.Z * So.Z)) > 16 then
+                    local Io = so(So.Z, So.X)
+                    if lo then
+                        local So = Io - lo
+                        Zo = if So > no then Zo - (2 * no) else if So < -no then Zo + (2 * no) else Zo
+                    else
+                    end
+                    local So, Ro = No[ko] - No[ho], Io + Zo
+                    lo, qo, oo, Vo, po, io = Io, qo + So, oo + Ro, Vo + (So * So), po + (So * Ro), io + 1
+                else
+                end
+            end
+            Oo = 0
+            if io >= 6 then
+                No = (io * Vo) - (qo * qo)
+                Oo = if vo(No) > 1e-09 then Lo(((io * po) - (qo * oo)) / No, -12, 12) else Oo
+            else
+            end
+            local No, lo, Zo, qo = Fo((Ho.X * Ho.X) + (Ho.Z * Ho.Z)), so(Ho.Z, Ho.X) + (Oo * 0.035)
+            if vo(Oo) < 0.05 then
+                Zo, qo = Ho.X * to, Ho.Z * to
+            else
+                Zo, qo = (No / Oo) * (zo(lo + (Oo * to)) - zo(lo)), -(No / Oo) * (Co(lo + (Oo * to)) - Co(lo))
+            end
+            lo = Lo(uo.ay[ho] or 0, -250, 250)
+            return I(Zo, (Ho.Y * to) + (((0.5 * lo) * to) * to), qo)
+        end
+        local function uo(Ho, to)
+            local No, Oo = Ho.t, Ho.cf
+            local ho = #No
+            local lo = o(Ho, No[ho] - 0.3) or 1
+            if (ho - lo) < 12 then
+                return nil
+            end
+            local Zo, qo, oo, Vo, po, io, ko, So, Io, Ro = Oo[ho].Position, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            for Qo = lo, ho, 1 do
+                Ho = Oo[Qo].Position
+                local Fw, sw = Ho.X - Zo.X, Ho.Z - Zo.Z
+                Qo = (Fw * Fw) + (sw * sw)
+                qo, oo, Vo, po, io, ko, So, Io, Ro = qo + 1, oo + Fw, Vo + sw, po + (Fw * Fw), io + (sw * sw), ko + (Fw * sw), So + (Fw * Qo), Io + (sw * Qo), Ro + Qo
+            end
+            Ho = ((po * ((io * qo) - (Vo * Vo))) - (ko * ((ko * qo) - (Vo * oo)))) + (oo * ((ko * Vo) - (io * oo)))
+            if vo(Ho) < 1e-09 then
+                return nil
+            end
+            local Qo, Fw, sw = (((So * ((io * qo) - (Vo * Vo))) - (ko * ((Io * qo) - (Vo * Ro)))) + (oo * ((Io * Vo) - (io * Ro)))) / Ho, (((po * ((Io * qo) - (Vo * Ro))) - (So * ((ko * qo) - (Vo * oo)))) + (oo * ((ko * Ro) - (Io * oo)))) / Ho, (((po * ((io * Ro) - (Io * Vo))) - (ko * ((ko * Ro) - (Io * oo)))) + (So * ((ko * Vo) - (io * oo)))) / Ho
+            local qo, oo = Qo / 2, Fw / 2
+            Ho = (sw + (qo * qo)) + (oo * oo)
+            if Ho <= 0 then
+                return nil
+            end
+            sw = Fo(Ho)
+            if sw < 1.5 then
+                return nil
+            elseif sw > 40 then
+                return nil
+            end
+            Qo, Ho = 0
+            local Vo, po, io, ko, So, Io = 0, 0, 0, 0, 0, 0
+            for Ro = lo, ho, 1 do
+                Fw = Oo[Ro].Position
+                local lo, zw = (Fw.X - Zo.X) - qo, (Fw.Z - Zo.Z) - oo
+                local qo = Fo((lo * lo) + (zw * zw)) - sw
+                Qo += qo * qo
+                qo = so(zw, lo)
+                if Ho then
+                    lo = qo - Ho
+                    Vo = if lo > no then Vo - (2 * no) else if lo < -no then Vo + (2 * no) else Vo
+                else
+                end
+                lo, zw = No[Ro] - No[ho], qo + Vo
+                po += 1
+                Ho, io, ko, So, Io = qo, io + lo, ko + zw, So + (lo * lo), Io + (lo * zw)
+            end
+            if (Qo / po) > 0.25 then
+                return nil
+            end
+            ho = (po * So) - (io * io)
+            if vo(ho) < 1e-09 then
+                return nil
+            end
+            Zo = ((po * Io) - (io * ko)) / ho
+            if vo(Zo) < 2 then
+                return nil
+            elseif vo(Zo) > 30 then
+                return nil
+            end
+            Ho = (ko - (Zo * io)) / po
+            Oo = Ho + (Zo * to)
+            return I(sw * (Co(Oo) - Co(Ho)), 0, sw * (zo(Oo) - zo(Ho)))
+        end
+        local function so(zo, Co, no)
+            local environment78, to = getfenv(), no.Magnitude
+            if to < 0.05 then
+                return no
+            end
+            Yo(zo)
+            zo = no.Unit
+            local Yo = environment78.workspace:Raycast(Co, no + (zo * 1.2), _o)
+            if not (Yo) then
+                return no
+            end
+            local No = ao(Yo.Normal)
+            if No.Magnitude < 0.3 then
+                return no
+            end
+            No = No.Unit
+            local Oo = zo * Lo((Yo.Position - Co).Magnitude - 1.2, 0, to)
+            Yo = no - Oo
+            Yo -= No * Yo:Dot(No)
+            if Yo.Magnitude < 0.05 then
+                return Oo
+            end
+            to = Co + Oo
+            no = environment78.workspace:Raycast(to, Yo + (Yo.Unit * 1.2), _o)
+            return Oo + (if no then Yo.Unit * Do(0, (no.Position - to).Magnitude - 1.2) else Yo)
+        end
+        local zo = {}
+        local Co = -1
+        local function no()
+            local environment79, Ho = getfenv(), S()
+            if (Ho - Co) < 0.2 then
+                return zo
+            end
+            Co = Ho
+            environment79.table.clear(zo)
+            environment79 = "ServerCoinPart"
+            for Co, Ho in CollectionService:GetTagged(environment79) do
+                Co = "BasePart"
+                if Ho:IsA(Co) then
+                    if Ho.Parent then
+                        if Ho:GetAttribute("Collected") ~= true then
+                            zo[#zo + 1] = Ho.Position
+                        end
+                    end
+                end
+            end
+            return zo
+        end
+        local function i(zo, Co, _o)
+            local Ho = Fo((Co.X * Co.X) + (Co.Z * Co.Z))
+            if Ho < 4 then
+                return _o
+            end
+            local to = no()
+            if #to == 0 then
+                return _o
+            end
+            local no, Yo, No, Oo, ho, lo, Zo = Co.X / Ho, Co.Z / Ho, Fo((_o.X * _o.X) + (_o.Z * _o.Z)) + 0.5, zo.root.Position
+            for qo, oo in to, nil, nil do
+                Ho, Co = oo.X - Oo.X, oo.Z - Oo.Z
+                qo = (Ho * no) + (Co * Yo)
+                if qo > 0.05 then
+                    if qo < No then
+                        if vo(oo.Y - Oo.Y) < 12 then
+                            if vo((Ho * Yo) - (Co * no)) < 1.5 then
+                                if ho then
+                                    if qo < ho then
+                                        ho, lo, Zo = qo, Ho, Co
+                                    else
+                                    end
+                                else
+                                    ho, lo, Zo = qo, Ho, Co
+                                end
+                            else
+                            end
+                        else
+                        end
+                    else
+                    end
+                else
+                end
+            end
+            if not (ho) then
+                return _o
+            end
+            zo.docked = true
+            return I(lo, _o.Y, Zo)
+        end
+        local function zo(Co, no, _o, Ho)
+            local environment80, Yo = getfenv(), bo[Ho or Co.pick]
+            local No, Oo, ho, lo = ((environment80["type"](Yo) == "number") and Yo) or Co.lag, Co.hum, Co.root, Co.part
+            local Zo, qo = lo.Position, wo(Co)
+            Co.clamped, Co.docked = false, false
+            if _o == "idle" then
+                return Zo
+            elseif _o == "erratic" then
+                return Zo
+            elseif #Co.t < 10 then
+                return Zo
+            end
+            if _o == "fly" then
+                Ho = Lo(Co.ay[#Co.ay] or 0, -250, 250)
+                return Zo + i(Co, qo, I(qo.X * no, (qo.Y * no) + (((0.5 * Ho) * no) * no), qo.Z * no))
+            end
+            local i, oo = ao(Oo.MoveDirection), if Yo == "ring" then uo(Co, no) else nil
+            if if oo then not oo else ((Yo == "turn") or (Yo == "ring")) or ((_o == "air") and (i.Magnitude < 0.3)) then
+                oo = ro(Co, qo, no)
+                oo = I(oo.X, 0, oo.Z)
+            else
+            end
+            oo = oo or eo(Co, no, Co.spd, No)
+            i, Yo, Ho = Zo + so(Co, ho.Position, oo), ((lo.Position.Y - ho.Position.Y) + Oo.HipHeight) + (ho.Size.Y / 2), environment80.workspace.Gravity
+            if _o == "air" then
+                environment80, lo = (Zo.Y + (qo.Y * no)) - (((0.5 * Ho) * no) * no), Ko(Co, i, Zo.Y)
+                if lo then
+                    if environment80 < (lo + Yo) then
+                        Oo = lo + Yo
+                        local so, eo, ro = (qo.Y + Fo((qo.Y * qo.Y) + ((2 * Ho) * Do(0, Zo.Y - Oo)))) / Ho, S(), Uo(Co)
+                        ro = ro and (ro + No)
+                        ro = if ro and (ro > ((eo + so) - 0.05)) then ro else ((Co.hop > 0.5) and ((eo + so) + 0.02)) or nil
+                        if ro then
+                            if (eo + no) > ro then
+                                so = (eo + no) - ro
+                                environment80 = Do(Oo, (Oo + (Co.jump * so)) - (((0.5 * Ho) * so) * so))
+                            else
+                                environment80 = Oo
+                            end
+                        else
+                            environment80 = Oo
+                        end
+                        Co.clamped = true
+                    else
+                    end
+                else
+                end
+                i = I(i.X, yo(Co, i, Zo.Y, environment80), i.Z)
+            else
+                if _o == "prejump" then
+                    ho = (S() + no) - ((Co.air_at or S()) + No)
+                    if ho > 0 then
+                        local so = Ko(Co, i, Zo.Y) or (Zo.Y - Yo)
+                        local no = ((so + Yo) + (Co.jump * ho)) - (((0.5 * Ho) * ho) * ho)
+                        i = I(i.X, yo(Co, i, Zo.Y, Do(no, so + Yo)), i.Z)
+                    else
+                    end
+                else
+                    if _o == "ground" then
+                        local so, no = i.X - Zo.X, i.Z - Zo.Z
+                        if ((so * so) + (no * no)) > 0.36 then
+                            local so = Xo(Co)
+                            local no = so and Ko(Co, i, Zo.Y)
+                            if no then
+                                local Co = no - so
+                                i = if Co > (-3.2) then if Co < 3.2 then I(i.X, Zo.Y + Co, i.Z) else i else i
+                            else
+                            end
+                        else
+                        end
+                    else
+                    end
+                end
+            end
+            return i
+        end
+        local function i()
+            return Lo(k:GetNetworkPing() + Eo.base, 0.08, 0.4)
+        end
+        local function so()
+            return Lo(k:GetNetworkPing() + Mo.mean, 0.04, 0.6), Lo(Fo((Mo.sd * Mo.sd) + (Mo.jit * Mo.jit)), 0.02, 0.15)
+        end
+        l.tau = so
+        local function Co(no)
+            local environment81, ro = getfenv(), ao(no)
+            ro = ((ro.Magnitude > 1) and ro.Unit) or I(1, 0, 0)
+            no = environment81.Vector3.yAxis
+            return ro, ro:Cross(no)
+        end
+        local function no(eo, ro)
+            if ro == "fly" then
+                local Ko = wo(eo)
+                if ((Ko.X * Ko.X) + (Ko.Z * Ko.Z)) < 4 then
+                    return "flys"
+                end
+                return (eo.docked and "flyc") or "flym"
+            end
+            if ro ~= "ground" then
+                if ro ~= "air" then
+                    return ro
+                end
+            end
+            local Ko, Xo = eo.t, eo.md
+            local yo = #Ko
+            local _o, uo = Xo[yo], 1
+            for Uo = yo - 1, 1, -1 do
+                local Ho = Ko[yo] - Ko[Uo]
+                if Ho > 0.6 then
+                    break
+                end
+                if (Xo[Uo] - _o).Magnitude > 0.35 then
+                    uo = Ho
+                    break
+                end
+            end
+            yo = ro .. (((uo > (eo.lag + 0.2)) and "s") or "t")
+            return if eo.clamped then yo .. "l" else yo
+        end
+        local function eo(ro, Ko, Xo, yo, _o)
+            local uo = xo((ro[1] - Ko) / 0.75)
+            return (if ro[6] ~= Xo then uo * (((ro[5] == yo) and 0.35) or 0.06) else uo) * xo(-vo(ro[7] - _o) / 25)
+        end
+        local function ro(Ko)
+            local environment82, yo, _o, uo, Uo, Ho = getfenv(), S(), Ko.part.Position, Ko.t[#Ko.t], Ko.evq, 1
+            while Ho <= #Uo do
+                local to = Uo[Ho]
+                if yo >= to.t then
+                    if (yo - to.t) < 0.05 then
+                        local Yo = ((uo and (to.t <= uo)) and V(Ko, to.t)) or _o
+                        local V, No, Oo, ho, lo = Yo - to.p, Ko.res, #Ko.res + 1, {}, "f"
+                        local Zo, qo = V:Dot(to[lo]), "c"
+                        appendPacked(ho, 0, yo, Zo, V:Dot(to[qo]), V.Y, to.mode, to.key, to.sh)
+                        No[Oo] = ho
+                        Zo = to.alt
+                        if Zo then
+                            ho, lo, qo, No = Ko.lerr, Ko.lw, environment82.math.huge
+                            for to = 1, #bo, 1 do
+                                Oo = ao(Yo - Zo[to])
+                                ho[to] = (ho[to] * 0.93) + Oo:Dot(Oo)
+                                lo[to] = (lo[to] * 0.93) + 1
+                                V = ho[to] / lo[to]
+                                if V < qo then
+                                    qo, No = V, to
+                                else
+                                end
+                            end
+                            local V = Ko.pick
+                            if No then
+                                if lo[No] > 6 then
+                                    if qo < ((0.85 * ho[V]) / lo[V]) then
+                                        Ko.pick = No
+                                        if environment82["type"](bo[No]) == "number" then
+                                            Ko.lag = bo[No]
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                    environment82.table.remove(Uo, Ho)
+                else
+                    Ho += 1
+                end
+            end
+            while (#Ko.res > 0) and ((yo - Ko.res[1][1]) > 3) do
+                environment82.table.remove(Ko.res, 1)
+            end
+            if (yo - Ko.track_at) > 0.03333333333333333 then
+                Ko.track_at = yo
+                local V, Xo, Ho = Po(Ko), so(), wo(Ko)
+                uo, _o = Co(Ho)
+                local to, Yo, No
+                if ((V == "ground") or (V == "air")) or (V == "prejump") then
+                    No = {}
+                    for Oo = 1, #bo, 1 do
+                        No[Oo] = zo(Ko, Xo, V, Oo)
+                        if Oo == Ko.pick then
+                            Yo, to = No[Oo], (no(Ko, V))
+                        else
+                        end
+                    end
+                else
+                end
+                if Yo then
+                else
+                    Yo = zo(Ko, Xo, V)
+                    to = (no(Ko, V))
+                end
+                local Ko, bo = #Uo + 1, {t = yo + Xo, p = Yo, alt = No, f = uo, c = _o, mode = V, key = to}
+                bo.sh, Uo[Ko] = ao(Ho).Magnitude, bo
+            end
+        end
+        local function V(Ko, Xo, yo, _o)
+            local environment83, bo, Uo = getfenv(), S(), Ko.ws
+            environment83.table.clear(Uo)
+            local Ho, to, Yo, No = 0, 0, 0, 0
+            for Oo, ho in Ko.res, nil, nil do
+                environment83 = eo(ho, bo, Xo, yo, _o)
+                Uo[Oo] = environment83
+                Ho += environment83
+                to += environment83 * ho[2]
+                Yo += environment83 * ho[3]
+                No = No + (environment83 * ho[4])
+            end
+            if Ho < 3 then
+                return nil
+            end
+            to /= Ho
+            Yo /= Ho
+            No /= Ho
+            local yo, Oo, ho, lo, Zo, qo = 0, 0, 0, 0, 0, 0
+            for oo, Vo in Ko.res, nil, nil do
+                _o, environment83, bo, Xo = Uo[oo], Vo[2] - to, Vo[3] - Yo, Vo[4] - No
+                yo, Oo, ho, lo, Zo, qo = yo + ((_o * environment83) * environment83), Oo + ((_o * environment83) * bo), ho + ((_o * environment83) * Xo), lo + ((_o * bo) * bo), Zo + ((_o * bo) * Xo), qo + ((_o * Xo) * Xo)
+            end
+            Xo, _o, bo = 1, 0.3, 0.3
+            for oo = 1, 16, 1 do
+                Ko, Uo, oo = ((yo * Xo) + (Oo * _o)) + (ho * bo), ((Oo * Xo) + (lo * _o)) + (Zo * bo), ((ho * Xo) + (Zo * _o)) + (qo * bo)
+                environment83 = Fo(((Ko * Ko) + (Uo * Uo)) + (oo * oo))
+                if environment83 < 1e-09 then
+                    break
+                end
+                Xo, _o, bo = Ko / environment83, Uo / environment83, oo / environment83
+            end
+            return I(to, Yo, No), I(Xo, _o, bo), Ho
+        end
+        local function I(Ko)
+            local environment84, yo, _o = getfenv(), S(), Ko.body
+            if #_o > 0 then
+                if (yo - Ko.body_at) < 0.5 then
+                    return _o, Ko.reach
+                end
+            end
+            environment84.table.clear(_o)
+            local uo, bo, Uo, Ho = Ko.part.Position, Ko.root.CFrame, Ko.char, 0
+            for to, Yo in Uo:GetDescendants() do
+                to = "BasePart"
+                if Yo:IsA(to) then
+                    if Yo.CanQuery then
+                        if Yo ~= Ko.root then
+                            local to = Yo.Name
+                            local No = ((Yo.Parent == Uo) and ((Jo[to] and 1) or (fo[to] and 2))) or 3
+                            if (No < 3) or (Yo.Transparency < 1) then
+                                to = Yo.CFrame
+                                local Uo, Jo = to.Position - uo, Yo.Size / 2
+                                local uo = Jo.Magnitude
+                                _o[#_o + 1] = {to - to.Position, Uo, Jo, uo, bo:ToObjectSpace(to), Yo, No}
+                                Ho = Do(Ho, Uo.Magnitude + uo)
+                            else
+                            end
+                        else
+                        end
+                    else
+                    end
+                else
+                end
+            end
+            environment84.table.sort(_o, function(Xo, uo)
+                return Xo[7] < uo[7]
+            end)
+            Ko.body_at, Ko.reach = yo, Ho
+            return _o, Ho
+        end
+        local Ko
+        local function Xo(yo, _o, uo, bo, Uo, Jo, fo)
+            local environment85, to = getfenv(), Jo - uo
+            uo = to:Dot(bo)
+            if uo < -_o then
+                return 0
+            elseif (to - (bo * uo)).Magnitude > _o then
+                return 0
+            end
+            _o, Jo = environment85.math.huge, 0
+            for Yo, No in yo, nil, nil do
+                uo = to + No[2]
+                local yo, to = uo:Dot(bo), No[4]
+                if yo > -to then
+                    if (yo - to) < _o then
+                        if (uo - (bo * yo)).Magnitude <= to then
+                            local yo, bo, to = No[1]:PointToObjectSpace(-uo), Uo[Yo], No[3]
+                            environment85 = Ko(yo.X, yo.Y, yo.Z, bo.X, bo.Y, bo.Z, to.X, to.Y, to.Z)
+                            if environment85 then
+                                if environment85 < _o then
+                                    yo = No[7]
+                                    _o, Jo = environment85, yo
+                                else
+                                end
+                            else
+                            end
+                        else
+                        end
+                    else
+                    end
+                else
+                end
+            end
+            if Jo == 0 then
+                return 0
+            end
+            if Jo == 3 then
+                return fo
+            end
+            return 1
+        end
+        local function yo()
+            local environment86, uo = getfenv(), {}
+            local bo = -environment86.math.huge
+            for Uo = 1, Mo.n, 1 do
+                environment86 = ((Mo.lo + ((Uo - 1) * Mo.step)) - Eo.base) / 0.05
+                local Jo = Mo.ll[Uo] - ((0.5 * environment86) * environment86)
+                uo[Uo] = Jo
+                bo = if Jo > bo then Jo else bo
+            end
+            local Uo, Jo = 0, 0
+            for fo = 1, Mo.n, 1 do
+                environment86 = xo(uo[fo] - bo)
+                uo[fo] = environment86
+                Uo, Jo = Uo + environment86, Jo + (environment86 * (Mo.lo + ((fo - 1) * Mo.step)))
+            end
+            Jo /= Uo
+            environment86 = 0
+            for bo = 1, Mo.n, 1 do
+                local fo = (Mo.lo + ((bo - 1) * Mo.step)) - Jo
+                environment86 += (uo[bo] * fo) * fo
+            end
+            Mo.mean, Mo.sd = Jo, Fo(environment86 / Uo)
+        end
+        local function _o()
+            local environment87 = getfenv()
+            if environment87["type"](environment87.writefile) ~= "function" then
+                return
+            end
+            environment87.pcall(function()
+                local environment88 = getfenv()
+                environment88.writefile("shitaro_aim.json", HttpService1:JSONEncode({v = 1, ll = Mo.ll, jit = Mo.jit, shots = Mo.shots, acc = Mo.acc}))
+            end)
+        end
+        local function uo()
+            local environment89 = getfenv()
+            if environment89["type"](environment89.isfile) ~= "function" then
+                return
+            elseif environment89["type"](environment89.readfile) ~= "function" then
+                return
+            end
+            local Uo, Jo = environment89.pcall(function()
+                local environment90 = getfenv()
+                if not (environment90.isfile("shitaro_aim.json")) then
+                    return nil
+                end
+                local Ho = table.pack(environment90.readfile("shitaro_aim.json"))
+                return HttpService1:JSONDecode(unpackPacked(Ho))
+            end)
+            if Uo then
+                if environment89["type"](Jo) ~= "table" then
+                    return
+                elseif Jo.v ~= 1 then
+                    return
+                elseif environment89["type"](Jo.ll) ~= "table" then
+                    return
+                elseif #Jo.ll ~= Mo.n then
+                    return
+                end
+            else
+                return
+            end
+            for p = 1, Mo.n, 1 do
+                Uo = environment89.tonumber(Jo.ll[p])
+                Mo.ll[p] = ((Uo and (Uo == Uo)) and (Uo * 0.5)) or 0
+            end
+            Uo = environment89.tonumber(Jo.jit)
+            if Uo then
+                if Uo == Uo then
+                    Mo.jit = Lo(Uo, 0.01, 0.12)
+                end
+            end
+            Mo.shots = environment89.tonumber(Jo.shots) or 0
+            Uo = ((environment89["type"](Jo.acc) == "table") and Jo.acc) or nil
+            local p, Jo = Uo and environment89.tonumber(Uo[1]), Uo and environment89.tonumber(Uo[2])
+            if p then
+                if Jo then
+                    if p >= 0 then
+                        if Jo > 0 then
+                            if p <= Jo then
+                                Mo.acc = {p, Jo}
+                            end
+                        end
+                    end
+                end
+            end
+            yo()
+        end
+        local function p(bo, Uo, Jo)
+            local fo = bo:PointToObjectSpace(Jo)
+            local bo, Jo, Ho = Do(vo(fo.X) - Uo.X, 0), Do(vo(fo.Y) - Uo.Y, 0), Do(vo(fo.Z) - Uo.Z, 0)
+            return Fo(((bo * bo) + (Jo * Jo)) + (Ho * Ho))
+        end
+        Ko = function(bo, Uo, Jo, fo, Ho, to, Yo, No, Oo)
+            local ho, lo = 0, 1000000000
+            if vo(fo) < 1e-09 then
+                if bo < -Yo then
+                    return nil
+                elseif bo > Yo then
+                    return nil
+                end
+            else
+                local Zo, qo = (-Yo - bo) / fo, (Yo - bo) / fo
+                if Zo > qo then
+                    Zo, qo = qo, Zo
+                else
+                end
+                ho, lo = if Zo > ho then Zo else ho, if qo < lo then qo else lo
+            end
+            if vo(Ho) < 1e-09 then
+                if Uo < -No then
+                    return nil
+                elseif Uo > No then
+                    return nil
+                end
+            else
+                Yo, bo = (-No - Uo) / Ho, (No - Uo) / Ho
+                if Yo > bo then
+                    Yo, bo = bo, Yo
+                else
+                end
+                ho, lo = if Yo > ho then Yo else ho, if bo < lo then bo else lo
+            end
+            if vo(to) < 1e-09 then
+                if Jo < -Oo then
+                    return nil
+                elseif Jo > Oo then
+                    return nil
+                end
+            else
+                Uo, No = (-Oo - Jo) / to, (Oo - Jo) / to
+                if Uo > No then
+                    Uo, No = No, Uo
+                else
+                end
+                ho, lo = if Uo > ho then Uo else ho, if No < lo then No else lo
+            end
+            if ho > lo then
+                return nil
+            end
+            return ho
+        end
+        local function vo(bo, Uo)
+            local Jo, fo = bo.ts, bo.cs
+            bo = #Jo
+            if bo == 0 then
+                return nil
+            elseif Uo < (Jo[1] - 0.02) then
+                return nil
+            elseif Uo > (Jo[bo] + 0.02) then
+                return nil
+            end
+            if Uo <= Jo[1] then
+                return fo[1]
+            end
+            if Uo >= Jo[bo] then
+                return fo[bo]
+            end
+            local Ho, to = bo, 1
+            while true do
+                local Yo, No = Ho - to, 1
+                if not (Yo > No) then
+                    break
+                end
+                bo = (to + Ho) // 2
+                if Jo[bo] <= Uo then
+                    to = bo
+                else
+                    Ho = bo
+                end
+            end
+            local bo, Yo, No = fo[to], fo[Ho], (Uo - Jo[to]) / Do(Jo[Ho] - Jo[to], 1e-06)
+            return bo:Lerp(Yo, No)
+        end
+        Ao = function(Ao)
+            local environment91, Uo, Jo = getfenv(), Ao.ts, Ao.cs
+            local fo = #Uo
+            if fo < 6 then
+                return
+            end
+            for Ho = 2, fo, 1 do
+                if (Jo[Ho].Position - Jo[Ho - 1].Position).Magnitude > 10 then
+                    return
+                end
+            end
+            Uo, Jo = Ao.s, Ao.e
+            fo = Jo - Uo
+            local Ho = fo.Magnitude
+            if Ho < 0.05 then
+                return
+            end
+            local to, Yo, No, Oo, ho, lo, Zo, qo = fo / Ho, Ao.tpl, Ao.hit, Ao.kind, {}, {}, 0, 0
+            for oo = 1, Mo.n, 1 do
+                fo = vo(Ao, ((Ao.t + Ao.ping) + Mo.lo) + ((oo - 1) * Mo.step))
+                if fo then
+                    local vo
+                    if Oo == 1 then
+                        local Vo, po = environment91.math.huge, 0.8
+                        if No then
+                            local io = Yo[No]
+                            Vo, po = p(fo * io[1], io[2], Jo), if io[4] == 1 then 0.45 else po
+                        else
+                            for io, io in Yo, nil, nil do
+                                Vo = To(Vo, p(fo * io[1], io[2], Jo))
+                            end
+                        end
+                        vo = jo(0.03 + xo((-Vo * Vo) / ((2 * po) * po)))
+                    else
+                        local p
+                        for To, Vo in Yo, nil, nil do
+                            To = fo * Vo[1]
+                            local po, io, ko = To:PointToObjectSpace(Uo), To:VectorToObjectSpace(to), Vo[2]
+                            To = Ko(po.X, po.Y, po.Z, io.X, io.Y, io.Z, ko.X, ko.Y, ko.Z)
+                            p = if To then if To < (Ho - 0.25) then if p then if Vo[4] < p then Vo[4] else p else Vo[4] else p else p
+                        end
+                        vo = (p and jo((((p == 1) and 0.12) or ((p == 2) and 0.4)) or 0.25)) or 0
+                    end
+                    ho[oo], lo[oo] = vo, true
+                    Zo, qo = Zo + vo, qo + 1
+                else
+                end
+            end
+            if qo < (Mo.n * 0.6) then
+                return
+            end
+            Uo, fo = Zo / qo, Mo.mean
+            for p = 1, Mo.n, 1 do
+                Mo.ll[p] = (Mo.ll[p] * 0.985) + ((lo[p] and ho[p]) or Uo)
+            end
+            Mo.shots += 1
+            if Oo == 1 then
+                to = -environment91.math.huge
+                for p = 1, Mo.n, 1 do
+                    to = if lo[p] then if ho[p] > to then ho[p] else to else to
+                end
+                local p, vo, To = 0, 0, 0
+                for jo = 1, Mo.n, 1 do
+                    if lo[jo] then
+                        if ho[jo] > (to - 1) then
+                            Jo = xo(ho[jo] - to)
+                            local xo, Ko, bo = p + Jo, vo + (Jo * (Mo.lo + ((jo - 1) * Mo.step))), To + 1
+                            p, vo, To = xo, Ko, bo
+                        else
+                        end
+                    else
+                    end
+                end
+                if p > 0 then
+                    if To <= 24 then
+                        if to > (Uo + 1.5) then
+                            Ho = (vo / p) - fo
+                            Mo.jit = Lo(Fo(((Mo.jit * Mo.jit) * 0.85) + ((Ho * Ho) * 0.15)), 0.01, 0.12)
+                        end
+                    end
+                end
+                local p = No and Yo[No]
+                if p then
+                    if p[4] == 3 then
+                        local p = Ao.char
+                        local Fo = p and p:FindFirstChildOfClass("Humanoid")
+                        Mo.acc[2] += 1
+                        if if p then not p.Parent else not p then
+                            Mo.acc[1] += 1
+                        elseif Fo then
+                            if Fo.Health <= 0 then
+                                Mo.acc[1] += 1
+                            end
+                        else
+                            Mo.acc[1] += 1
+                        end
+                        if Mo.acc[2] > 60 then
+                            Mo.acc[1], Mo.acc[2] = Mo.acc[1] * 0.5, Mo.acc[2] * 0.5
+                        end
+                    end
+                end
+            end
+            yo()
+            _o()
+        end
+        l.track = function(p)
+            local Fo = mo(p)
+            if Fo then
+                if #Fo.t > 10 then
+                    if Fo.hum.Health > 0 then
+                        co(Fo)
+                        ro(Fo)
+                    end
+                end
+            end
+        end
+        l.lead = function(p)
+            local Fo = mo(p)
+            return (Fo and i(Fo)) or k:GetNetworkPing()
+        end
+        l.predict = function(p, Fo)
+            local vo = mo(p)
+            if vo then
+                if #vo.t < 10 then
+                    return nil
+                end
+            else
+                return nil
+            end
+            co(vo)
+            p = Po(vo)
+            return zo(vo, Fo or (i(vo)), p), p
+        end
+        l.odds = function(p, i, Fo, vo)
+            local environment92, xo = getfenv(), mo(p)
+            if xo then
+                if i then
+                    if not (i.taus) then
+                        return 0, 0
+                    end
+                else
+                    return 0, 0
+                end
+            else
+                return 0, 0
+            end
+            p = vo - Fo
+            if p.Magnitude < 0.001 then
+                return 0, 0
+            end
+            p = p.Unit
+            local jo, Ao = I(xo)
+            vo = xo.dl
+            environment92.table.clear(vo)
+            for ro, Ko in jo, nil, nil do
+                vo[ro] = Ko[1]:VectorToObjectSpace(p)
+            end
+            local ro, Ko, yo, _o = Mo.acc[1] / Mo.acc[2], i.cloud, i.cw, 0
+            for bo, Uo in i.taus, nil, nil do
+                xo, environment92 = Uo.point, 0
+                for i, i in Ko, nil, nil do
+                    bo = Xo(jo, Ao, Fo, p, vo, xo + i[1], ro)
+                    environment92 = if bo > 0 then environment92 + (bo * i[2]) else environment92
+                end
+                _o += environment92 * Uo.w
+            end
+            return Lo(_o / Do(yo, 1e-06), 0, 1), yo
+        end
+        l.plan = function(p)
+            local environment93, Fo = getfenv(), mo(p)
+            if Fo then
+                if #Fo.t < 10 then
+                    return nil
+                elseif Fo.hum.Health <= 0 then
+                    return nil
+                end
+            else
+                return nil
+            end
+            co(Fo)
+            local Lo, vo, To = Po(Fo), so()
+            local so, xo, jo = zo(Fo, vo, Lo), no(Fo, Lo), wo(Fo)
+            local no, Ao = Co(jo)
+            local Co, co, ro, Ko = ao(jo).Magnitude, {}, {}, {}
+            jo, p = {mode = Lo, key = xo, tau = vo, sd = To, f = no, c = Ao, sh = Co, mean = R, lines = co, cloud = ro, taus = Ko, cw = 0}
+            if Eo.learn then
+                if Lo ~= "idle" then
+                    local Xo, yo = V(Fo, xo, Lo, Co)
+                    if Xo then
+                        local V = ((no * Xo.X) + (Ao * Xo.Y)) + (Q * Xo.Z)
+                        jo.mean = Xo
+                        co[#co + 1] = (((no * yo.X) + (Ao * yo.Y)) + (Q * yo.Z)).Unit
+                        p = V
+                    else
+                        p = R
+                    end
+                else
+                    p = R
+                end
+            else
+                p = R
+            end
+            for V, R in Wo, nil, nil do
+                local Xo = Do(0.02, vo + (R[1] * To))
+                Ko[V] = {tau = Xo, w = R[2], point = (((R[1] == 0) and so) or zo(Fo, Xo, Lo)) + p}
+            end
+            jo.point = Ko[3].point
+            p = 0
+            if Eo.learn then
+                vo, so, To = S(), jo.mean, {}
+                for V, R in Fo.res, nil, nil do
+                    V = eo(R, vo, xo, Lo, Co)
+                    if V > 0.04 then
+                        To[#To + 1] = {((no * (R[2] - so.X)) + (Ao * (R[3] - so.Y))) + (Q * (R[4] - so.Z)), V}
+                    end
+                end
+                if #To > 28 then
+                    environment93.table.sort(To, function(V, i)
+                        return V[2] > i[2]
+                    end)
+                    for V = #To, 29, -1 do
+                        To[V] = nil
+                    end
+                end
+                for V, V in To, nil, nil do
+                    ro[#ro + 1] = V
+                    p += V[2]
+                end
+            else
+            end
+            To = ((Lo == "air") or (Lo == "prejump")) or (Lo == "fly")
+            vo, Fo = (To and 1.7) or 0.35, (To and 1.25) or 1
+            To, so = (0.3 + (0.045 * Co)) * Fo, (0.3 + (0.025 * Co)) * Fo
+            for V, V in Bo, nil, nil do
+                ro[#ro + 1] = {((no * (V[1] * To)) + (Ao * (V[2] * so))) + (Q * (V[3] * vo)), V[4] * 1.5}
+            end
+            jo.cw = p + 1.5
+            p = Ko[#Ko].point - Ko[1].point
+            if p.Magnitude > 0.5 then
+                co[#co + 1] = p.Unit
+            end
+            co[#co + 1] = -Q
+            return jo
+        end
+        l.note = function(V, p, i)
+            local environment94 = getfenv()
+            if environment94["typeof"](p) ~= "Vector3" then
+                return
+            elseif environment94["typeof"](i) ~= "Vector3" then
+                return
+            end
+            local Q = mo(V)
+            if Q then
+                if #Q.t < 2 then
+                    return
+                end
+            else
+                return
+            end
+            V = {}
+            for Fo, so in I(Q), nil, nil do
+                V[Fo] = {so[5], so[3], so[6], so[7]}
+            end
+            Go[#Go + 1] = {t = S(), ping = k:GetNetworkPing(), h = Q, char = Q.char, root = Q.root, o = p, a = i, tpl = V}
+            if #Go > 16 then
+                environment94.table.remove(Go, 1)
+            end
+        end
+        l.fired = function(V, p, i)
+            local environment95 = getfenv()
+            if environment95["typeof"](p) ~= "Vector3" then
+                return
+            end
+            if environment95["typeof"](i) == "Instance" then
+                if i.Parent == nil then
+                    return
+                end
+            end
+            local I = S()
+            local S, R
+            for Q = #Go, 1, -1 do
+                local Fo = Go[Q]
+                if (I - Fo.t) > 1.5 then
+                    break
+                end
+                local so = ((environment95["typeof"](V) == "Vector3") and V) or Fo.o
+                local zo, Co = p - so, Fo.a - so
+                if zo.Magnitude > 0.05 then
+                    if Co.Magnitude > 0.05 then
+                        Fo = 1 - zo.Unit:Dot(Co.Unit)
+                        if S then
+                            if Fo < S then
+                                S, R = Fo, Q
+                            else
+                            end
+                        else
+                            S, R = Fo, Q
+                        end
+                    else
+                    end
+                else
+                end
+            end
+            if R then
+                if S > 0.0004 then
+                    return
+                end
+            else
+                return
+            end
+            I = environment95.table.remove(Go, R)
+            local S = {t = I.t, ping = I.ping, s = ((environment95["typeof"](V) == "Vector3") and V) or I.o, e = p, tpl = I.tpl, char = I.char, root = I.root, ts = {}, cs = {}, kind = 0, stop = (((I.t + I.ping) + Mo.lo) + ((Mo.n - 1) * Mo.step)) + 0.05}
+            if (environment95["typeof"](i) == "Instance") and i:IsDescendantOf(I.char) then
+                S.kind = 1
+                for V, R in I.tpl, nil, nil do
+                    if R[3] == i then
+                        S.hit = V
+                        break
+                    end
+                end
+            end
+            i = I.h
+            if i.char == I.char then
+                p, environment95 = i.t, i.cf
+                for V = o(i, I.t - 0.25) or 1, #p, 1 do
+                    S.ts[#S.ts + 1] = p[V]
+                    S.cs[#S.cs + 1] = environment95[V]
+                end
+            end
+            go[#go + 1] = S
+        end
+        uo()
+    end
+    local SilentFactory = (function()
+    local F, s, z, C, L, v, D, T, n, x, j, A = task, game, workspace, typeof, getgenv, os, math, table, Vector3, CFrame, Enum, RaycastParams
+    local function e(d)
+        local c, r = d.game_tab, d.aim_bridge
+        local K = d.round_state
+        local X = d.motion
+        local y, PlayersService = d.fx, s:GetService("Players")
+        local CollectionService = s:GetService("CollectionService")
+        local RunService = s:GetService("RunService")
+        local ReplicatedStorageService, m = s:GetService("ReplicatedStorage"), PlayersService.LocalPlayer
+        local s = v.clock
+        local v = x.new
+        local E, b, U = n.new, 0, {enabled = false, predict = true, force = false, auto = false, delay = 0, offset = 15, chance = 0.6, patience = 0.6, odds = 0, risk = 0, cooldown = 3.05, last_shot = 0, last_try = 0, last_eval = 0, since = nil}
+        local W, B = c:AddSection({Name = "sheriff", Position = "left"}), A.new()
+        B.FilterType = j.RaycastFilterType.Exclude
+        B.IgnoreWater = false
+        local J = {}
+        local f = -1
+        local function M()
+            local G = s()
+            if (G - f) > 1 then
+                f = G
+                J = CollectionService:GetTagged("WeaponPassthrough")
+            end
+            local _, f = {m.Character}, J
+            for J, J in f, nil, nil do
+                _[#_ + 1] = J
+            end
+            return _
+        end
+        local function _(J, f, G)
+            local g = f - J
+            f = g.Magnitude
+            if f <= 0 then
+                return true
+            end
+            local a = r.range()
+            if a then
+                if f > (a * 2) then
+                    return false
+                end
+            end
+            local a, H = M(), g + ((g / f) * 2.5)
+            for t = 1, 8, 1 do
+                B.FilterDescendantsInstances = a
+                f = z:Raycast(J, H, B)
+                if not f then
+                    return true
+                end
+                g = f.Instance
+                if g:IsDescendantOf(G) then
+                    return true
+                end
+                if g.Transparency < 1 then
+                    return false
+                end
+                a[#a + 1] = g
+            end
+            return false
+        end
+        local function B()
+            local J = m.Character
+            local f = J and (J:FindFirstChild("HumanoidRootPart"))
+            if not (f) then
+                return nil, nil
+            end
+            return f:FindFirstChild("GunRaycastAttachment"), f
+        end
+        local function J()
+            local f, G = B()
+            if f then
+                return f.WorldCFrame
+            end
+            if G then
+                return G.CFrame
+            end
+            return nil
+        end
+        local f, G
+        local g = -1
+        local function a()
+            local H, t = f, G
+            f, G = nil, nil
+            if H then
+                if t then
+                    if H.Parent then
+                        H.CFrame = t
+                    end
+                end
+            end
+        end
+        local function H(t)
+            local Y = B()
+            if not (Y) then
+                return false
+            end
+            if f then
+                if f ~= Y then
+                    a()
+                end
+            end
+            if not (f) then
+                f = Y
+                G = Y.CFrame
+            end
+            g = b
+            Y.WorldCFrame = t
+            F.defer(a)
+            return true
+        end
+        local F
+        local function G(t)
+            if t == F then
+                return
+            end
+            F = t
+            U.since = nil
+        end
+        d, c = ReplicatedStorageService:WaitForChild("Remotes"):WaitForChild("Gameplay"), {"PlayerDataChanged", "RoleSelect", "RoundStart"}
+        for t, t in c, nil, nil do
+            ReplicatedStorageService = d:FindFirstChild(t)
+            if ReplicatedStorageService then
+                if ReplicatedStorageService:IsA("RemoteEvent") then
+                    ReplicatedStorageService.OnClientEvent:Connect(function()
+                        G(K.target(F))
+                    end)
+                end
+            end
+        end
+        local w = A.new()
+        w.FilterType = j.RaycastFilterType.Exclude
+        local function t(Y, N)
+            local O = m.Character
+            local h = O and (O:FindFirstChild("HumanoidRootPart"))
+            if not (h) then
+                return false
+            end
+            w.FilterDescendantsInstances = {O, N}
+            N = h.Position - Y
+            return (N.Magnitude < 0.1) or (z:Raycast(Y, N, w) == nil)
+        end
+        local function w(Y, N, O, h)
+            local l = U.offset
+            local Z = {l, l * 0.5, 3}
+            for q, q in Z, nil, nil do
+                l = N - (O * q)
+                if _(l, N, Y) then
+                    if h then
+                        return l
+                    elseif t(l, Y) then
+                        return l
+                    end
+                end
+            end
+            return nil
+        end
+        local Y = {}
+        c = {n.xAxis, -n.xAxis, n.zAxis, -n.zAxis, n.yAxis, n.new(1, 0, 1), n.new(-1, 0, 1), n.new(1, 0, -1), n.new(-1, 0, -1), n.new(1, 1, 0), n.new(-1, 1, 0), n.new(0, 1, 1), n.new(0, 1, -1), n.new(1, 1, 1), n.new(-1, 1, 1), n.new(1, 1, -1), n.new(-1, 1, -1)}
+        for N, N in c, nil, nil do
+            Y[#Y + 1] = N.Unit
+        end
+        local c = {t = 0}
+        local function N(O, h, l)
+            local Z = s()
+            if c.player == O then
+                if (Z - c.t) < 0.15 then
+                    if not (c.d) then
+                        return nil
+                    end
+                    local q = l - (c.d * c.r)
+                    if _(q, l, h) then
+                        if t(q, h) then
+                            return q, c.d
+                        end
+                    end
+                end
+            end
+            c.player = O
+            c.t = Z
+            c.d = nil
+            c.r = nil
+            Z = m.Character
+            O = Z and (Z:FindFirstChild("HumanoidRootPart"))
+            if not O then
+                return nil
+            end
+            local q = O.Position - l
+            local o = ((q.Magnitude > 0.1) and q.Unit) or n.zAxis
+            O = T.clone(Y)
+            T.sort(O, function(n, q)
+                return n:Dot(o) > q:Dot(o)
+            end)
+            Z = {4, 8, 14}
+            for n, n in Z, nil, nil do
+                for Z, q in O, nil, nil do
+                    Z = l + (q * n)
+                    if _(Z, l, h) then
+                        if t(Z, h) then
+                            c.d = -q
+                            c.r = n
+                            return Z, -q
+                        end
+                    end
+                end
+            end
+            return nil
+        end
+        local n = A.new()
+        n.FilterType = j.RaycastFilterType.Exclude
+        local function j(A, c)
+            local O = M()
+            for M, M in PlayersService:GetPlayers() do
+                if M.Character then
+                    O[#O + 1] = M.Character
+                end
+            end
+            for M = 1, 8, 1 do
+                n.FilterDescendantsInstances = O
+                M = z:Raycast(A, c * 1000, n)
+                if not M then
+                    return 1000
+                end
+                if M.Instance.Transparency < 1 then
+                    return M.Distance
+                end
+                O[#O + 1] = M.Instance
+            end
+            return 1000
+        end
+        local function z(n, A)
+            local c = K.data()
+            local M, O = c and K.team(c[m.Name], m), {}
+            for h, l in PlayersService:GetPlayers() do
+                if (((l ~= m) and (l ~= n)) and K.alive(l)) and (if M then K.ally(l) else not M) then
+                    h = l.Character
+                    c = h and ((h:FindFirstChild("UpperTorso") or h:FindFirstChild("Torso")) or h:FindFirstChild("HumanoidRootPart"))
+                    if c then
+                        O[#O + 1] = c.Position
+                        local n, c = pcall(X.predict, l, A)
+                        if n then
+                            if C(c) == "Vector3" then
+                                O[#O + 1] = c
+                            end
+                        end
+                    end
+                end
+            end
+            return O
+        end
+        local function n(A, c, P, M)
+            if #P == 0 then
+                return 0
+            end
+            local O = c - A
+            c = O.Magnitude
+            if c < 0.001 then
+                return 0
+            end
+            O /= c
+            local h, l = j(A, O), 0
+            for j, Z in P, nil, nil do
+                j = (Z - A):Dot(O)
+                if j > -2 then
+                    if j < (h + 2) then
+                        local P = Z - (A + (O * j))
+                        if P.Y > -4 then
+                            if P.Y < 2.4 then
+                                if E(P.X, 0, P.Z).Magnitude < 2 then
+                                    local A = ((j < c) and 1) or (1 - M)
+                                    l = if A > l then A else l
+                                else
+                                end
+                            else
+                            end
+                        else
+                        end
+                    else
+                    end
+                else
+                end
+            end
+            return l
+        end
+        local function j(A)
+            local c, P = A.point, A.taus
+            return {P[3].point, P[2].point, P[4].point, c - E(0, 1.1, 0), c - E(0, 2, 0)}
+        end
+        local function A(c, P, M)
+            local O = {}
+            if P then
+                local h = M - P.Position
+                if h.Magnitude > 1 then
+                    local P = h.Unit
+                    O[1] = P
+                    local M = E(h.X, 0, h.Z)
+                    if M.Magnitude > 1 then
+                        if D.abs(P.Y) > 0.2 then
+                            O[2] = M.Unit
+                        end
+                    end
+                end
+            end
+            for P, P in c.lines, nil, nil do
+                O[#O + 1] = ((P.Y > 0.05) and -P) or P
+            end
+            return O
+        end
+        local function c(P, M)
+            local O = P.Character
+            if not (O) then
+                return nil
+            end
+            local h = J()
+            if not (U.predict) then
+                local l = (O:FindFirstChild("UpperTorso") or O:FindFirstChild("Torso")) or O:FindFirstChild("HumanoidRootPart")
+                if l then
+                    if not (h) then
+                        return nil
+                    end
+                else
+                    return nil
+                end
+                return h.Position, l.Position, 1, 0
+            end
+            local l = X.plan(P)
+            if not l then
+                return nil
+            end
+            local Z = l.point
+            local q = m.Character
+            local o = q and (q:FindFirstChild("HumanoidRootPart"))
+            if M then
+                if h then
+                    for V, V in j(l) do
+                        if _(h.Position, V, O) then
+                            return h.Position, V
+                        end
+                    end
+                end
+                if not (U.force) then
+                    return nil
+                end
+                q = A(l, o, Z)
+                for V, p in q, nil, nil do
+                    V = w(O, Z, p)
+                    if V then
+                        return V, Z
+                    end
+                end
+                local V = N(P, O, Z)
+                if V then
+                    return V, Z
+                end
+                for p, p in q, nil, nil do
+                    V = w(O, Z, p, true)
+                    if V then
+                        return V, Z
+                    end
+                end
+                for p, p in Y, nil, nil do
+                    V = w(O, Z, -p, true)
+                    if V then
+                        return V, Z
+                    end
+                end
+                return nil
+            end
+            local V = z(P, l.tau)
+            local z, p, i, k, S
+            local function I(R, Q, Fo, so)
+                local zo = n(R, Q, V, Fo)
+                local n = ((Fo * (1 - zo)) - (zo * 0.5)) + so
+                if S then
+                    if n > S then
+                        z, p, i, k, S = R, Q, Fo, zo, n
+                    end
+                else
+                    z, p, i, k, S = R, Q, Fo, zo, n
+                end
+                return zo
+            end
+            if h then
+                M, q = h.Position, {}
+                for n, n in j(l) do
+                    q[#q + 1] = {n, X.odds(P, l, M, n)}
+                end
+                T.sort(q, function(n, j)
+                    return n[2] > j[2]
+                end)
+                for n, n in q, nil, nil do
+                    if _(M, n[1], O) then
+                        if I(M, n[1], n[2], 0.02) <= 0 then
+                            break
+                        end
+                    end
+                end
+            end
+            if U.force then
+                local n, j = A(l, o, Z), false
+                local function A(o, V)
+                    local S = Z + (V * 6)
+                    I(o, S, X.odds(P, l, o, S), 0)
+                    j = true
+                end
+                for o, o in n, nil, nil do
+                    q = w(O, Z, o)
+                    if q then
+                        A(q, o)
+                    end
+                end
+                M = not j and (not z or (i < 0.5))
+                if M then
+                    local o, V = N(P, O, Z)
+                    if o then
+                        A(o, V)
+                    end
+                end
+                if not j and not z then
+                    for N, o in n, nil, nil do
+                        N = w(O, Z, o, true)
+                        if N then
+                            A(N, o)
+                        end
+                    end
+                    if not j then
+                        for j, N in Y, nil, nil do
+                            j = w(O, Z, -N, true)
+                            if j then
+                                A(j, -N)
+                                break
+                            end
+                        end
+                    end
+                end
+                A = (z and (i < 0.995)) and (if h then (z - h.Position).Magnitude > 0.05 else not h)
+                if A then
+                    local j, A = z, p
+                    local w, Y = not t(j, O), {1.1, 2}
+                    for N, o in Y, nil, nil do
+                        n = E(0, o, 0)
+                        N, o = j - n, A - n
+                        if _(N, Z - n, O) and (w or t(N, O)) then
+                            I(N, o, X.odds(P, l, N, o), 0)
+                        end
+                    end
+                end
+            end
+            if not z then
+                return nil
+            end
+            q, O, h, M = z, p, i, k
+            return q, O, h, M
+        end
+        local function z()
+            if F then
+                if K.sheriff() then
+                    if not (K.alive(F)) then
+                        return false
+                    end
+                else
+                    return false
+                end
+            else
+                return false
+            end
+            local n = F.Character
+            local j = n and (n:FindFirstChildOfClass("Humanoid"))
+            if j then
+                if j.Health <= 0 then
+                    return false
+                end
+            else
+                return false
+            end
+            j = X.mode(F)
+            return (j ~= nil) and (j ~= "erratic")
+        end
+        local function n()
+            if U.enabled then
+                if not (z()) then
+                    return nil
+                end
+            else
+                return nil
+            end
+            local j, A = c(F)
+            if not (j) then
+                return nil
+            end
+            local P = J()
+            if U.force and (if P then (j - P.Position).Magnitude > 0.05 else not P) then
+                if not (H(x.lookAt(j, A))) then
+                    return nil
+                end
+            end
+            X.note(F, j, A)
+            return v(A)
+        end
+        r.register(1, n)
+        local n
+        local j, A = false, 0
+        r.silent_target = function()
+            if not (U.enabled) then
+                return nil
+            end
+            local P = s()
+            if (n ~= F) or (P >= A) then
+                n = F
+                A = P + 0.05
+                local n, A = z() and (c(F, true) ~= nil)
+                if n then
+                    local _ = U.force
+                    A = if _ then B() ~= nil else not _
+                else
+                    A = n
+                end
+                j = A
+            end
+            P = (j and F) or nil
+            return P
+        end
+        local n = {}
+        local function j(A, P, _, w)
+            if C(A) ~= "Instance" then
+                return
+            end
+            local E = m.Character
+            if E then
+                if A:IsDescendantOf(E) then
+                    U.last_shot = s()
+                    X.fired(P, _, w)
+                end
+            end
+        end
+        local function A()
+            if #n > 0 then
+                return
+            end
+            local P = r.service()
+            if P then
+                if C(P.GunFired) == "Instance" then
+                    n[1] = P.GunFired.OnClientEvent:Connect(j)
+                end
+            end
+        end
+        local function C()
+            for j = 1, #n, 1 do
+                n[j]:Disconnect()
+            end
+            T.clear(n)
+        end
+        local T = y("shoot", function(n, j, y)
+            local P = n:FindFirstChild("Shoot")
+            if P then
+                if not (P:IsA("RemoteEvent")) then
+                    return false
+                end
+            else
+                return false
+            end
+            P:FireServer(x.lookAt(j, y), v(y))
+            return true
+        end)
+        local function v(n)
+            if U.auto then
+                if L().AUTOFARM_HOLD then
+                    return
+                end
+            else
+                return
+            end
+            if not (z()) then
+                U.since = nil
+                return
+            end
+            local z, x = K.stored(m, "Gun")
+            if not (z) then
+                return
+            end
+            if not (x) then
+                local j = m.Character
+                local y = j and (j:FindFirstChildOfClass("Humanoid"))
+                if y then
+                    y:EquipTool(z)
+                end
+                return
+            end
+            if (n - U.last_shot) < (U.cooldown + U.delay) then
+                U.since = nil
+                return
+            end
+            if (n - U.last_try) < 0.25 then
+                return
+            elseif (n - U.last_eval) < 0.05 then
+                return
+            end
+            U.last_eval = n
+            local j, y, P, _ = c(F)
+            U.odds = P or 0
+            U.risk = _ or 0
+            if not (j) then
+                U.since = nil
+                return
+            end
+            U.since = U.since or n
+            x = if U.patience > 0 then U.chance * (1 - (0.6 * D.min(1, (n - U.since) / U.patience))) else 0
+            if U.odds < x then
+                return
+            elseif U.risk > 0.1 then
+                return
+            end
+            X.note(F, j, y)
+            if T(z, j, y) then
+                U.last_try = n
+                U.since = nil
+            end
+        end
+        local z
+        local D = 0
+        local function T()
+            if z then
+                return
+            end
+            r.install()
+            A()
+            G(K.target(F))
+            z = RunService.Heartbeat:Connect(function()
+                b += 1
+                if f then
+                    if b > g then
+                        a()
+                    end
+                end
+                if not (r.intact()) then
+                    r.install()
+                end
+                A()
+                local n = s()
+                if (if F then not K.alive(F) else not F) or (n >= D) then
+                    D = n + 0.15
+                    G(K.target(F))
+                end
+                if F then
+                    X.track(F)
+                end
+                v(n)
+            end)
+        end
+        local function s()
+            if z then
+                z:Disconnect()
+                z = nil
+            end
+            a()
+            F = nil
+        end
+        W:AddToggle({Name = "silent", Icon = "crosshair", Default = false, Flag = "silent", Callback = function(F)
+            U.enabled = F
+            L().SILENT_AIM_ACTIVE = F
+            if F then
+                T()
+            elseif not (U.auto) then
+                s()
+            end
+        end})
+        W:AddToggle({Name = "prediction", Icon = "brain", Default = true, Flag = "Silent Prediction", Callback = function(F)
+            U.predict = F
+            X.cfg.learn = F
+        end})
+        W:AddToggle({Name = "force shoot", Icon = "zap", Default = false, Flag = "Silent Force", Option = true, Premium = true, Callback = function(F)
+            U.force = F
+            if not (F) then
+                a()
+            end
+        end}).Option:AddSlider({Name = "origin", Default = 15, Min = 3, Max = 40, Round = 0, Type = " studs", Flag = "silent_stand_off", Callback = function(F)
+            U.offset = F
+        end})
+        d = W:AddToggle({Name = "auto shoot", Icon = "target", Default = false, Flag = "Auto Shoot", Option = true, Callback = function(F)
+            U.auto = F
+            if F then
+                T()
+            elseif not (U.enabled) then
+                s()
+            end
+        end})
+        d.Option:AddSlider({Name = "hit chance", Default = 60, Min = 0, Max = 100, Round = 0, Type = "%", Flag = "silent_auto_chance", Callback = function(F)
+            U.chance = F / 100
+        end})
+        d.Option:AddSlider({Name = "max wait", Default = 600, Min = 0, Max = 2000, Round = 0, Type = "ms", Flag = "silent_auto_wait", Callback = function(F)
+            U.patience = F / 1000
+        end})
+        d.Option:AddSlider({Name = "delay", Default = 0, Min = 0, Max = 600, Round = 0, Type = "ms", Flag = "silent_auto_delay", Callback = function(F)
+            U.delay = F / 1000
+        end})
+        L().SILENT_UNLOAD = function()
+            U.enabled = false
+            U.predict = false
+            U.force = false
+            U.auto = false
+            L().SILENT_AIM_ACTIVE = false
+            s()
+            C()
+            r.restore()
+            X.stop()
+        end
+    end
+    return e
+    end)()
+    SilentFactory({game_tab = a, aim_bridge = Z, round_state = q, motion = l, fx = fx})
+    do
+        local PlayersService3 = environment.game:GetService("Players")
+        local CollectionService1 = environment.game:GetService("CollectionService")
+        local RunService1 = environment.game:GetService("RunService")
+        local i = PlayersService3.LocalPlayer
+        local k = environment.os.clock
+        local S, I = environment.CFrame.new, {}
+        I.silent = false
+        I.predict = true
+        I.instant = false
+        I.range = 400
+        I.impact = 12
+        I.speed = 96
+        I.charge = 0
+        local function R()
+            local Q, Fo = q.stored(i, "Knife")
+            if Q then
+                local so = "Tool"
+                if not (Q:IsA(so)) then
+                    return nil, false
+                end
+            else
+                return nil, false
+            end
+            return Q, Fo
+        end
+        local function Q()
+            local environment96, so = getfenv(), R()
+            if not (so) then
+                return
+            end
+            local zo = so:GetAttribute("ThrowSpeed")
+            if environment96["type"](zo) == "number" then
+                if zo > 0 then
+                    I.charge = zo
+                end
+            end
+        end
+        Q()
+        i.CharacterAdded:Connect(Q)
+        r = i:FindFirstChildOfClass("Backpack")
+        if r then
+            f, E = "ChildAdded", function(Fo)
+                if Fo.Name == "Knife" then
+                    Q()
+                end
+            end
+            r[f]:Connect(E)
+        end
+        d, b = "ChildAdded", function(Fo)
+            local so = "Backpack"
+            if Fo:IsA(so) then
+                local so, zo = "ChildAdded", function(Co)
+                    if Co.Name == "Knife" then
+                        Q()
+                    end
+                end
+                Fo[so]:Connect(zo)
+            end
+        end
+        i[d]:Connect(b)
+        local function Fo()
+            local so = R()
+            local zo = so and so:FindFirstChild("Events")
+            if not (zo) then
+                return nil
+            end
+            local so, Co = zo:FindFirstChild("KnifeStabbed"), "HandleTouched"
+            return so, zo:FindFirstChild(Co)
+        end
+        local so = C.load("n")("strike", function(zo)
+            if zo then
+                if not (zo.Parent) then
+                    return false
+                end
+            else
+                return false
+            end
+            local Co, Lo = Fo()
+            if Co then
+                if not (Lo) then
+                    return false
+                end
+            else
+                return false
+            end
+            Co:FireServer()
+            Lo:FireServer(zo)
+            return true
+        end)
+        local function Fo(zo)
+            local Co = "BasePart"
+            if zo:IsA(Co) then
+                return zo
+            end
+            Co = zo:WaitForChild("BladePosition", 2)
+            if Co then
+                local Lo = "BasePart"
+                if Co:IsA(Lo) then
+                    return Co
+                end
+            end
+            Co = "BasePart"
+            return zo:FindFirstChildWhichIsA(Co)
+        end
+        local zo, Co, Lo
+        local vo = environment.RaycastParams.new()
+        vo.FilterType = environment.Enum.RaycastFilterType.Exclude
+        local function Do()
+            zo, Co = nil, nil
+            if Lo then
+                Lo:Disconnect()
+                Lo = nil
+            end
+        end
+        local function To(no, xo, jo)
+            local environment97, eo = getfenv(), {jo}
+            local co, ro, Ko = environment97.next, PlayersService3:GetPlayers()
+            for Xo, Xo in co, ro, Ko do
+                if Xo.Character then
+                    eo[#eo + 1] = Xo.Character
+                end
+            end
+            ro, co, jo = environment97.next, CollectionService1:GetTagged("WeaponPassthrough")
+            for Ko, Ko in ro, co, jo do
+                eo[#eo + 1] = Ko
+            end
+            while true do
+                vo.FilterDescendantsInstances = eo
+                co = environment97.workspace:Raycast(no, xo * 600, vo)
+                if not co then
+                    return 600
+                end
+                if co.Instance.Transparency < 1 then
+                    return co.Distance
+                end
+                eo[#eo + 1] = co.Instance
+            end
+        end
+        local function vo()
+            local environment98, xo = getfenv(), i.Character
+            local jo = xo and xo:FindFirstChild("HumanoidRootPart")
+            if not (jo) then
+                return nil
+            end
+            local xo, Ao, eo, co, ro = jo.Position, I.range, environment98.next, PlayersService3:GetPlayers()
+            environment98 = nil
+            for o, Ko in eo, co, ro do
+                if Ko ~= i then
+                    if q.alive(Ko) then
+                        if q.ally(Ko) then
+                        else
+                            o = l.read(Ko)
+                            if o then
+                                jo = (o.position - xo).Magnitude
+                                if jo <= Ao then
+                                    Ao, environment98 = jo, o
+                                else
+                                end
+                            else
+                            end
+                        end
+                    else
+                    end
+                else
+                end
+            end
+            return environment98
+        end
+        local function o(no)
+            return (no.character:FindFirstChild("UpperTorso") or no.character:FindFirstChild("Torso")) or no.root
+        end
+        local function no(xo, jo)
+            if not (I.predict) then
+                return xo.position
+            end
+            if l.quality(xo) == "invalid" then
+                return xo.position
+            end
+            local Ao, eo = l.lead(xo.player), ((I.speed > 0) and I.speed) or 96
+            local co = l.predict(xo.player, Ao) or xo.position
+            if not (jo) then
+                return co
+            end
+            for ro = 1, 4, 1 do
+                co = l.predict(xo.player, Ao + ((co - jo).Magnitude / eo)) or co
+            end
+            return co
+        end
+        local function xo(jo, Ao, eo)
+            if not (jo) then
+                return (Ao - eo).Magnitude
+            end
+            local co = Ao - jo
+            local ro = co:Dot(co)
+            if ro <= 0 then
+                return (Ao - eo).Magnitude
+            end
+            Ao = (eo - jo):Dot(co) / ro
+            return ((jo + (co * (if Ao < 0 then 0 else if Ao > 1 then 1 else Ao))) - eo).Magnitude
+        end
+        local function jo()
+            local Ao = zo
+            local eo = Ao.part
+            if eo then
+                if eo.Parent then
+                    return eo
+                end
+            end
+            local co, ro = l.read, zo
+            Ao = co(ro.player)
+            eo = Ao and (o(Ao))
+            ro = zo
+            ro.part = eo
+            return eo
+        end
+        local function Ao()
+            local environment99, co, ro = getfenv(), k(), zo
+            if (co - ro.at) > 6 then
+                Do()
+                return
+            else
+                local Ko, Xo = q.alive, zo
+                if not (Ko(Xo.player)) then
+                    Do()
+                    return
+                end
+            end
+            ro = jo()
+            if not ro then
+                Do()
+                return
+            end
+            local jo = Co
+            if not (jo) then
+                local Ko = zo
+                if (co - Ko.at) > 1.5 then
+                    Do()
+                end
+                return
+            end
+            local Ko = (jo.gone and jo.stop) or environment99.math.min((co - jo.at) * jo.speed, jo.stop)
+            co = jo.origin + (jo.dir * Ko)
+            if xo(jo.last, co, ro.Position) <= I.impact then
+                if so(ro) then
+                    Do()
+                    return
+                end
+            end
+            jo.last = co
+            if jo.gone then
+                Do()
+            elseif Ko >= jo.stop then
+                Do()
+            end
+        end
+        CollectionService1:GetInstanceAddedSignal("ThrowingKnife"):Connect(function(so)
+            local environment100, jo = getfenv(), so:GetAttribute("ThrowSpeed")
+            if environment100["type"](jo) == "number" then
+                if jo > 0 then
+                    I.speed = jo
+                end
+            end
+            if zo then
+                if Co then
+                    return
+                end
+            else
+                return
+            end
+            local eo, co = Fo(so), i.Character
+            jo = co and co:FindFirstChild("HumanoidRootPart")
+            if eo then
+                if jo then
+                    if zo then
+                        if Co then
+                            return
+                        end
+                    else
+                        return
+                    end
+                else
+                    return
+                end
+            else
+                return
+            end
+            co = eo.Position
+            if (co - jo.Position).Magnitude > 50 then
+                return
+            end
+            jo = so:GetAttribute("Direction")
+            if environment100["typeof"](jo) ~= "Vector3" then
+                eo = zo
+                jo = eo.aim - co
+            else
+                if jo.Magnitude < 0.001 then
+                    local Fo = zo
+                    jo = Fo.aim - co
+                else
+                end
+            end
+            if jo.Magnitude < 0.001 then
+                return
+            end
+            jo = jo.Unit
+            Co = {instance = so, origin = co, dir = jo, speed = I.speed, stop = To(co, jo, so), at = k(), last = co}
+        end)
+        CollectionService1:GetInstanceRemovedSignal("ThrowingKnife"):Connect(function(V)
+            if Co then
+                local Fo = Co
+                if Fo.instance == V then
+                    local V = Co
+                    V.gone = true
+                end
+            end
+        end)
+        local function V()
+            if not (I.silent) then
+                return nil
+            end
+            local Fo, so = R()
+            if Fo then
+                if so then
+                    if Fo:GetAttribute("Disabled") == true then
+                        return nil
+                    end
+                else
+                    return nil
+                end
+            else
+                return nil
+            end
+            Fo = vo()
+            if not Fo then
+                return nil
+            end
+            so = i.Character
+            local i = so and so:FindFirstChild("HumanoidRootPart")
+            so = no(Fo, (i and i.Position) or nil)
+            if I.instant then
+                Co = nil
+                zo = {player = Fo.player, part = o(Fo), aim = so, at = k()}
+                Lo = Lo or RunService1.Heartbeat:Connect(Ao)
+            else
+                Do()
+            end
+            return S(so)
+        end
+        Z.register(2, V)
+        c = e:AddToggle({Name = "throw silent", Icon = "sword", Default = false, Flag = "Knife Silent", Option = true, Premium = true, Callback = function(o)
+            I.silent = o
+            if o then
+                Z.install()
+                Q()
+            else
+                Do()
+            end
+        end})
+        c.Option:AddToggle({Name = "insta kill", Icon = "zap", Default = false, Flag = "Knife Instance Kill", Callback = function(o)
+            I.instant = o
+            if not (o) then
+                Do()
+            end
+        end})
+        c.Option:AddSlider({Name = "radius", Default = 12, Min = 2, Max = 40, Round = 0, Type = " studs", Flag = "knife_impact_radius", Callback = function(o)
+            I.impact = o
+        end})
+        e:AddToggle({Name = "prediction", Icon = "brain", Default = true, Flag = "Knife Prediction", Callback = function(o)
+            I.predict = o
+        end})
+        environment.getgenv().KNIFE_UNLOAD = function()
+            I.silent = false
+            I.predict = false
+            I.instant = false
+            Do()
+        end
+    end
+    do
+        local PlayersService4 = environment.game:GetService("Players")
+        local V = PlayersService4.LocalPlayer
+        local p = false
+        local ReplicatedStorageService3 = environment.game:GetService("ReplicatedStorage")
+        local k
+        local function S()
+            local environment101 = getfenv()
+            if not (k) then
+                local R, Q = environment101.pcall(function()
+                    local environment102 = getfenv()
+                    local so, zo, Co = environment102.require, ReplicatedStorageService3:WaitForChild("Modules"), "CurrentRoundClient"
+                    return so(zo:WaitForChild(Co))
+                end)
+                if R then
+                    if environment101["type"](Q) == "table" then
+                        k = Q
+                    end
+                end
+            end
+            local i, R = k
+            if i then
+                local Q = k
+                R = Q.PlayerData
+            else
+                R = i
+            end
+            if environment101["type"](R) ~= "table" then
+                return false
+            end
+            i = R[V.Name]
+            return ((i ~= nil) and (i.Role ~= nil)) and not i.Dead
+        end
+        local function i()
+            local k = V.Character
+            if k then
+                local I = "Knife"
+                if k:FindFirstChild(I) then
+                    return true
+                end
+            end
+            k = V:FindFirstChildOfClass("Backpack")
+            if k then
+                local I = "Knife"
+                if k:FindFirstChild(I) then
+                    return true
+                end
+            end
+            return false
+        end
+        local k = {}
+        local I = C.load("n")("grabgun", function()
+            local environment103 = getfenv()
+            for Q in environment103.pairs(k) do
+                if not (Q.Parent) then
+                    k[Q] = nil
+                end
+            end
+            if environment103["type"](environment103.firetouchinterest) ~= "function" then
+                return
+            elseif environment103.next(k) == nil then
+                return
+            end
+            if i() then
+                return
+            elseif q.stored(V, "Gun") then
+                return
+            elseif not (S()) then
+                return
+            end
+            local i = V.Character
+            local S = i and i:FindFirstChild("HumanoidRootPart")
+            if S then
+                if not (S.CanTouch) then
+                    return
+                end
+            else
+                return
+            end
+            for i, Q in environment103.pairs(k) do
+                if i:FindFirstChildOfClass("TouchTransmitter") and (Q or ((i.Position - S.Position).Magnitude <= 10)) then
+                    k[i] = false
+                    environment103.pcall(environment103.firetouchinterest, S, i, 0)
+                    environment103.pcall(environment103.firetouchinterest, S, i, 1)
+                end
+            end
+        end)
+        environment.task.spawn(function()
+            local environment104 = getfenv()
+            while true do
+                local S, R = environment104.task.wait, 0.25
+                if not S(R) then
+                    break
+                end
+                if p then
+                    environment104.pcall(I)
+                end
+            end
+        end)
+        local function i(S)
+            if S.Name == "GunDrop" then
+                local I = "BasePart"
+                if S:IsA(I) then
+                    k[S] = true
+                end
+            end
+        end
+        local function S()
+            local environment105 = getfenv()
+            for R, R in environment105.ipairs(environment105.workspace:GetDescendants()) do
+                i(R)
+            end
+        end
+        local I
+        local function R()
+            local environment106 = getfenv()
+            if I then
+                environment106.pcall(function()
+                    I:Disconnect()
+                end)
+                I = nil
+            end
+            environment106.table.clear(k)
+        end
+        local bo = Sections.Gun
+        bo:AddToggle({Name = "grab gun", Icon = "hand", Default = false, Flag = "Auto Gun", Callback = function(k)
+            local environment150 = getfenv()
+            p = k
+            if k then
+                I = I or environment150.workspace.DescendantAdded:Connect(i)
+                environment150.task.spawn(S)
+            else
+                R()
+            end
+        end})
+        environment.getgenv().AUTOGRAB_UNLOAD = function()
+            p = false
+            R()
+        end
+    end
+end
+end)
+if not ok then warn("[Salad] aim_mm2.lua: " .. tostring(err)) end
+end
+do
+local ok, err = pcall(function()
+getgenv().ZolarChibi = function(Section)
+    local yo = (function()
+  local r2_1 = game:GetService("Players")
+  local r3_2 = game:GetService("RunService")
+  local r4_3 = game:GetService("UserInputService")
+  local r5_3 = game:GetService("Workspace")
+  local r12 = r2_1.LocalPlayer
+  local r13 = Vector3.new
+  local r14 = CFrame.new
+  local r11 = CFrame.Angles
+  local r15 = CFrame.fromEulerAnglesYXZ
+  local r16 = CFrame.identity
+  local r17 = Vector3.zero
+  local r18 = math.sin
+  local r19 = math.cos
+  local r20 = math.abs
+  local r21 = math.exp
+  local r22 = math.rad
+  local r23 = 3.141592653589793
+  local r24 = math.clamp
+  local r26 = math.atan2
+  local r27 = math.asin
+  local r28 = math.max
+  local r29 = math.min
+  local r30 = math.sqrt
+  local r31 = 6.283185307179586
+  local r32 = {hd = 114505997041379, ts = 135286539386286, la = 99241595690985, ra = 106843148423750, ll = 93444711963591, rl = 139627170383815, acc = {{AssetId = 74887864211518, AccessoryType = Enum.AccessoryType.Hair, IsLayered = false}, {AssetId = 94898822609852, AccessoryType = Enum.AccessoryType.Hat, IsLayered = false}, {AssetId = 116091741262302, AccessoryType = Enum.AccessoryType.Pants, IsLayered = true, Order = 2}, {AssetId = 108444531159366, AccessoryType = Enum.AccessoryType.Jacket, IsLayered = true, Order = 3}}}
+  local r33 = {cam = true, trl = true, tw = 1, ta = 0.15, tfrom = "both", size = 1}
+  local r34 = function(arg1, arg2)
+    return 1 - r21(-arg1 * arg2)
+  end
+  local r35 = function(s13, arg2, arg3)
+    return s13 + ((arg2 - s13) * arg3)
+  end
+  local r36 = function(arg1)
+    local s1 = r24(arg1, 0, 1)
+    return (s1 * s1) * (3 - (2 * s1))
+  end
+  local r37 = function(arg1)
+    local s1 = r24(arg1, 0, 1)
+    if s1 < 0.5 then
+      return ((4 * s1) * s1) * s1
+    end
+    local s1_1 = 2 - (2 * s1)
+    return 1 - (((s1_1 * s1_1) * s1_1) * 0.5)
+  end
+  local r38 = function(arg1)
+    local s1 = r24(arg1, 0, 1) - 1
+    return (1 + (((2.70158 * s1) * s1) * s1)) + ((1.70158 * s1) * s1)
+  end
+  local r39 = function(arg1, s18, arg3)
+    return r24((arg1 - s18) / (arg3 - s18), 0, 1)
+  end
+  local r40 = function(arg1)
+    return r18(r24(arg1, 0, 1) * r23)
+  end
+  local r41 = function(s21, s22, arg3, s24)
+    return r36(s21 / arg3) * (1 - r36((s21 - (s22 - s24)) / s24))
+  end
+  local r42 = function(arg1)
+    return ((arg1 + r23) % r31) - r23
+  end
+  local r43 = function(s14)
+    return r26(-s14.X, -s14.Z)
+  end
+  local r44 = function(s30, s31, s32)
+    local s2 = s30 - (s31 * s30:Dot(s31))
+    if s2.Magnitude < 0.001 then
+      s2 = s32 - (s31 * s32:Dot(s31))
+    end
+    if s2.Magnitude < 0.001 then
+      s2 = s31:Cross(Vector3.xAxis)
+    end
+    return s2.Unit
+  end
+  local r45 = function(s18, arg2)
+    local s2 = r44(arg2, s18, Vector3.yAxis)
+    return CFrame.fromMatrix(r17, s18, s2, s18:Cross(s2))
+  end
+  local r46 = function(s8, s9, s10, s11, s12)
+    local s13 = math.ceil(s12 * 120)
+    if s13 < 1 then
+      return s8.x
+    end
+    local s4 = s12 / s13
+    local s900001 = 1
+    local s900002 = s13 + 0
+    local s900003 = (1 - s900001) + s900001
+    local exitTo
+    if s900001 <= 0 then
+      while s900003 >= s900002 do
+        exitTo = nil
+        while true do
+          s8.v = s8.v + ((((s9 - s8.x) * s10) - (s8.v * s11)) * s4)
+          s8.x = s8.x + (s8.v * s4)
+          s900003 += s900001
+          if s900001 <= 0 then
+            exitTo = 1
+            break
+          elseif not (s900003 <= s900002) then
+            break
+          end
+        end
+        if exitTo == 1 then
+          continue
+        end
+        break
+      end
+    else
+      local exitTo2 = nil
+      while s900003 <= s900002 do
+        s8.v = s8.v + ((((s9 - s8.x) * s10) - (s8.v * s11)) * s4)
+        s8.x = s8.x + (s8.v * s4)
+        s900003 += s900001
+        if s900001 <= 0 then
+          exitTo2 = 1
+          break
+        end
+      end
+      if exitTo2 == 1 then
+        while s900003 >= s900002 do
+          exitTo = nil
+          while true do
+            s8.v = s8.v + ((((s9 - s8.x) * s10) - (s8.v * s11)) * s4)
+            s8.x = s8.x + (s8.v * s4)
+            s900003 += s900001
+            if s900001 <= 0 then
+              exitTo = 1
+              break
+            elseif not (s900003 <= s900002) then
+              break
+            end
+          end
+          if exitTo == 1 then
+            continue
+          end
+          break
+        end
+      end
+    end
+    return s8.x
+  end
+  local r48 = 130868831
+  local r49 = function(width, height, alphaAt)
+    local crcTable = {}
+    for byte = 0, 255 do
+      local value = byte
+      for _ = 1, 8 do
+        if (value % 2) == 1 then
+          value = bit32.bxor(3988292384, bit32.rshift(value, 1))
+        else
+          value = bit32.rshift(value, 1)
+        end
+      end
+      crcTable[byte] = value
+    end
+    local function crc32(bytes)
+      local crc = 4294967295
+      for index = 1, #bytes do
+        crc = bit32.bxor(crcTable[bit32.band(bit32.bxor(crc, string.byte(bytes, index)), 255)], bit32.rshift(crc, 8))
+      end
+      return bit32.bxor(crc, 4294967295)
+    end
+    local function big32(value)
+      return string.char(bit32.band(bit32.rshift(value, 24), 255), bit32.band(bit32.rshift(value, 16), 255), bit32.band(bit32.rshift(value, 8), 255), bit32.band(value, 255))
+    end
+    local function chunk(kind, bytes)
+      return big32(#bytes) .. (kind .. (bytes .. big32(crc32(kind .. bytes))))
+    end
+    local raw = buffer.create(height * (1 + (width * 4)))
+    local offset, adlerA, adlerB = 0, 1, 0
+    local function put(value)
+      buffer.writeu8(raw, offset, value)
+      offset += 1
+      adlerA = (adlerA + value) % 65521
+      adlerB = (adlerB + adlerA) % 65521
+    end
+    for y = 0, height - 1 do
+      put(0)
+      for x = 0, width - 1 do
+        put(255)
+        put(255)
+        put(255)
+        put(math.floor((math.clamp(alphaAt(x, y), 0, 1) * 255) + 0.5))
+      end
+    end
+    local blocks = {string.char(120, 1)}
+    local rawSize = buffer.len(raw)
+    offset = 0
+    repeat
+      local count = math.min(65535, rawSize - offset)
+      local inverse = bit32.band(bit32.bnot(count), 65535)
+      local final = (((offset + count) == rawSize) and 1) or 0
+      blocks[#blocks + 1] = string.char(final, bit32.band(count, 255), bit32.rshift(count, 8), bit32.band(inverse, 255), bit32.rshift(inverse, 8))
+      blocks[#blocks + 1] = buffer.readstring(raw, offset, count)
+      offset += count
+    until offset >= rawSize
+    blocks[#blocks + 1] = big32((adlerB * 65536) + adlerA)
+    return string.char(137, 80, 78, 71, 13, 10, 26, 10) .. (chunk("IHDR", big32(width) .. (big32(height) .. string.char(8, 6, 0, 0, 0))) .. (chunk("IDAT", table.concat(blocks)) .. chunk("IEND", "")))
+  end
+  local r50 = function(arg1)
+    return r20((((arg1 + 0.5) / 64) * 2) - 1)
+  end
+  local r51 = function(s16)
+    local s1 = r50(s16)
+    local s3 = r21(-((s1 / 0.62) ^ 4) * 2.2) * 0.86
+    return (s3 + (r21(-((s1 / 0.3) ^ 2) * 2.66) * (1 - s3))) * r36((1 - s1) / 0.2)
+  end
+  local r52 = 503642863
+  local r53 = function(s19)
+    local s2 = r50(s19)
+    return r21(-((s2 / 0.5) ^ 2) * 2.66) * r36((1 - s2) / 0.3)
+  end
+  local r54 = {}
+  r48 = 145891145
+  local r55 = function(s22, s23)
+    if r54[s22] ~= nil then
+      local s2 = r54[s22]
+      if s2 then
+        return s2
+      end
+      return nil
+    end
+    if typeof(writefile) ~= "function" then
+      r54[s22] = false
+      return nil
+    end
+    if typeof(getcustomasset) ~= "function" then
+      r54[s22] = false
+      return nil
+    end
+    local s2_1, s3 = pcall(function()
+      local t10 = "hutao_" .. (s22 .. "_v2.png")
+      if typeof(isfile) ~= "function" then
+        writefile(t10, r49(64, 4, s23))
+      elseif not isfile(t10) then
+        writefile(t10, r49(64, 4, s23))
+        return getcustomasset(t10)
+      end
+      return getcustomasset(t10)
+    end)
+    local s5 = r54
+    if s2_1 then
+      if type(s3) ~= "string" then
+        s3 = false
+      elseif 0 < #s3 then
+        s3 = s3 or false
+      else
+        s3 = false
+      end
+    else
+      s3 = false
+    end
+    s5[s22] = s3
+    local s2_2 = r54[s22]
+    if s2_2 then
+      return s2_2
+    end
+    return nil
+  end
+  local r56 = function()
+    local s13 = Instance.new("HumanoidDescription")
+    local s5 = r32.ts
+    s13.Head = r32.hd
+    s13.Torso = s5
+    local s5_1 = r32.ra
+    s13.LeftArm = r32.la
+    s13.RightArm = s5_1
+    local s5_2 = r32.rl
+    s13.LeftLeg = r32.ll
+    s13.RightLeg = s5_2
+    s13.BodyTypeScale = 0
+    s13.ProportionScale = 0
+    s13:SetAccessories(r32.acc, true)
+    local s900001 = 1
+    local s900002 = 3
+    local s900003 = 1 - s900001
+    local s8
+    while true do
+      s8 = nil
+      s900003 += s900001
+      local s15, s2, s3
+      if s900001 <= 0 then
+        if s900003 >= s900002 then
+          while true do
+            s15 = s900003
+            s2, s3 = pcall(r2_1.CreateHumanoidModelFromDescription, r2_1, s13, Enum.HumanoidRigType.R15)
+            s8 = s3
+            local exitTo
+            if s2 then
+              if typeof(s8) ~= "Instance" then
+                task.wait(s15)
+                exitTo = nil
+                while true do
+                  s8 = nil
+                  s900003 += s900001
+                  if s900001 <= 0 then
+                    exitTo = 1
+                    break
+                  else
+                    if s900003 <= s900002 then
+                      s15 = s900003
+                      s2, s3 = pcall(r2_1.CreateHumanoidModelFromDescription, r2_1, s13, Enum.HumanoidRigType.R15)
+                      s8 = s3
+                      if s2 then
+                        if typeof(s8) ~= "Instance" then
+                          task.wait(s15)
+                          continue
+                        end
+                      else
+                        task.wait(s15)
+                        continue
+                      end
+                    end
+                    break
+                  end
+                end
+                if exitTo == 1 then
+                  if s900003 >= s900002 then
+                    continue
+                  end
+                end
+              end
+              break
+            else
+              task.wait(s15)
+              exitTo = nil
+              while true do
+                s8 = nil
+                s900003 += s900001
+                if s900001 <= 0 then
+                  exitTo = 1
+                  break
+                else
+                  if s900003 <= s900002 then
+                    s15 = s900003
+                    s2, s3 = pcall(r2_1.CreateHumanoidModelFromDescription, r2_1, s13, Enum.HumanoidRigType.R15)
+                    s8 = s3
+                    if s2 then
+                      if typeof(s8) ~= "Instance" then
+                        task.wait(s15)
+                        continue
+                      end
+                    else
+                      task.wait(s15)
+                      continue
+                    end
+                  end
+                  break
+                end
+              end
+              if exitTo == 1 then
+                if s900003 >= s900002 then
+                  continue
+                end
+              end
+              break
+            end
+          end
+        end
+        s13:Destroy()
+        return s8
+      else
+        if s900003 <= s900002 then
+          s15 = s900003
+          s2, s3 = pcall(r2_1.CreateHumanoidModelFromDescription, r2_1, s13, Enum.HumanoidRigType.R15)
+          s8 = s3
+          if s2 then
+            if typeof(s8) ~= "Instance" then
+              task.wait(s15)
+              continue
+            end
+          else
+            task.wait(s15)
+            continue
+          end
+        end
+        break
+      end
+    end
+    s13:Destroy()
+    return s8
+  end
+  local r58 = function(s2, s3)
+    if s2 then
+      local s2_1 = s2:FindFirstChild(s3)
+      if s2_1 then
+        if not s2_1:IsA("Motor6D") then
+          if not s2_1:IsA("AnimationConstraint") then
+            return
+          end
+        end
+        return s2_1
+      end
+    end
+  end
+  local r59 = function(s36)
+    if s36:IsA("Motor6D") then
+      return s36.C0, s36.C1
+    end
+    return s36.Attachment0.CFrame, s36.Attachment1.CFrame
+  end
+  local r60 = function(s6)
+    if s6:IsA("Motor6D") then
+      return s6.Part0, s6.Part1
+    end
+    local s2 = s6.Attachment0
+    local s6_1 = s6.Attachment1
+    if s2 then
+      s2 = s2.Parent
+      if s6_1 then
+        return s2, s6_1.Parent
+      end
+    elseif s6_1 then
+      return s2, s6_1.Parent
+    end
+    return s2, s6_1
+  end
+  local r61 = function()
+    return {dir = r13(0, -1, 0), pole = r13(0, 0, -1), bend = 0, tip = r16}
+  end
+  local r62 = function()
+    return {ra = r61(), la = r61(), rl = r61(), ll = r61(), wst = r16, nck = r16, hip = r16}
+  end
+  local r64 = function(s33, arg2, arg3, s36, s37, s38, s39, s40, s41)
+    s33.dir = r13(arg2, arg3, s36)
+    s33.pole = r13(s37, s38, s39)
+    s33.bend = r22(s40)
+    s33.tip = s41 or r16
+  end
+  local r65 = function(s2, s3)
+    s2.dir = r13(-s3.dir.X, s3.dir.Y, s3.dir.Z)
+    s2.pole = r13(-s3.pole.X, s3.pole.Y, s3.pole.Z)
+    s2.bend = s3.bend
+    local s4, s5_1, s6 = s3.tip:ToEulerAnglesXYZ()
+    s2.tip = r11(s4, -s5_1, -s6)
+  end
+  local r66 = function(s33, s34, s35)
+    if s35 <= 0 then
+      return
+    end
+    s33.dir = s33.dir:Lerp(s34.dir, s35)
+    s33.pole = s33.pole:Lerp(s34.pole, s35)
+    s33.bend = r35(s33.bend, s34.bend, s35)
+    s33.tip = s33.tip:Lerp(s34.tip, s35)
+  end
+  local r67 = function(s24, s25, s26)
+    if s26 <= 0 then
+      return
+    end
+    local s28, s29, s27, s30
+    if not (s26 <= -1) then
+      s28 = s24.ra
+      s29 = s25.ra
+      s27 = r66
+      s30 = s26
+    else
+      (nil).n = (72 + (nil).n) - 1
+      table.move(nil, 1, (nil).n, 72, nil);
+      (nil)[1] = nil;
+      (nil)[2] = nil;
+      (nil)[3] = nil;
+      (nil)[4] = nil;
+      (nil)[5] = nil;
+      (nil)[6] = nil;
+      (nil)[7] = nil;
+      (nil)[8] = nil;
+      (nil)[9] = nil;
+      (nil)[10] = nil;
+      (nil)[11] = nil;
+      (nil)[12] = nil;
+      (nil)[13] = nil;
+      (nil)[14] = nil;
+      (nil)[15] = nil;
+      (nil)[16] = nil;
+      (nil)[17] = nil;
+      (nil)[18] = nil;
+      (nil)[19] = nil;
+      (nil)[20] = nil;
+      (nil)[21] = nil;
+      (nil)[22] = nil;
+      (nil)[23] = nil;
+      (nil)[24] = nil;
+      (nil)[25] = nil;
+      (nil)[26] = nil;
+      (nil)[27] = nil;
+      (nil)[28] = nil;
+      (nil)[29] = nil;
+      (nil)[30] = nil;
+      (nil)[31] = nil;
+      (nil)[32] = nil;
+      (nil)[33] = nil;
+      (nil)[34] = nil;
+      (nil)[35] = nil;
+      (nil)[36] = nil;
+      (nil)[37] = nil;
+      (nil)[38] = nil;
+      (nil)[39] = nil;
+      (nil)[40] = nil;
+      (nil)[41] = nil;
+      (nil)[42] = nil;
+      (nil)[43] = nil;
+      (nil)[44] = nil;
+      (nil)[45] = nil;
+      (nil)[46] = nil;
+      (nil)[47] = nil;
+      (nil)[48] = nil;
+      (nil)[49] = nil;
+      (nil)[50] = nil;
+      (nil)[51] = nil;
+      (nil)[52] = nil;
+      (nil)[53] = nil;
+      (nil)[54] = nil;
+      (nil)[55] = nil;
+      (nil)[56] = nil;
+      (nil)[57] = nil;
+      (nil)[58] = nil;
+      (nil)[59] = nil;
+      (nil)[60] = nil;
+      (nil)[61] = nil;
+      (nil)[62] = nil;
+      (nil)[63] = nil;
+      (nil)[64] = nil;
+      (nil)[65] = nil;
+      (nil)[66] = nil;
+      (nil)[67] = nil;
+      (nil)[68] = nil;
+      (nil)[69] = nil;
+      (nil)[70] = nil;
+      (nil)[71] = nil
+      local t88_17_3 = table.pack((nil)(table.unpack(nil, 1, (nil).n)))
+      bit32.bor(t88_17_3[12], "Character")
+    end
+    s27(s28, s29, s30)
+    r66(s24.la, s25.la, s26)
+    r66(s24.rl, s25.rl, s26)
+    r66(s24.ll, s25.ll, s26)
+    s24.wst = s24.wst:Lerp(s25.wst, s26)
+    s24.nck = s24.nck:Lerp(s25.nck, s26)
+    s24.hip = s24.hip:Lerp(s25.hip, s26)
+  end
+  local r68 = function(s6, s7)
+    local s10 = s7.dir
+    local s12 = s7.pole
+    local s14 = s7.bend
+    local s7_1 = s7.tip
+    s6.dir = s10
+    s6.pole = s12
+    s6.bend = s14
+    s6.tip = s7_1
+  end
+  local r69 = function(s37, s38)
+    r68(s37.ra, s38.ra)
+    r68(s37.la, s38.la)
+    r68(s37.rl, s38.rl)
+    r68(s37.ll, s38.ll)
+    local s6 = s38.nck
+    local s7 = s38.hip
+    s37.wst = s38.wst
+    s37.nck = s6
+    s37.hip = s7
+  end
+  local r10 = function(s19)
+    local s1 = r62()
+    s19(s1, 535599408)
+    return s1
+  end
+  local r6_2 = r11(r22(-50), 0, 0)
+  local r70 = r61()
+  local r72 = r61()
+  local r73 = r62()
+  local r74 = function(s22, s23)
+    local s16 = r18(s23 * 0.9)
+    local s12 = r18(s23 * 1.35)
+    local s18 = r18((s23 * 1.35) + 2.3)
+    r64(s22.ra, 0.42 + (0.06 * s16), -1, 0.08 + (0.12 * s16), -0.25, 0, -1, 32 + (10 * r18(s23 * 1.7)))
+    r64(s22.la, -0.42 + (0.06 * s16), -1, 0.08 - (0.12 * s16), 0.25, 0, -1, 32 + (10 * r18((s23 * 1.7) + 1.3)))
+    r64(s22.rl, 0.07, -1, -0.45 - (0.14 * s12), 0, -0.2, 1, 76 + (16 * s12), r11(r22(-36 - (8 * s12)), 0, 0))
+    r64(s22.ll, -0.05, -1, -0.08 + (0.12 * s18), 0, 0, 1, 26 + (14 * s18), r11(r22(-42), 0, 0))
+    s22.wst = r11(r22(-2) + (0.04 * r18(s23 * 1.9)), 0.06 * s16, 0.025 * r18(s23 * 0.7))
+    s22.nck = r11(r22(-3) - (0.025 * r18(s23 * 1.9)), 0, r22(9) * r18(s23 * 0.55))
+    s22.hip = r16
+  end
+  local r75 = function(s26, arg2)
+    local s15 = r18(arg2 * 7)
+    r64(s26.ra, 0.3, -1, 0.9, 0, 0, -1, 20 + (6 * s15))
+    r65(s26.la, s26.ra)
+    r64(s26.rl, 0.06, -1, 0.5 + (0.12 * s15), 0, 0, 1, 50 + (18 * s15), r11(r22(-55), 0, 0))
+    r64(s26.ll, -0.06, -1, 0.35 - (0.12 * s15), 0, 0, 1, 35 - (18 * s15), r11(r22(-55), 0, 0))
+    s26.wst = r11(r22(5), 0, 0)
+    s26.nck = r11(r22(12), 0, 0)
+    s26.hip = r16
+  end
+  local r8 = function(s4, s5)
+    r64(s4.ra, 0.35, -0.3, -1, -1, -0.5, 0, 85)
+    r65(s4.la, s4.ra)
+    r64(s4.rl, 0.13, 0.25, -1, 0, -1, 0.35, 140, r11(r22(-40), 0, 0))
+    r65(s4.ll, s4.rl)
+    s4.wst = r11(r22(-28), 0, 0)
+    s4.nck = r11(r22(-25), 0, 0)
+    bit32.bxor(2922071255, s5)
+  end
+  local r76 = {tuck = r10(r8, 231387676)}
+  local r78 = 77713327
+  local r8_1 = function(s18, s19)
+    if (s19 + 26374789) ~= 416968046 then
+      r64(s18.ra, 0.35, -0.55, 0.85, 0, -0.3, -1, 25)
+      r65(s18.la, s18.ra)
+      r64(s18.rl, 0.1, -1, -0.65, 0, -0.3, 1, 95, r11(r22(-25), 0, 0))
+      r65(s18.ll, s18.rl)
+      s18.wst = r11(r22(-14), 0, 0)
+      local s4 = r11(r22(8), 0, 0)
+      bit32.bor(3399590394, s19)
+      s18.nck = s4
+      return
+    end
+    while true do
+      bit32.bor(nil, nil);
+      (nil)(0.2)
+    end
+  end
+  r78 = 144095456
+  r76.crch = r10(r8_1, 231387676)
+  local r8_2 = function(s34)
+    r64(s34.ra, 0.3, -0.75, -0.6, 0, 0.3, -1, 30)
+    r65(s34.la, s34.ra)
+    r64(s34.rl, 0.1, -1, -0.6, 0, -0.3, 1, 90, r11(r22(-25), 0, 0))
+    r65(s34.ll, s34.rl)
+    s34.wst = r11(r22(-12), 0, 0)
+    s34.nck = r11(r22(-6), 0, 0)
+  end
+  r76.crup = r10(r8_2, 231387676)
+  local r8_3 = function(s19)
+    r64(s19.ra, 0.45, 1, 0.25, 0, 0, -1, 10)
+    r65(s19.la, s19.ra)
+    r64(s19.rl, 0.08, -1, 0.35, 0, 0, 1, 18, r11(r22(-55), 0, 0))
+    r65(s19.ll, s19.rl)
+    s19.wst = r11(r22(22), 0, 0)
+    s19.nck = r11(r22(28), 0, 0)
+  end
+  r76.lay = r10(r8_3, 231387676)
+  local r8_4 = function(s37)
+    r64(s37.ra, 0.75, 0.95, -0.15, 0.2, 0, -1, 12, r11(0, 0, r22(-10)))
+    r65(s37.la, s37.ra)
+    r64(s37.rl, 0.12, -1, 0.05, 0, 0, 1, 8, r6_2)
+    r64(s37.ll, -0.05, -1, 0.3, 0, 0.2, 1, 70, r6_2)
+    s37.wst = r11(r22(8), 0, 0)
+    s37.nck = r11(r22(10), 0, r22(-8))
+  end
+  r76.open = r10(r8_4, 231387676)
+  local r8_5 = function(s6)
+    r64(s6.ra, 1, 0.12, -0.12, 0, 0.3, -1, 15)
+    r65(s6.la, s6.ra)
+    r64(s6.rl, 0.1, -1, 0.1, 0, 0, 1, 10, r6_2)
+    r65(s6.ll, s6.rl)
+    s6.wst = r11(r22(4), 0, 0)
+    s6.nck = r11(r22(6), 0, 0)
+  end
+  r76.wide = r10(r8_5, 231387676)
+  local r8_6 = function(s37)
+    r64(s37.ra, 0.35, -0.5, -0.75, -1, 0.35, -0.2, 118)
+    r64(s37.la, -0.35, -0.55, -0.7, 1, 0.3, -0.3, 112)
+    r64(s37.rl, 0.35, -0.75, -0.55, -0.6, -0.2, 0.75, 110, r6_2)
+    r64(s37.ll, -0.03, -1, 0.04, 0, 0, 1, 6, r11(r22(-55), 0, 0))
+    s37.wst = r11(r22(2), 0, 0)
+    s37.nck = r11(r22(4), 0, 0)
+  end
+  r76.arms = r10(r8_6, 231387676)
+  local r8_7 = function(s27)
+    r64(s27.ra, 0.45, 1, -0.2, 0.3, 0, -1, 10, r11(0, 0, r22(-12)))
+    r64(s27.la, -1, -0.25, -0.3, 0, 0.3, -1, 15)
+    r64(s27.rl, 0.06, -1, -0.05, 0, 0, 1, 6, r6_2)
+    r64(s27.ll, -0.08, -1, 0.35, 0, 0.3, 1, 95, r11(r22(-40), 0, 0))
+    s27.wst = r11(r22(6), r22(-8), r22(5))
+    s27.nck = r11(r22(4), r22(10), r22(-14))
+  end
+  r76.tada = r10(r8_7, 231387676)
+  local r8_8 = function(s8)
+    r64(s8.ra, 0.75, 1, 0, 0, 0, -1, 5)
+    r65(s8.la, s8.ra)
+    r64(s8.rl, 0.62, -1, 0, 0, 0, 1, 5, r11(r22(-45), 0, 0))
+    r65(s8.ll, s8.rl)
+  end
+  r76.star = r10(r8_8, 231387676)
+  local r8_9 = function(s12)
+    r64(s12.ra, 0.55, 0.8, -0.35, -0.75, 0.35, -0.45, 115, r11(r22(-20), 0, 0))
+    r64(s12.la, -1, 0.12, -0.5, 0, 0.35, -1, 18, r11(0, 0, r22(-25)))
+    r64(s12.rl, 0.05, -1, -0.1, 0, 0, 1, 8, r11(r22(-35), 0, 0))
+    r64(s12.ll, -0.08, -1, 0.3, 0, 0.3, 1, 105, r11(r22(-35), 0, 0))
+    s12.wst = r11(r22(-4), r22(-12), r22(5))
+    s12.nck = r11(r22(-6), r22(8), r22(-14))
+  end
+  r76.htip = r10(r8_9, 231387676)
+  local r8_10 = function(s15)
+    r64(s15.ra, 0.55, 1, 0.1, 0, 0.2, -1, 40, r11(r22(-60), 0, 0))
+    r65(s15.la, s15.ra)
+    r64(s15.rl, 0.1, -1, -0.3, 0, -0.2, 1, 60, r11(r22(-40), 0, 0))
+    r65(s15.ll, s15.rl)
+    s15.wst = r11(r22(16), 0, 0)
+    s15.nck = r11(r22(10), 0, 0)
+  end
+  r76.clup = r10(r8_10, 231387676)
+  local r8_11 = function(s11)
+    r64(s11.ra, 0.5, 0.7, -0.8, 0, -0.3, -1, 55, r11(r22(-60), 0, 0))
+    r65(s11.la, s11.ra)
+    r64(s11.rl, 0.12, -1, -0.5, 0, -0.2, 1, 85, r11(r22(-40), 0, 0))
+    r65(s11.ll, s11.rl)
+    s11.wst = r11(r22(-16), 0, 0)
+    s11.nck = r11(r22(8), 0, 0)
+  end
+  r76.claw = r10(r8_11, 231387676)
+  local r8_12 = function(s15)
+    r64(s15.ra, 0.15, -0.85, -0.55, -0.25, 0.9, -0.35, 135, r11(r22(-15), 0, 0))
+    r64(s15.la, -0.3, -0.95, -0.15, 1, 0.1, -0.5, 95)
+    r64(s15.rl, 0.05, -1, -0.35, 0, -0.2, 1, 70, r11(r22(-38), 0, 0))
+    r64(s15.ll, -0.12, -1, -0.15, 0.3, 0, 1, 40, r11(r22(-42), 0, 0))
+    s15.wst = r11(r22(-6), r22(-6), 0)
+    s15.nck = r11(r22(-10), r22(-6), r22(12))
+  end
+  r76.hmth = r10(r8_12, 231387676)
+  local r8_13 = function(s7)
+    r64(s7.ra, 0.75, -0.6, 0.25, -0.55, -0.8, -0.1, 95, r11(r22(10), 0, 0))
+    r65(s7.la, s7.ra)
+    r64(s7.rl, 0.08, -1, -0.15, 0, 0, 1, 25, r11(r22(-20), 0, 0))
+    r65(s7.ll, s7.rl)
+    s7.wst = r11(r22(-12), 0, 0)
+    s7.nck = r11(r22(-10), 0, 0)
+  end
+  r76.akmb = r10(r8_13, 231387676)
+  local r79 = 519642918
+  r52 = 20260872
+  local r8_14 = function(s18)
+    r64(s18.ra, 0.3, -0.92, -0.25, -1, 0.15, -0.3, 112)
+    r64(s18.la, -0.3, -0.9, -0.32, 1, 0.05, -0.45, 108)
+    r64(s18.rl, 0.05, -1, -0.05, 0, 0, 1, 10, r11(r22(-35), 0, 0))
+    r64(s18.ll, -0.1, -1, -0.45, 0.2, -0.2, 1, 80, r11(r22(-35), 0, 0))
+    s18.wst = r11(r22(6), 0, 0)
+    s18.nck = r11(r22(16), r22(35), r22(-8))
+  end
+  r79 = 268465149
+  r76.crss = r10(r8_14, 231387676)
+  local r8_15 = function(s22)
+    r64(s22.ra, 0.55, -0.4, -0.7, -0.4, 1, 0, 120, r11(r22(-20), 0, 0))
+    r65(s22.la, s22.ra)
+    r64(s22.rl, 0.1, -0.6, -0.8, 0, -1, 0.4, 100, r11(r22(-30), 0, 0))
+    r65(s22.ll, s22.rl)
+    s22.wst = r11(r22(12), 0, 0)
+    s22.nck = r11(r22(-14), 0, 0)
+  end
+  r76.flch = r10(r8_15, 231387676)
+  local r7_3 = function(s8)
+    local s2 = r24(tonumber(r33.size) or 1, 0.75, 1.35)
+    local s48 = 0.45 * s2
+    local s49 = s2
+    local s50 = 5.16 * s48
+    local s3_1 = 1.85 + ((s2 - 1) * 0.9)
+    local s46 = r13(s3_1, 0.7 + ((s2 - 1) * 0.6), 0.35)
+    local s51 = Random.new()
+    local s47 = r56()
+    if not s47 then
+      return nil
+    end
+    if s8() then
+      s47:Destroy()
+      return nil
+    end
+    s47.Name = "\000"
+    local s21 = s47:FindFirstChildOfClass("Humanoid")
+    local s22 = s47:FindFirstChild("HumanoidRootPart")
+    if s21 then
+      if s22 then
+        s21.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+        s21.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff
+        s21.BreakJointsOnDeath = false
+        s21.RequiresNeck = false
+        pcall(function()
+          s21.EvaluateStateMachine = false
+        end)
+        local s23 = s47:FindFirstChild("Animate")
+        if s23 then
+          s23:Destroy()
+        end
+        local s23_1 = s21:FindFirstChildOfClass("Animator")
+        if s23_1 then
+          s23_1:Destroy()
+        end
+        local s53 = {}
+        local s2_1, s3_2, s4_1 = ipairs(s47:GetDescendants())
+        local s900001 = (function(f, s, var)
+          local co = coroutine.wrap(function()
+            coroutine.yield()
+            for a, b in f, s, var do
+              coroutine.yield(true, a, b)
+            end
+          end)
+          co()
+          return co
+        end)(s2_1, s3_2, s4_1)
+        local t2161_203_1 = table.pack(s900001())
+        if t2161_203_1[1] then
+          local s3_3 = t2161_203_1[3]
+          while true do
+            if s3_3:IsA("BasePart") then
+              s3_3.Anchored = s3_3 == s22
+              s3_3.CanCollide = false
+              s3_3.CanTouch = false
+              s3_3.CanQuery = false
+              s3_3.Massless = true
+              pcall(function()
+                s3_3.EnableFluidForces = false
+              end)
+              if s3_3 ~= s22 then
+                s3_3.LocalTransparencyModifier = 1
+                table.insert(s53, s3_3)
+              end
+            elseif s3_3:IsA("BallSocketConstraint") then
+              s3_3.Enabled = false
+            end
+            local t2156_261_1 = table.pack(s900001())
+            if t2156_261_1[1] then
+              s3_3 = t2156_261_1[3]
+              continue
+            end
+            break
+          end
+        end
+        s22.Transparency = 1
+        local s3_4 = r12.Character
+        s3_4 = s3_4 and s3_4:FindFirstChild("HumanoidRootPart")
+        local s10 = r5_3.CurrentCamera
+        local s5 = s47
+        local s4_2 = s47.PivotTo
+        local s3_5
+        if s3_4 then
+          s3_5 = s3_4.CFrame * r14(2, 1.5, 0.4)
+          if not s3_5 then
+            if s10 then
+              s3_5 = (s10.CFrame * r14(0, 0, -8)) or r14(0, 10, 0)
+            else
+              s3_5 = r14(0, 10, 0)
+            end
+          end
+        elseif s10 then
+          s3_5 = (s10.CFrame * r14(0, 0, -8)) or r14(0, 10, 0)
+        else
+          s3_5 = r14(0, 10, 0)
+        end
+        s4_2(s5, s3_5)
+        s47.Parent = r5_3
+        s47:ScaleTo(s48)
+        local s23_2 = {}
+        local s25, s26, s27 = ipairs({"LowerTorso", "UpperTorso", "Head", "RightUpperArm", "RightLowerArm", "RightHand", "LeftUpperArm", "LeftLowerArm", "LeftHand", "RightUpperLeg", "RightLowerLeg", "RightFoot", "LeftUpperLeg", "LeftLowerLeg", "LeftFoot"})
+        local s900001_1 = (function(f, s, var)
+          local co = coroutine.wrap(function()
+            coroutine.yield()
+            for a, b in f, s, var do
+              coroutine.yield(true, a, b)
+            end
+          end)
+          co()
+          return co
+        end)(s25, s26, s27)
+        local t719_381_1 = table.pack(s900001_1())
+        if t719_381_1[1] then
+          local s7 = t719_381_1[3]
+          while true do
+            s23_2[s7] = s47:FindFirstChild(s7)
+            local t919_399_1 = table.pack(s900001_1())
+            if t919_399_1[1] then
+              s7 = t919_399_1[3]
+            else
+              break
+            end
+          end
+        end
+        local s6 = {rt = r58(s23_2.LowerTorso, "Root"), wst = r58(s23_2.UpperTorso, "Waist"), nck = r58(s23_2.Head, "Neck"), rsh = r58(s23_2.RightUpperArm, "RightShoulder"), rel = r58(s23_2.RightLowerArm, "RightElbow"), rwr = r58(s23_2.RightHand, "RightWrist"), lsh = r58(s23_2.LeftUpperArm, "LeftShoulder"), lel = r58(s23_2.LeftLowerArm, "LeftElbow"), lwr = r58(s23_2.LeftHand, "LeftWrist"), rhp = r58(s23_2.RightUpperLeg, "RightHip")}
+        s6.rkn = r58(s23_2.RightLowerLeg, "RightKnee")
+        s6.rak = r58(s23_2.RightFoot, "RightAnkle")
+        s6.lhp = r58(s23_2.LeftUpperLeg, "LeftHip")
+        s6.lkn = r58(s23_2.LeftLowerLeg, "LeftKnee")
+        s6.lak = r58(s23_2.LeftFoot, "LeftAnkle")
+        local s9, s10_1, s11 = pairs(s6)
+        local s900001_2 = (function(f, s, var)
+          local co = coroutine.wrap(function()
+            coroutine.yield()
+            for a, b in f, s, var do
+              coroutine.yield(true, a, b)
+            end
+          end)
+          co()
+          return co
+        end)(s9, s10_1, s11)
+        while true do
+          local t684_556_1 = table.pack(s900001_2())
+          if t684_556_1[1] then
+            if t684_556_1[3] then
+              continue
+            end
+            s47:Destroy()
+            return nil
+          else
+            break
+          end
+        end
+        local s9_1 = {[s22] = r16}
+        local s5_1 = {}
+        local s12, s13, s14 = ipairs(s47:GetDescendants())
+        local s900001_3 = (function(f, s, var)
+          local co = coroutine.wrap(function()
+            coroutine.yield()
+            for a, b in f, s, var do
+              coroutine.yield(true, a, b)
+            end
+          end)
+          co()
+          return co
+        end)(s12, s13, s14)
+        while true do
+          local t714_582_1 = table.pack(s900001_3())
+          if t714_582_1[1] then
+            local s13_1 = t714_582_1[3]
+            local exitTo = nil
+            while true do
+              if s13_1:IsA("Motor6D") then
+                table.insert(s5_1, s13_1)
+                local t1760_610_1 = table.pack(s900001_3())
+                if t1760_610_1[1] then
+                  s13_1 = t1760_610_1[3]
+                else
+                  exitTo = 2
+                  break
+                end
+              else
+                if s13_1:IsA("AnimationConstraint") then
+                  table.insert(s5_1, s13_1)
+                  local t574_630_1 = table.pack(s900001_3())
+                  if t574_630_1[1] then
+                    s13_1 = t574_630_1[3]
+                    continue
+                  else
+                    exitTo = 1
+                    break
+                  end
+                end
+                break
+              end
+            end
+            if exitTo == 1 then
+              break
+            end
+            if exitTo == 2 then
+              break
+            end
+          else
+            break
+          end
+        end
+        while true do
+          local s10_2 = false
+          local s15, s16, s17 = ipairs(s5_1)
+          local s900001_4 = (function(f, s, var)
+            local co = coroutine.wrap(function()
+              coroutine.yield()
+              for a, b in f, s, var do
+                coroutine.yield(true, a, b)
+              end
+            end)
+            co()
+            return co
+          end)(s15, s16, s17)
+          while true do
+            local t593_604_1 = table.pack(s900001_4())
+            if t593_604_1[1] then
+              local s16_1 = t593_604_1[3]
+              local exitTo2 = nil
+              while true do
+                local s40, s41 = r60(s16_1)
+                local s2_3 = s40
+                local s3_21 = s41
+                if s2_3 then
+                  if s3_21 then
+                    if s9_1[s2_3] then
+                      if not s9_1[s3_21] then
+                        local s40_1, s41_1 = r59(s16_1)
+                        s9_1[s3_21] = (s9_1[s2_3] * s40_1) * s41_1:Inverse()
+                        s10_2 = true
+                        local t618_680_1 = table.pack(s900001_4())
+                        if t618_680_1[1] then
+                          s16_1 = t618_680_1[3]
+                          continue
+                        else
+                          exitTo2 = 1
+                          break
+                        end
+                      end
+                    end
+                  end
+                  break
+                else
+                  break
+                end
+              end
+              if exitTo2 == 1 then
+                break
+              end
+            else
+              break
+            end
+          end
+          if s10_2 then
+            continue
+          end
+          break
+        end
+        local s7_2 = (s9_1[s23_2.Head] or r14(0, s50 * 0.25, 0)).Position.Y + (s23_2.Head.Size.Y * 0.95)
+        local s2_4 = s9_1[s23_2.LeftFoot]
+        local s4_3 = s9_1[s23_2.RightFoot]
+        local s3_22, s4_4
+        if s2_4 then
+          s3_22 = s2_4.Y
+          if s3_22 then
+            if s4_3 then
+              s4_4 = s4_3.Y or (-s50 * 0.5)
+            else
+              s4_4 = -s50 * 0.5
+            end
+          else
+            s3_22 = -s50 * 0.5
+            if s4_3 then
+              s4_4 = s4_3.Y or (-s50 * 0.5)
+            else
+              s4_4 = -s50 * 0.5
+            end
+          end
+        else
+          s3_22 = -s50 * 0.5
+          if s4_3 then
+            s4_4 = s4_3.Y or (-s50 * 0.5)
+          else
+            s4_4 = -s50 * 0.5
+          end
+        end
+        local s8_1 = r29(s3_22, s4_4) - (s23_2.LeftFoot.Size.Y * 0.5)
+        local s25_1 = r13(0, (s7_2 + s8_1) * 0.5, 0)
+        local s26_1 = s8_1
+        local s3_23 = function(t11, t12, t13, t14, t15, t16)
+          local t1, t2 = r59(t11)
+          local t4, t5 = r59(t12)
+          local t9 = r59(t13)
+          local t17 = t1 * t2:Inverse()
+          local t18 = (t17 * t4) * t5:Inverse()
+          local t20 = t1.Position
+          local t21 = (t17 * t4).Position
+          local t9_1 = (t18 * t9).Position
+          local t23 = {j1 = t11, j2 = t12, j3 = t13, c0ai = t1:Inverse(), c1a = t2, c0bi = t4:Inverse(), c1b = t5, s = t20, e = t21}
+          t23.ur = t17
+          t23.lr = t18
+          local t1_1 = r45((t21 - t20).Unit, t14):Inverse()
+          bit32.band(2869549302, t15)
+          t23.f0i = t1_1
+          t23.g0i = r45((t9_1 - t21).Unit, t14):Inverse()
+          t23.fb = t16
+          return t23
+        end
+        local s27_1 = {ra = s3_23(s6.rsh, s6.rel, s6.rwr, r13(0, 0, -1), 366560704, r13(0, 1, 0)), la = s3_23(s6.lsh, s6.lel, s6.lwr, r13(0, 0, -1), 366560704, r13(0, 1, 0)), rl = s3_23(s6.rhp, s6.rkn, s6.rak, r13(0, 0, 1), 366560704, r13(0, -1, 0)), ll = s3_23(s6.lhp, s6.lkn, s6.lak, r13(0, 0, 1), 366560704, r13(0, -1, 0))}
+        local s7_3 = {"ra", "la", "rl", "ll"}
+        local s28 = function(t33, t34)
+          local t6 = t34.dir.Unit
+          local t1 = r44(t34.pole, t6, t33.fb)
+          local t2 = t33.f0i
+          local t4 = CFrame.fromMatrix(r17, t6, t1, t6:Cross(t1)) * t2
+          local t2_1 = r19(t34.bend)
+          local t5 = r18(t34.bend)
+          local t3 = (t6 * t2_1) + (t1 * t5)
+          local t37 = (t1 * t2_1) - (t6 * t5)
+          local t1_1 = t33.g0i
+          local t2_2 = CFrame.fromMatrix(r17, t3, t37, t3:Cross(t37)) * t1_1
+          local t3_1 = t33.ur
+          local t3_2 = ((r14(t33.s) * t4) * r14(-t33.s)) * t3_1
+          local t1_2 = r14(t33.s + t4:VectorToWorldSpace(t33.e - t33.s)) * t2_2
+          local t2_3 = t33.lr
+          local t4_1 = (t1_2 * r14(-t33.e)) * t2_3
+          local t2_4 = t33.c1b
+          return (t33.c0ai * t3_2) * t33.c1a, ((t33.c0bi * t3_2:Inverse()) * t4_1) * t2_4
+        end
+        local s29 = {}
+        local s30 = function(t15, t16, t17)
+          local t1 = s29[t15]
+          if t1 then
+            t16 = t1:Lerp(t16, t17) or t16
+          end
+          s29[t15] = t16
+          t15.Transform = t16
+        end
+        local s31 = 0
+        local s32 = function()
+          return 4
+        end
+        local s54 = function(t34, t35)
+          local t2 = t35 - 2
+          local t3 = t35 - 0.95
+          return r40(r39(t34, 0, 0.42)), r36(r39(t34, 0.18, 0.42)) * (1 - r36(r39(t34, t2, t2 + 0.35))), r36(r39(t34, t2, t2 + 0.35)) * (1 - r36(r39(t34, t3, t3 + 0.5))), (r36(r39(t34, t3, t35)))
+        end
+        local s56 = 297767674
+        local s3_24 = function(t29, t30)
+          r67(t29, r76.crup, r36(r39(t30, 0, 0.26)) * (1 - r36(r39(t30, 0.3, 0.46))))
+          r67(t29, r76.lay, r36(r39(t30, 0.32, 0.52)) * (1 - r36(r39(t30, 0.98, 1.22))))
+          r67(t29, r76.wide, r36(r39(t30, 1.05, 1.3)) * (1 - r36(r39(t30, 1.4, 1.75))))
+        end
+        s56 = 357680990
+        local s55 = {frontflip = {dur = 1.6, wt = 3, bi = 0.12, bo = 0.2, look = 0, nolean = true, rate = 20, emb = {0.22, 0.75}, pose = function(t28, t29)
+          r67(t28, r76.crch, r36(r39(t29, 0, 0.26)) * (1 - r36(r39(t29, 0.28, 0.42))))
+          r67(t28, r76.tuck, r36(r39(t29, 0.3, 0.48)) * (1 - r36(r39(t29, 0.98, 1.2))))
+          r67(t28, r76.open, r36(r39(t29, 1, 1.22)) * (1 - r36(r39(t29, 1.32, 1.6))))
+        end, root = function(t16)
+          local t3 = (r31 * r37(r39(t16, 0.34, 1.12))) + (0.22 * r40(r39(t16, 1, 1.45)))
+          local t9 = ((-0.18 * r40(r39(t16, 0, 0.36))) + (0.9 * r40(r39(t16, 0.3, 1.3)))) - (0.08 * r40(r39(t16, 1.26, 1.6)))
+          return r11(-t3 + (0.16 * r40(r39(t16, 0, 0.36))), 0, 0), r13(0, t9 * s49, (-0.22 * s49) * r40(r39(t16, 0.3, 1.3)))
+        end}, backflip = {dur = 1.75, wt = 2.2, bi = 0.12, bo = 0.22, look = 0, nolean = true, rate = 20, emb = {0.2, 0.72}, pose = s3_24, root = function(t19)
+          local t2 = (r31 * r37(r39(t19, 0.36, 1.16))) + (0.2 * r40(r39(t19, 1.05, 1.5)))
+          local t7 = ((-0.16 * r40(r39(t19, 0, 0.38))) + (0.95 * r40(r39(t19, 0.3, 1.36)))) - (0.08 * r40(r39(t19, 1.32, 1.75)))
+          return r11(t2 - (0.14 * r40(r39(t19, 0, 0.38))), 0, 0), r13(0, t7 * s49, (0.25 * s49) * r40(r39(t19, 0.3, 1.36)))
+        end}}
+        s55.doubleflip = {dur = 2.1, wt = 1, bi = 0.12, bo = 0.22, look = 0, nolean = true, rate = 22, rrate = 26, emb = {0.16, 0.76}, pose = function(t28, t29)
+          r67(t28, r76.crch, r36(r39(t29, 0, 0.26)) * (1 - r36(r39(t29, 0.28, 0.42))))
+          r67(t28, r76.tuck, r36(r39(t29, 0.3, 0.46)) * (1 - r36(r39(t29, 1.42, 1.66))))
+          r67(t28, r76.open, r36(r39(t29, 1.45, 1.68)) * (1 - r36(r39(t29, 1.78, 2.1))))
+        end, root = function(t29)
+          local t3 = ((2 * r31) * r37(r39(t29, 0.34, 1.6))) + (0.25 * r40(r39(t29, 1.48, 1.95)))
+          local t7 = ((-0.2 * r40(r39(t29, 0, 0.36))) + (1.35 * r40(r39(t29, 0.3, 1.78)))) - (0.1 * r40(r39(t29, 1.74, 2.1)))
+          return r11(-t3 + (0.16 * r40(r39(t29, 0, 0.36))), 0, 0), r13(0, t7 * s49, (-0.2 * s49) * r40(r39(t29, 0.3, 1.78)))
+        end}
+        s55.twirl = {dur = 2.1, wt = 2, bi = 0.18, bo = 0.3, look = 0, nolean = true, rate = 18, rrate = 24, emb = {0.25, 0.7}, pose = function(t16, t17)
+          r67(t16, r76.wide, r36(r39(t17, 0, 0.3)) * (1 - r36(r39(t17, 0.45, 0.7))))
+          r67(t16, r76.arms, r36(r39(t17, 0.45, 0.7)) * (1 - r36(r39(t17, 1.2, 1.45))))
+          r67(t16, r76.tada, r36(r39(t17, 1.25, 1.5)) * (1 - r36(r39(t17, 1.75, 2.1))))
+        end, root = function(t35)
+          local t4 = 0.42 * s49
+          return r11(0, ((2 * r31) * r37(r39(t35, 0.22, 1.42))) + (0.3 * r40(r39(t35, 1.3, 1.85))), 0), r13(0, t4 * r40(r39(t35, 0.12, 1.75)), 0)
+        end}
+        s55.cartwheel = {dur = 1.8, wt = 1.5, bi = 0.14, bo = 0.25, look = 0, nolean = true, rate = 20, emb = {0.2, 0.72}, pose = function(t31, t32)
+          r67(t31, r76.wide, 0.7 * r40(r39(t32, 0, 0.34)))
+          r67(t31, r76.star, r36(r39(t32, 0.26, 0.44)) * (1 - r36(r39(t32, 1.3, 1.55))))
+        end, root = function(t36)
+          local t3 = (r31 * r37(r39(t36, 0.3, 1.32))) + (0.2 * r40(r39(t36, 1.2, 1.62)))
+          local t6 = (0.45 * r40(r39(t36, 0.25, 1.45))) - (0.06 * r40(r39(t36, 1.4, 1.8)))
+          return r11(0, 0, -t3 + (0.18 * r40(r39(t36, 0, 0.34)))), r13(0, t6 * s49, 0)
+        end}
+        s55.wave = {dur = 3, wt = 1.6, bi = 0.3, bo = 0.4, look = 1, fcam = true, pose = function(t24, t25, t26)
+          local t2 = r36(r39(t25, 0.15, 0.5)) * (1 - r36(r39(t25, t26 - 0.7, t26 - 0.3)))
+          local t18 = r18(((t25 - 0.3) * r31) * 1.9)
+          r64(r70, 0.62 + (0.28 * t18), 0.95, -0.2, -0.65, 0.7, 0.05, 40 + (30 * t18), r11(0, 0, r22(18) * t18))
+          r66(t24.ra, r70, t2)
+          r66(t24.la, r76.akmb.la, t2)
+          local t4 = r28(0, r18(t25 * 4.2))
+          r64(r72, 0.05, -1, -0.2 - (0.25 * t4), 0, -0.2, 1, 40 + (50 * t4), r11(r22(-35), 0, 0))
+          r66(t24.rl, r72, t2)
+          t24.wst = t24.wst:Lerp(r11(0, r22(10) * r18((t25 * r31) * 0.95), r22(-6) + (r22(5) * t18)), t2)
+          t24.nck = t24.nck:Lerp(r11(0, 0, r22(-14) + (r22(8) * r18((t25 * r31) * 0.95))), t2)
+        end, root = function(t16)
+          return r11(0, 0, r22(4) * r18((t16 * r31) * 0.95)), r13(0, s49 * ((0.16 * r40(r39(t16, 0, 0.45))) + (0.04 * r18(t16 * 6))), 0)
+        end}
+        s55.hattip = {dur = 3.2, wt = 1.6, bi = 0.2, bo = 0.45, look = 1, fcam = true, rrate = 22, emb = {0.04, 0.2}, pose = function(t12, t13, t14)
+          r67(t12, r76.arms, 0.85 * r40(r39(t13, 0, 0.7)))
+          r67(t12, r76.htip, r36(r39(t13, 0.45, 0.8)) * (1 - r36(r39(t13, t14 - 0.6, t14 - 0.2))))
+          local t1 = r36(r39(t13, 0.8, 1)) * (1 - r36(r39(t13, t14 - 0.6, t14 - 0.3)))
+          local t2 = t12.ll
+          t2.bend = t2.bend + ((r22(16) * r18(t13 * 5)) * t1)
+        end, root = function(t12, t13)
+          local t4 = r31 * r37(r39(t12, 0.02, 0.62))
+          local t9 = r36(r39(t12, 0.6, 0.9)) * (1 - r36(r39(t12, t13 - 0.5, t13 - 0.1)))
+          return r11(0, t4, r22(-6) * t9), r13(0, s49 * ((0.18 * r40(r39(t12, 0, 0.7))) + ((0.03 * r18(t12 * 4)) * t9)), 0)
+        end}
+        s55.giggle = {dur = 2.1, wt = 1.3, bi = 0.25, bo = 0.35, look = 1, fcam = true, pose = function(t15, t16, t17)
+          local t5 = r36(r39(t16, 0, 0.3)) * (1 - r36(r39(t16, t17 - 0.45, t17 - 0.1)))
+          r67(t15, r76.hmth, t5)
+          local t10 = r18((t16 * r31) * 3.1) * t5
+          t15.wst = t15.wst * r11(0.07 * t10, 0, 0)
+          t15.nck = t15.nck * r11(0.05 * t10, 0, 0)
+        end, root = function(t18, t19)
+          local t7 = r36(r39(t18, 0, 0.3)) * (1 - r36(r39(t18, t19 - 0.45, t19 - 0.1)))
+          local t2 = 0.045 * s49
+          return r11(0, 0, (r22(5) * r18((t18 * r31) * 0.8)) * t7), r13(0, (t2 * r20(r18((t18 * r31) * 3.1))) * t7, 0)
+        end}
+        s55.boo = {dur = 2.6, wt = 1, bi = 0.15, bo = 0.4, look = 1, fcam = true, rate = 20, rrate = 20, pose = function(t19, t20, t21)
+          r67(t19, r76.clup, r36(r39(t20, 0, 0.3)) * (1 - r36(r39(t20, 0.36, 0.5))))
+          r67(t19, r76.claw, r36(r39(t20, 0.36, 0.5)) * (1 - r36(r39(t20, 1.35, 1.6))))
+          local t1 = r36(r39(t20, 0.5, 0.6)) * (1 - r36(r39(t20, 1.2, 1.4)))
+          local t2 = t19.ra
+          t2.bend = t2.bend + ((r22(14) * r18(t20 * 30)) * t1)
+          local t2_1 = t19.la
+          t2_1.bend = t2_1.bend + ((r22(14) * r18((t20 * 30) + 1.5)) * t1)
+          local t28 = r36(r39(t20, 1.4, 1.65)) * (1 - r36(r39(t20, t21 - 0.45, t21 - 0.1)))
+          r67(t19, r76.hmth, t28)
+          t19.wst = t19.wst * r11((0.07 * r18((t20 * r31) * 3.1)) * t28, 0, 0)
+        end, root = function(t24, t25)
+          local t7 = r36(r39(t24, 0, 0.32)) * (1 - r36(r39(t24, 0.36, 0.5)))
+          local t8 = r36(r39(t24, 0.36, 0.52)) * (1 - r36(r39(t24, 1.3, 1.7)))
+          local t9 = r36(r39(t24, 1.4, 1.65)) * (1 - r36(r39(t24, t25 - 0.45, t25 - 0.1)))
+          local t5 = ((r18(t24 * 38) * 0.05) * r36(r39(t24, 0.5, 0.6))) * (1 - r36(r39(t24, 1.2, 1.4)))
+          local t6 = s49 * ((0.2 * t7) - (0.85 * t8))
+          return r11((r22(12) * t7) - (r22(14) * t8), 0, t5), r13(0, s49 * (((0.2 * t7) + (0.06 * t8)) + ((0.04 * r20(r18((t24 * r31) * 3.1))) * t9)), t6)
+        end}
+        s55.orbit = {dur = 3.8, wt = 1.2, bi = 0.35, bo = 0.5, look = 0.4, idle = true, orb = true, emb = {0.15, 0.85}, pose = function(t11, t12, t13)
+          local t2 = r36(r39(t12, 0, 0.4)) * (1 - r36(r39(t12, t13 - 0.6, t13 - 0.2)))
+          r75(r73, t12)
+          r64(r73.ra, 0.25, 0.65, -1, 0, 1, 0.2, 8)
+          r67(t11, r73, t2)
+        end}
+        s55.lounge = {dur = 5.2, wt = 0.9, bi = 0.6, bo = 0.7, look = 0.6, idle = true, pose = function(t15, t16)
+          r64(t15.ra, 0.75, 0.95, 0.3, -0.9, 0.2, 0.3, 150)
+          r65(t15.la, t15.ra)
+          r64(t15.rl, 0.02, -1, -0.15, 0, 0, 1, 15, r11(r22(-30) + (0.25 * r18(t16 * 3.1)), 0, 0))
+          r64(t15.ll, 0, -1, -0.65, 0, -0.3, 1, 80 + (8 * r18(t16 * 1.5)), r11(r22(-35), 0, 0))
+          t15.wst = r11(r22(-6), 0, 0)
+          t15.nck = r11(r22(-20), 0, r22(10))
+        end, root = function(t19, arg2)
+          local t18 = r41(t19, arg2, 0.7, 0.8)
+          return r11(r22(68) * t18, 0, (r22(4) * r18(t19 * 1.2)) * t18), r13(0, (0.12 * s49) * t18, 0)
+        end}
+        s55.swing = {dur = 4.6, wt = 1.1, bi = 0.45, bo = 0.5, look = 1, idle = true, pose = function(t35, t36)
+          local t15 = r18(t36 * 4.4)
+          r64(t35.rl, 0.12, -0.3, -1, 0, -1, 0.25, 85 + (30 * t15), r11(r22(-30), 0, 0))
+          r64(t35.ll, -0.12, -0.3, -1, 0, -1, 0.25, 85 - (30 * t15), r11(r22(-30), 0, 0))
+          r64(t35.ra, 0.6, -1, 0.35, 0, 0, -1, 12)
+          r65(t35.la, t35.ra)
+          t35.wst = r11(r22(6) + (0.04 * t15), 0, 0)
+          t35.nck = r11(0, 0, r22(10) * r18(t36 * 2.2))
+        end, root = function(arg1, arg2)
+          local t19 = r41(arg1, arg2, 0.5, 0.6)
+          return r11(r22(6) * t19, 0, 0), r13(0, (-0.1 * s49) * t19, 0)
+        end}
+        s55.angry = {dur = s32(1), wt = 0, bi = 0.06, bo = 0.6, fcam = true, nolean = true, rate = 24, rrate = 22, look = function(arg1, t25)
+          local t1, t2, t3 = s54(arg1, t25)
+          return 1 - t3
+        end, pose = function(t3, t4, t5)
+          local t6, t7, t8 = s54(t4, t5)
+          local t9 = t6
+          local t11 = t7
+          local t13 = r28(s31, 1)
+          local t28 = (t4 * r31) * (2.4 + (0.45 * t13))
+          r67(t3, r76.akmb, t11)
+          local t6_1 = r18(t28)
+          r64(r70, 0.08, -1, -0.2 - (0.3 * r28(t6_1, 0)), 0, -0.2, 1, 20 + (75 * r28(t6_1, 0)), r11(r22(-20), 0, 0))
+          local t20 = -0.2 - (0.3 * r28(-t6_1, 0))
+          r64(r72, -0.08, -1, t20, 0, -0.2, 1, 20 + (75 * r28(-t6_1, 0)), r11(r22(-20), 0, 0))
+          r66(t3.rl, r70, t11)
+          r66(t3.ll, r72, t11)
+          local t5_1 = t3.ra
+          t5_1.bend = t5_1.bend + ((r22(10) * r18(t28 * 2)) * t11)
+          local t2 = t3.la
+          t2.bend = t2.bend + ((r22(10) * r18((t28 * 2) + 1)) * t11)
+          t3.nck = t3.nck * r11(0, (r22(16 + (4 * t13)) * r18((t4 * r31) * 2.2)) * t11, 0)
+          r67(t3, r76.crss, t8)
+          r67(t3, r76.flch, t9)
+        end, root = function(t23, t24)
+          local t1, t2, t3, t4 = s54(t23, t24)
+          local t6 = r28(s31, 1)
+          local t7_1 = (t23 * r31) * (2.4 + (0.45 * t6))
+          local t6_1 = ((r18(t23 * 46) * 0.04) * t2) * (0.75 + (0.25 * t6))
+          local t10 = (-r20(r18(t7_1)) * 0.05) * t2
+          local t6_2 = r11((r22(12) * t1) - (r22(9) * t2), r22(55) * t3, t6_1 + (r22(5) * t3))
+          return t6_2, r13(0, s49 * (((0.25 * t1) + t10) + (0.12 * r40(t4))), s49 * ((0.45 * t1) - (0.15 * t2)))
+        end}
+        local s8_2 = {"frontflip", "backflip", "doubleflip", "twirl", "cartwheel", "wave", "hattip", "giggle", "boo", "orbit", "lounge", "swing"}
+        Instance.new("Attachment").Position = s25_1
+        local s11_1 = Instance.new("ParticleEmitter")
+        s11_1.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+        local s5_2 = ColorSequence.new
+        local s33 = {}
+        local s34 = ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 214, 120))
+        local s35 = ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 118, 48))
+        local s3_25 = ColorSequenceKeypoint.new
+        local s2_5 = Color3.fromRGB
+        s33[1] = s34
+        s33[2] = s35
+        do
+          local values = table.pack(s3_25(1, s2_5(196, 36, 28)))
+          table.move(values, 1, values.n, 3, s33)
+        end
+        s11_1.Color = s5_2(s33)
+        s11_1.LightEmission = 1
+        s11_1.LightInfluence = 0
+        local s2_6 = NumberSequenceKeypoint.new
+        s11_1.Size = NumberSequence.new({NumberSequenceKeypoint.new(0, 0.16 * s49), s2_6(1, 0)})
+        local s2_7 = NumberSequenceKeypoint.new
+        s11_1.Transparency = NumberSequence.new({NumberSequenceKeypoint.new(0, 0.05), s2_7(1, 1)})
+        s11_1.Lifetime = NumberRange.new(0.35, 0.75)
+        s11_1.Speed = NumberRange.new(0.6 * s49, 1.6 * s49)
+        s11_1.SpreadAngle = Vector2.new(180, 180)
+        s11_1.Rotation = NumberRange.new(0, 360)
+        s11_1.RotSpeed = NumberRange.new(-120, 120)
+        s11_1.Drag = 3
+        s11_1.Acceleration = r13(0, 1.4 * s49, 0)
+        s11_1.Rate = 0
+        Instance.new("Attachment").Position = r13(0, s23_2.Head.Size.Y * 0.45, 0)
+        local s9_2 = Instance.new("ParticleEmitter")
+        s9_2.Texture = "rbxasset://textures/particles/smoke_main.dds"
+        local s2_8 = Color3.fromRGB
+        s9_2.Color = ColorSequence.new(Color3.fromRGB(255, 240, 234), s2_8(255, 196, 178))
+        s9_2.LightEmission = 0.15
+        s9_2.LightInfluence = 0.4
+        local s2_9 = NumberSequenceKeypoint.new
+        s9_2.Size = NumberSequence.new({NumberSequenceKeypoint.new(0, 0.12 * s49), s2_9(1, 0.42 * s49)})
+        local s2_10 = NumberSequenceKeypoint.new
+        s9_2.Transparency = NumberSequence.new({NumberSequenceKeypoint.new(0, 0.25), s2_10(1, 1)})
+        s9_2.Lifetime = NumberRange.new(0.45, 0.75)
+        s9_2.Speed = NumberRange.new(0.9 * s49, 1.6 * s49)
+        s9_2.SpreadAngle = Vector2.new(40, 40)
+        s9_2.EmissionDirection = Enum.NormalId.Top
+        s9_2.Drag = 2.5
+        s9_2.Rotation = NumberRange.new(0, 360)
+        s9_2.RotSpeed = NumberRange.new(-90, 90)
+        s9_2.Rate = 0
+        local s57 = s11_1
+        local s58 = s9_2
+        local s59 = Instance.new("BillboardGui")
+        s59.Size = UDim2.fromScale(1.5 * s49, 1.1 * s49)
+        s59.StudsOffset = r13(0, 0.42 * s49, 0)
+        s59.LightInfluence = 0
+        s59.AlwaysOnTop = true
+        s59.MaxDistance = 90
+        s59.Enabled = false
+        s59.Adornee = s23_2.Head
+        local s60 = {}
+        local s61 = {}
+        local s33_1, s34_1, s35_1 = ipairs({{0.8, 0.2, 0.42, -8}, {0.18, 0.14, 0.34, 14}, {0.92, 0.66, 0.3, 24}})
+        local s900001_5 = (function(f, s, var)
+          local co = coroutine.wrap(function()
+            coroutine.yield()
+            for a, b in f, s, var do
+              coroutine.yield(true, a, b)
+            end
+          end)
+          co()
+          return co
+        end)(s33_1, s34_1, s35_1)
+        local t1359_1864_1 = table.pack(s900001_5())
+        if t1359_1864_1[1] then
+          local s18 = t1359_1864_1[2]
+          local s19 = t1359_1864_1[3]
+          while true do
+            local s10_3 = Instance.new("TextLabel")
+            s10_3.BackgroundTransparency = 1
+            s10_3.AnchorPoint = Vector2.new(0.5, 0.5)
+            s10_3.Position = UDim2.fromScale(s19[1], s19[2])
+            s10_3.Size = UDim2.fromScale(s19[3], s19[3] * 1.36)
+            s10_3.Rotation = s19[4]
+            s10_3.Text = "\240\159\146\162"
+            s10_3.TextScaled = true
+            s10_3.Font = Enum.Font.GothamBold
+            s10_3.TextColor3 = Color3.fromRGB(235, 40, 40)
+            local s2_11 = Instance.new("UIScale")
+            s2_11.Scale = 0
+            s60[s18] = {lb = s10_3, us = s2_11}
+            local t1463_2010_1 = table.pack(s900001_5())
+            if t1463_2010_1[1] then
+              s18 = t1463_2010_1[2]
+              s19 = t1463_2010_1[3]
+            else
+              break
+            end
+          end
+        end
+        local s33_2 = {}
+        local s34_2 = false
+        local s2_12 = Color3.fromRGB(255, 222, 160)
+        local s9_3 = Color3.fromRGB(214, 48, 32)
+        local s10_4 = Color3.new(1, 1, 1)
+        local s3_31 = r55("trail_rod", r51)
+        local s11_2 = r55("trail_glow", r53)
+        local s19_1 = ColorSequence.new
+        local s18_1 = {}
+        local s13_2 = ColorSequenceKeypoint.new(0, s2_12:Lerp(s10_4, 0.35))
+        local s14_1 = ColorSequenceKeypoint.new(0.35, s2_12)
+        local s4_5 = ColorSequenceKeypoint.new
+        s18_1[1] = s13_2
+        s18_1[2] = s14_1
+        do
+          local values = table.pack(s4_5(1, s9_3))
+          table.move(values, 1, values.n, 3, s18_1)
+        end
+        local s35_2 = s19_1(s18_1)
+        local s36 = ColorSequence.new
+        local s20 = {}
+        local s12_1 = ColorSequenceKeypoint.new(0, s2_12)
+        local s14_2 = ColorSequenceKeypoint.new(0.4, s2_12:Lerp(s9_3, 0.6))
+        local s2_13 = ColorSequenceKeypoint.new
+        s20[1] = s12_1
+        s20[2] = s14_2
+        do
+          local values = table.pack(s2_13(1, s9_3))
+          table.move(values, 1, values.n, 3, s20)
+        end
+        local s9_4 = s36(s20)
+        local s4_6 = NumberSequence.new
+        local s36_1 = {}
+        local s37 = NumberSequenceKeypoint.new(0, 1)
+        local s38 = NumberSequenceKeypoint.new(0.55, 0.66)
+        local s2_14 = NumberSequenceKeypoint.new
+        s36_1[1] = s37
+        s36_1[2] = s38
+        do
+          local values = table.pack(s2_14(1, 0.1))
+          table.move(values, 1, values.n, 3, s36_1)
+        end
+        local s10_5 = s4_6(s36_1)
+        local s17_1 = function(t11)
+          local t9 = NumberSequence.new
+          local t7 = {}
+          local t2 = NumberSequenceKeypoint.new(0, t11)
+          local t3 = NumberSequenceKeypoint.new(0.15, t11)
+          local t14 = NumberSequenceKeypoint.new(0.55, t11 + ((1 - t11) * 0.35))
+          local t15 = NumberSequenceKeypoint.new(0.85, t11 + ((1 - t11) * 0.78))
+          local t5 = NumberSequenceKeypoint.new
+          t7[1] = t2
+          t7[2] = t3
+          t7[3] = t14
+          t7[4] = t15
+          do
+            local values = table.pack(t5(1, 1))
+            table.move(values, 1, values.n, 5, t7)
+          end
+          return t9(t7)
+        end
+        local s18_2 = function(t16, t17)
+          if t16 ~= "core" then
+            if t16 ~= "body" then
+              local t1 = t17 + ((1 - t17) * 0.47)
+              if t1 then
+                return t1
+              end
+              return t1 + ((1 - t1) * 0.6)
+            end
+            return t17 + ((1 - t17) * 0.55)
+          end
+          return t17
+        end
+        local s19_2 = 536262586
+        local s20_1 = function(t22)
+          local t1 = (0.14 * s49) * r24(r33.tw, 0.3, 3)
+          if t22 ~= "core" then
+            if t22 ~= "body" then
+              return t1 * 2.6
+            end
+            return t1
+          end
+          if s3_31 then
+            if t1 then
+              return t1
+            end
+          end
+          return t1 * 0.5
+        end
+        local s37_1 = 330166730
+        local s38_1 = function(t24, t25, t26, t27, t28, t29)
+          local t1 = Instance.new("Attachment")
+          local t2 = Instance.new("Attachment")
+          local t3 = Instance.new("Trail")
+          t3.Attachment0 = t1
+          t3.Attachment1 = t2
+          t3.FaceCamera = true
+          t3.Lifetime = 0.4
+          t3.MinLength = 0
+          t3.WidthScale = s10_5
+          t3.Color = t28
+          t3.LightEmission = t29
+          t3.LightInfluence = 0
+          t3.Brightness = 2
+          repeat
+            t3.TextureMode = Enum.TextureMode.Stretch
+            t3.TextureLength = 1
+          until t27
+          t3.Texture = t27
+          t3.Enabled = false
+          t3.Parent = t24
+          table.insert(s33_2, {t = t3, a0 = t1, a1 = t2, tip = t25, kind = t26})
+        end
+        s37_1 = 259303918
+        local s36_2 = function()
+          local t6, t7, t8 = ipairs(s33_2)
+          local t900001 = (function(f, s, var)
+            local co = coroutine.wrap(function()
+              coroutine.yield()
+              for a, b in f, s, var do
+                coroutine.yield(true, a, b)
+              end
+            end)
+            co()
+            return co
+          end)(t6, t7, t8)
+          local t10_12_1 = table.pack(t900001())
+          if t10_12_1[1] then
+            local t7_1 = t10_12_1[3]
+            while true do
+              t7_1.t:Destroy()
+              t7_1.a0:Destroy()
+              t7_1.a1:Destroy()
+              local t26_42_1 = table.pack(t900001())
+              if t26_42_1[1] then
+                t7_1 = t26_42_1[3]
+              else
+                break
+              end
+            end
+          end
+          table.clear(s33_2)
+          s34_2 = false
+          if r33.trl then
+            local t14 = string.lower(tostring(r33.tfrom or "both"))
+            local t13 = {}
+            local t8_2 = r13(0, -s23_2.RightHand.Size.Y * 0.3, 0)
+            local t9 = r13(0, -s23_2.RightFoot.Size.Y * 0.2, -s23_2.RightFoot.Size.Z * 0.25)
+            if t14 ~= "hands" then
+              if t14 == "both" then
+                table.insert(t13, {s23_2.RightHand, t8_2})
+                table.insert(t13, {s23_2.LeftHand, t8_2})
+              end
+            else
+              table.insert(t13, {s23_2.RightHand, t8_2})
+              table.insert(t13, {s23_2.LeftHand, t8_2})
+            end
+            if t14 ~= "feet" then
+              if t14 == "both" then
+                table.insert(t13, {s23_2.RightFoot, t9})
+                table.insert(t13, {s23_2.LeftFoot, t9})
+              end
+            else
+              table.insert(t13, {s23_2.RightFoot, t9})
+              table.insert(t13, {s23_2.LeftFoot, t9})
+            end
+            local t9_1, t10, t11 = ipairs(t13)
+            local t900001_1 = (function(f, s, var)
+              local co = coroutine.wrap(function()
+                coroutine.yield()
+                for a, b in f, s, var do
+                  coroutine.yield(true, a, b)
+                end
+              end)
+              co()
+              return co
+            end)(t9_1, t10, t11)
+            while true do
+              local t204_166_1 = table.pack(t900001_1())
+              if t204_166_1[1] then
+                local t10_1 = t204_166_1[3]
+                while t10_1[1] do
+                  if s3_31 then
+                    s38_1(t10_1[1], t10_1[2], "core", s3_31, s35_2, 0.55)
+                  else
+                    s38_1(t10_1[1], t10_1[2], "core", nil, s35_2, 0.55)
+                    s38_1(t10_1[1], t10_1[2], "body", nil, s9_4, 0.8)
+                  end
+                  s38_1(t10_1[1], t10_1[2], "glow", 48, s9_4, 1)
+                  local t172_255_1 = table.pack(t900001_1())
+                  if t172_255_1[1] then
+                    t10_1 = t172_255_1[3]
+                    continue
+                  end
+                  return
+                end
+              else
+                break
+              end
+            end
+            return
+          end
+        end
+        s19_2 = 87216004
+        local s62 = function()
+          local t10 = r24(r33.ta, 0, 1)
+          local t2, t3, t4 = ipairs(s33_2)
+          local t900001 = (function(f, s, var)
+            local co = coroutine.wrap(function()
+              coroutine.yield()
+              for a, b in f, s, var do
+                coroutine.yield(true, a, b)
+              end
+            end)
+            co()
+            return co
+          end)(t2, t3, t4)
+          local t47_22_1 = table.pack(t900001())
+          if t47_22_1[1] then
+            local t3_1 = t47_22_1[3]
+            while true do
+              local t6 = s20_1(t3_1.kind) * 0.5
+              t3_1.a0.Position = t3_1.tip + r13(t6, 0, 0)
+              t3_1.a1.Position = t3_1.tip - r13(t6, 0, 0)
+              t3_1.t.Transparency = s17_1(s18_2(t3_1.kind, t10))
+              local t38_69_1 = table.pack(t900001())
+              if t38_69_1[1] then
+                t3_1 = t38_69_1[3]
+              else
+                break
+              end
+            end
+          end
+        end
+        local s63 = function(t15)
+          if t15 ~= s34_2 then
+            s34_2 = t15
+            local t1, t2, t3 = ipairs(s33_2)
+            local t900001 = (function(f, s, var)
+              local co = coroutine.wrap(function()
+                coroutine.yield()
+                for a, b in f, s, var do
+                  coroutine.yield(true, a, b)
+                end
+              end)
+              co()
+              return co
+            end)(t1, t2, t3)
+            local t12_21_1 = table.pack(t900001())
+            if t12_21_1[1] then
+              local t2_1 = t12_21_1[3]
+              while true do
+                t2_1.t.Enabled = t15
+                local t17_26_1 = table.pack(t900001())
+                if t17_26_1[1] then
+                  t2_1 = t17_26_1[3]
+                else
+                  break
+                end
+              end
+            end
+            return
+          end
+        end
+        local s64 = function()
+          local t2, t3, t4 = ipairs(s33_2)
+          local t900001 = (function(f, s, var)
+            local co = coroutine.wrap(function()
+              coroutine.yield()
+              for a, b in f, s, var do
+                coroutine.yield(true, a, b)
+              end
+            end)
+            co()
+            return co
+          end)(t2, t3, t4)
+          local t18_5_1 = table.pack(t900001())
+          if t18_5_1[1] then
+            local t3_1 = t18_5_1[3]
+            while true do
+              pcall(t3_1.t.Clear, t3_1.t)
+              local t7_20_1 = table.pack(t900001())
+              if t7_20_1[1] then
+                t3_1 = t7_20_1[3]
+              else
+                break
+              end
+            end
+          end
+        end
+        s36_2()
+        s62()
+        local s65 = {}
+        local s66 = false
+        local s67 = nil
+        local s68 = nil
+        local s69 = nil
+        local s12_2 = r13(1, 1.1, 0)
+        local s70 = true
+        local s72 = RaycastParams.new()
+        s72.FilterType = Enum.RaycastFilterType.Exclude
+        s72.RespectCanCollide = true
+        s72.FilterDescendantsInstances = {s47}
+        local s73 = function(t34, t35)
+          local t36 = t34:FindFirstChild("UpperTorso")
+          local t37 = t34:FindFirstChild("LowerTorso")
+          if t36 then
+            if t37 then
+              local t38 = t35:FindFirstChild("RootRigAttachment")
+              local t39 = t37:FindFirstChild("RootRigAttachment")
+              local t40 = t37:FindFirstChild("WaistRigAttachment")
+              local t41 = t36:FindFirstChild("WaistRigAttachment")
+              local t42_1 = t36:FindFirstChild("RightShoulderRigAttachment")
+              if t38 then
+                if t39 then
+                  if t40 then
+                    if t41 then
+                      if t42_1 then
+                        local t2 = t40.CFrame
+                        local t3_2 = (t38.CFrame * t39.CFrame:Inverse()) * t2
+                        local t4_1 = t41.CFrame
+                        local t2_1 = t42_1.CFrame
+                        return ((t3_2 * t4_1:Inverse()) * t2_1).Position
+                      end
+                    end
+                  end
+                end
+              end
+              return t35.CFrame:PointToObjectSpace(t36.CFrame * r13(t36.Size.X * 0.5, t36.Size.Y * 0.3, 0))
+            end
+          end
+          local t42 = t34:FindFirstChild("Torso")
+          if t42 then
+            return t35.CFrame:PointToObjectSpace(t42.CFrame * r13(t42.Size.X * 0.5, t42.Size.Y * 0.25, 0))
+          end
+          return r13(1, 1.1, 0)
+        end
+        local s41_2 = function(t28)
+          if -2 <= 0 then
+            if s66 then
+              return
+            end
+            s67 = nil
+            s68 = nil
+            s69 = nil
+            if t28 then
+              local t4 = t28:WaitForChild("HumanoidRootPart", 10)
+              if s66 then
+                return
+              end
+              if t4 then
+                if r12.Character ~= t28 then
+                  return
+                end
+                s68 = t28:FindFirstChildOfClass("Humanoid") or t28:WaitForChild("Humanoid", 5)
+                t28:WaitForChild("UpperTorso", 2)
+                s69 = t28:FindFirstChild("Head")
+                local t5, t6 = pcall(s73, t28, t4)
+                if t5 then
+                  if typeof(t6) == "Vector3" then
+                    t6 = t6 or r13(1, 1.1, 0)
+                  else
+                    t6 = r13(1, 1.1, 0)
+                    s12_2 = t6
+                    s72.FilterDescendantsInstances = {s47, t28}
+                    s67 = t4
+                    s70 = true
+                    return
+                  end
+                else
+                  t6 = r13(1, 1.1, 0)
+                  s12_2 = t6
+                  s72.FilterDescendantsInstances = {s47, t28}
+                  s67 = t4
+                  s70 = true
+                  return
+                end
+                s12_2 = t6
+                s72.FilterDescendantsInstances = {s47, t28}
+                s67 = t4
+                s70 = true
+                return
+              end
+              return
+            end
+            return
+          end
+          while true do
+          end
+        end
+        table.insert(s65, r12.CharacterAdded:Connect(s41_2))
+        table.insert(s65, r12.CharacterRemoving:Connect(function()
+          s67 = nil
+          s68 = nil
+          s69 = nil
+        end))
+        if r12.Character then
+          task.spawn(s41_2, r12.Character)
+        end
+        local s39 = typeof(r5_3.Spherecast) == "function"
+        local s75 = function(t13, t14, t15)
+          if s39 then
+            local t16, t17 = pcall(r5_3.Spherecast, r5_3, t13, t15, t14, s72)
+            if t16 then
+              return t17
+            end
+            s39 = false
+          end
+          return r5_3:Raycast(t13, t14 + (t14.Unit * t15), s72)
+        end
+        local s76 = function(arg1, arg2, t30)
+          local t6 = r37(r39(arg1, 0.2, arg2 - 0.45))
+          local t9 = t6 * r31
+          local t10 = r30((t30.X * t30.X) + (t30.Z * t30.Z)) * (1 + (0.2 * r40(t6)))
+          local t1 = r26(t30.X, t30.Z) + t9
+          local t3 = t30.Y
+          return r13(r18(t1) * t10, t3 + (s49 * ((0.35 * r40(t6)) + (0.2 * r18(2 * t9)))), r19(t1) * t10)
+        end
+        local s77 = 0
+        local s78 = s47:GetPivot().Position
+        local s79 = r17
+        local s80 = r17
+        local s81 = 0
+        local s82 = {x = 0, v = 0}
+        local s83 = {x = 0, v = 0}
+        local s85 = {x = 0, v = 0}
+        local s86 = {x = 0, v = 0}
+        local s87 = {x = 0, v = 0}
+        local s88 = {x = r17, v = r17}
+        local s89 = r16
+        local s90 = r17
+        local s91 = 0
+        local s92 = nil
+        local s93 = nil
+        local s94 = 2.5
+        local s95 = "camera"
+        local s96 = 2.5
+        local s13_3 = r13(0, 0, -10)
+        local s14_3 = 0
+        local s15_1 = 0
+        local s16_2 = -1
+        local s97 = 0
+        local s98 = 0
+        local s99 = 0
+        local s100 = r62()
+        local s101 = r62()
+        local s102 = r62()
+        local s104 = function(t34)
+          local t2, t3, t4 = ipairs(s8_2)
+          local t5 = 0
+          local t900001 = (function(f, s, var)
+            local co = coroutine.wrap(function()
+              coroutine.yield()
+              for a, b in f, s, var do
+                coroutine.yield(true, a, b)
+              end
+            end)
+            co()
+            return co
+          end)(t2, t3, t4)
+          while true do
+            local t71_13_1 = table.pack(t900001())
+            if t71_13_1[1] then
+              local t3_1 = t71_13_1[3]
+              local exitTo = nil
+              while true do
+                local t6 = s55[t3_1]
+                if t34 then
+                  if not t6.idle then
+                    if t6 ~= s93 then
+                      t5 += t6.wt
+                      local t38_44_1 = table.pack(t900001())
+                      if t38_44_1[1] then
+                        t3_1 = t38_44_1[3]
+                        continue
+                      else
+                        exitTo = 4
+                        break
+                      end
+                    else
+                      local t21_48_1 = table.pack(t900001())
+                      if t21_48_1[1] then
+                        t3_1 = t21_48_1[3]
+                        continue
+                      else
+                        exitTo = 3
+                        break
+                      end
+                    end
+                  end
+                  break
+                elseif t6 ~= s93 then
+                  t5 += t6.wt
+                  local t41_34_1 = table.pack(t900001())
+                  if t41_34_1[1] then
+                    t3_1 = t41_34_1[3]
+                  else
+                    exitTo = 2
+                    break
+                  end
+                else
+                  local t29_42_1 = table.pack(t900001())
+                  if t29_42_1[1] then
+                    t3_1 = t29_42_1[3]
+                  else
+                    exitTo = 1
+                    break
+                  end
+                end
+              end
+              if exitTo == 1 then
+                break
+              end
+              if exitTo == 2 then
+                break
+              end
+              if exitTo == 3 then
+                break
+              end
+              if exitTo == 4 then
+                break
+              end
+            else
+              break
+            end
+          end
+          local t4_1 = s51:NextNumber() * t5
+          local t5_1, t6_1, t7 = ipairs(s8_2)
+          local t900001_1 = (function(f, s, var)
+            local co = coroutine.wrap(function()
+              coroutine.yield()
+              for a, b in f, s, var do
+                coroutine.yield(true, a, b)
+              end
+            end)
+            co()
+            return co
+          end)(t5_1, t6_1, t7)
+          local t2_1
+          while true do
+            local t31_50_1 = table.pack(t900001_1())
+            if t31_50_1[1] then
+              local t6_2 = t31_50_1[3]
+              local exitTo2 = nil
+              while true do
+                t2_1 = s55[t6_2]
+                if t34 then
+                  if not t2_1.idle then
+                    if t2_1 ~= s93 then
+                      exitTo2 = 1
+                      break
+                    else
+                      local t42_67_1 = table.pack(t900001_1())
+                      if t42_67_1[1] then
+                        t6_2 = t42_67_1[3]
+                        continue
+                      else
+                        exitTo2 = 2
+                        break
+                      end
+                    end
+                  end
+                  break
+                elseif t2_1 ~= s93 then
+                  exitTo2 = 1
+                  break
+                else
+                  local t42_67_1 = table.pack(t900001_1())
+                  if t42_67_1[1] then
+                    t6_2 = t42_67_1[3]
+                  else
+                    exitTo2 = 2
+                    break
+                  end
+                end
+              end
+              if exitTo2 == 1 then
+                t4_1 -= t2_1.wt
+                if t4_1 <= 0 then
+                  return t2_1
+                end
+                continue
+              end
+              if exitTo2 == 2 then
+                break
+              end
+            else
+              break
+            end
+          end
+        end
+        local s105 = function(t4)
+          s92 = {def = t4, t = 0, d = t4.dur}
+        end
+        local s24 = r17
+        local s42
+        local s44 = function(arg1)
+          local t514_2536_1, t503_2680_1, t1138_4422_1, t1162_4818_1, t893_4904_1, t925_4928_1
+          local state = 1
+          local t23, t10, t4, t27, t9, t12, t13, t11, t14, t29, t15, t4_1, t16, t7, t17, t8_1, t6_2, t5_5, t5_6, t6_3, t4_6, t17_1, t6_5, t9_5, t900001_1, t900002_1, t900003_1, t31, t25, t8, t9_2, t11_1, t5_7, t6_4, t4_7, t17_2, t6_6, t9_1, t900001, t900002, t900003, t4_9, t32, t13_1, t4_4, t5_4, t21, t12_2, t14_1, t4_5, t7_1, t8_2, t9_4, t8_3, t22_2, t13_2, t7_4, t4_11, t4_12, t9_6, t4_14, t11_2, t900003_2, t5_14, t12_4, t11_3, t4_16, t5_15, t23_1, t5_17, t6_9, t11_5, t23_2, t11_4, t18, t20_1, t5_21, t9_7, t5_23, t7_5, t4_20, t13_4, t14_3, t15_1, t4_23, t7_6, t5_25, t4_24, t4_25, t7_7, t900003_3, t7_9, t8_5, t4_26, t4_27, t900003_4, t11_8, t4_28
+          while true do
+            if state == 1 then
+              t23 = arg1
+              if s66 then
+                state = 230
+              else
+                state = 2
+              end
+            elseif state == 2 then
+              t10 = r24(t23, 0, 0.1)
+              s77 += t10
+              t4 = r5_3.CurrentCamera
+              if t4 then
+                state = 3
+              else
+                state = 4
+              end
+            elseif state == 3 then
+              t27 = t4.CFrame.Position
+              if t27 then
+                state = 5
+              else
+                state = 4
+              end
+            elseif state == 4 then
+              t27 = s78
+              state = 5
+            elseif state == 5 then
+              t9 = s92
+              if s92 then
+                state = 6
+              else
+                state = 7
+              end
+            elseif state == 6 then
+              t9 = s92.def
+              state = 7
+            elseif state == 7 then
+              t12 = r33.cam
+              t13 = s67 ~= nil
+              if t13 then
+                state = 8
+              else
+                state = 12
+              end
+            elseif state == 8 then
+              t13 = s67.Parent ~= nil
+              if t13 then
+                state = 9
+              else
+                state = 12
+              end
+            elseif state == 9 then
+              t13 = s68 == nil
+              if t13 then
+                state = 11
+              else
+                state = 10
+              end
+            elseif state == 10 then
+              t13 = s68.Health > 0
+              state = 11
+            elseif state == 11 then
+              state = 12
+            elseif state == 12 then
+              t11 = s78
+              t14 = r17
+              t29 = nil
+              if t13 then
+                state = 13
+              else
+                state = 54
+              end
+            elseif state == 13 then
+              t15 = s67.CFrame
+              t4_1 = t15.LookVector
+              if 0.01 < ((t4_1.X * t4_1.X) + (t4_1.Z * t4_1.Z)) then
+                state = 14
+              else
+                state = 15
+              end
+            elseif state == 14 then
+              s81 = r43(t4_1)
+              state = 15
+            elseif state == 15 then
+              t16 = r14(t15.Position) * r11(0, s81, 0)
+              local t5_1 = r18(s77 * 0.53) * 0.12
+              local t6_1 = r18((s77 * 0.71) + 1.3) * 0.06
+              t7 = r19(s77 * 0.41) * 0.12
+              t17 = s49
+              t8_1 = (s12_2 + s46) + (r13(t5_1, t6_1, t7) * t17)
+              if t9 then
+                state = 16
+              else
+                state = 18
+              end
+            elseif state == 16 then
+              if t9.orb then
+                state = 17
+              else
+                state = 18
+              end
+            elseif state == 17 then
+              t7 = s12_2 + s46
+              t8_1 = s76(s92.t, s92.d, t7)
+              state = 18
+            elseif state == 18 then
+              t11 = t16 * t8_1
+              t14 = s67.AssemblyLinearVelocity
+              if s69 then
+                state = 19
+              else
+                state = 21
+              end
+            elseif state == 19 then
+              if s69.Parent then
+                state = 20
+              else
+                state = 21
+              end
+            elseif state == 20 then
+              t29 = s69.Position
+              if t29 then
+                state = 22
+              else
+                state = 21
+              end
+            elseif state == 21 then
+              t7 = 0
+              t29 = t15.Position + r13(0, 1.5, 0)
+              state = 22
+            elseif state == 22 then
+              t6_2 = t8_1.Y
+              t5_5 = not not t17
+              if t5_5 then
+                state = 46
+              else
+                state = 23
+              end
+            elseif state == 23 then
+              (nil)[4] = nil;
+              (nil)[5] = nil;
+              (nil)[6] = nil;
+              (nil)[7] = nil;
+              (nil)[8] = nil;
+              (nil)[9] = nil;
+              (nil)[10] = nil;
+              (nil)[11] = nil;
+              (nil)[12] = nil;
+              (nil)[13] = nil;
+              (nil)[14] = nil;
+              (nil)[15] = nil;
+              (nil)[16] = nil;
+              (nil)[17] = nil;
+              (nil)[18] = nil;
+              (nil)[19] = nil;
+              (nil)[20] = nil;
+              (nil)[21] = nil;
+              (nil)[22] = nil;
+              (nil)[23] = nil;
+              (nil)[24] = nil;
+              (nil)[25] = nil;
+              (nil)[26] = nil;
+              (nil)[27] = nil;
+              (nil)[28] = nil;
+              (nil)[29] = nil;
+              (nil)[30] = nil;
+              (nil)[31] = nil;
+              (nil)[32] = nil;
+              (nil)[33] = nil;
+              (nil)[34] = nil;
+              (nil)[35] = nil;
+              (nil)[36] = nil;
+              (nil)[37] = nil;
+              (nil)[38] = nil;
+              (nil)[39] = nil;
+              (nil)[40] = nil;
+              (nil)[41] = nil;
+              (nil)[42] = nil;
+              (nil)[43] = nil;
+              (nil)[44] = nil;
+              (nil)[45] = nil;
+              (nil)[46] = nil;
+              (nil)[47] = nil;
+              (nil)[48] = nil;
+              (nil)[49] = nil;
+              (nil)[50] = nil;
+              (nil)[51] = nil;
+              (nil)[52] = nil;
+              (nil)[53] = nil;
+              (nil)[54] = nil;
+              (nil)[55] = nil;
+              (nil)[56] = nil;
+              (nil)[57] = nil;
+              (nil)[58] = nil;
+              (nil)[59] = nil;
+              (nil)[60] = nil;
+              (nil)[61] = nil;
+              (nil)[62] = nil;
+              (nil)[63] = nil;
+              (nil)[64] = nil;
+              (nil)[65] = nil;
+              (nil)[66] = nil;
+              (nil)[67] = nil;
+              (nil)[68] = nil;
+              (nil)[69] = nil;
+              (nil)[70] = nil;
+              (nil)[71] = nil;
+              (nil)[72] = nil;
+              (nil)[73] = nil;
+              (nil)[74] = nil;
+              (nil)[75] = nil;
+              (nil)[76] = nil;
+              (nil)[77] = nil;
+              (nil)[78] = nil;
+              (nil)[79] = nil;
+              (nil)[80] = nil;
+              (nil)[81] = nil;
+              (nil)[82] = nil;
+              (nil)[83] = nil;
+              (nil)[84] = nil;
+              (nil)[85] = nil;
+              (nil)[86] = nil
+              t5_6 = t16 * t8_1(t5_5, t6_2, t7)
+              t6_3 = t11 - t5_6
+              if 0.05 < t6_3.Magnitude then
+                state = 24
+              else
+                state = 26
+              end
+            elseif state == 24 then
+              t4_6 = s75(t5_6, t6_3, 0.55 * s48)
+              if t4_6 then
+                state = 25
+              else
+                state = 26
+              end
+            elseif state == 25 then
+              t11 = t5_6 + (t6_3.Unit * r28(t4_6.Distance - 0.05, 0))
+              state = 26
+            elseif state == 26 then
+              t17_1 = r5_3:Raycast(t11 + r13(0, 1, 0), r13(0, -14, 0), s72)
+              if t17_1 then
+                state = 27
+              else
+                state = 30
+              end
+            elseif state == 27 then
+              t6_5 = (t17_1.Position.Y + (0.8 * s49)) - s26_1
+              if t11.Y < t6_5 then
+                state = 28
+              else
+                state = 29
+              end
+            elseif state == 28 then
+              t11 = r13(t11.X, t6_5, t11.Z)
+              state = 29
+            elseif state == 29 then
+              state = 30
+            elseif state == 30 then
+              if s70 then
+                state = 41
+              else
+                state = 31
+              end
+            elseif state == 31 then
+              if 25 < (t11 - s78).Magnitude then
+                state = 41
+              else
+                state = 32
+              end
+            elseif state == 32 then
+              local t22_3 = math.ceil(t10 * 120)
+              t9_5 = t10 / r28(t22_3, 1)
+              t900001_1 = 1
+              t900002_1 = t22_3 + 0
+              t900003_1 = (1 - t900001_1) + t900001_1
+              if t900001_1 <= 0 then
+                state = 33
+              else
+                state = 37
+              end
+            elseif state == 33 then
+              if t900003_1 >= t900002_1 then
+                state = 35
+              else
+                state = 34
+              end
+            elseif state == 34 then
+              state = 39
+            elseif state == 35 then
+              state = 36
+            elseif state == 36 then
+              local t4_10 = t11 - s78
+              s79 += r13((t4_10.X * 55) - (s79.X * 12), (t4_10.Y * 36) - (s79.Y * 9.5), (t4_10.Z * 55) - (s79.Z * 12)) * t9_5
+              s78 += s79 * t9_5
+              t900003_1 += t900001_1
+              if t900001_1 <= 0 then
+                state = 33
+              else
+                state = 37
+              end
+            elseif state == 37 then
+              if t900003_1 <= t900002_1 then
+                state = 40
+              else
+                state = 38
+              end
+            elseif state == 38 then
+              state = 39
+            elseif state == 39 then
+              t31 = false
+              state = 42
+            elseif state == 40 then
+              state = 36
+            elseif state == 41 then
+              local t4_8 = r17
+              local t5_8 = r17
+              s78 = t11
+              s79 = t4_8
+              s80 = t5_8
+              local t6_7 = s82
+              s82.x = s81
+              t6_7.v = 0
+              s70 = false
+              t31 = true
+              state = 42
+            elseif state == 42 then
+              if 0 < t10 then
+                state = 43
+              else
+                state = 44
+              end
+            elseif state == 43 then
+              t25 = (s79 - s80) / t10
+              if t25 then
+                state = 45
+              else
+                state = 44
+              end
+            elseif state == 44 then
+              t25 = r17
+              state = 45
+            elseif state == 45 then
+              s80 = s79
+              t8 = r13(t14.X, 0, t14.Z)
+              t9_2 = t8.Magnitude
+              t11_1 = t9_2 > 3
+              if s92 then
+                state = 75
+              else
+                state = 71
+              end
+            elseif state == 46 then
+              t5_7 = t16 * r13(0, t6_2, 0)
+              t6_4 = t11 - t5_7
+              if 0.05 < t6_4.Magnitude then
+                state = 47
+              else
+                state = 49
+              end
+            elseif state == 47 then
+              t4_7 = s75(t5_7, t6_4, 0.55 * s48)
+              if t4_7 then
+                state = 48
+              else
+                state = 49
+              end
+            elseif state == 48 then
+              t11 = t5_7 + (t6_4.Unit * r28(t4_7.Distance - 0.05, 0))
+              state = 49
+            elseif state == 49 then
+              t17_2 = r5_3:Raycast(t11 + r13(0, 1, 0), r13(0, -14, 0), s72)
+              if t17_2 then
+                state = 50
+              else
+                state = 53
+              end
+            elseif state == 50 then
+              t6_6 = (t17_2.Position.Y + (0.8 * s49)) - s26_1
+              if t11.Y < t6_6 then
+                state = 51
+              else
+                state = 52
+              end
+            elseif state == 51 then
+              t11 = r13(t11.X, t6_6, t11.Z)
+              state = 52
+            elseif state == 52 then
+              state = 53
+            elseif state == 53 then
+              state = 54
+            elseif state == 54 then
+              if s70 then
+                state = 65
+              else
+                state = 55
+              end
+            elseif state == 55 then
+              if 25 < (t11 - s78).Magnitude then
+                state = 65
+              else
+                state = 56
+              end
+            elseif state == 56 then
+              local t22 = math.ceil(t10 * 120)
+              t9_1 = t10 / r28(t22, 1)
+              t900001 = 1
+              t900002 = t22 + 0
+              t900003 = (1 - t900001) + t900001
+              if t900001 <= 0 then
+                state = 57
+              else
+                state = 61
+              end
+            elseif state == 57 then
+              if t900003 >= t900002 then
+                state = 59
+              else
+                state = 58
+              end
+            elseif state == 58 then
+              state = 63
+            elseif state == 59 then
+              state = 60
+            elseif state == 60 then
+              local t4_3 = t11 - s78
+              s79 += r13((t4_3.X * 55) - (s79.X * 12), (t4_3.Y * 36) - (s79.Y * 9.5), (t4_3.Z * 55) - (s79.Z * 12)) * t9_1
+              s78 += s79 * t9_1
+              t900003 += t900001
+              if t900001 <= 0 then
+                state = 57
+              else
+                state = 61
+              end
+            elseif state == 61 then
+              if t900003 <= t900002 then
+                state = 64
+              else
+                state = 62
+              end
+            elseif state == 62 then
+              state = 63
+            elseif state == 63 then
+              t31 = false
+              state = 66
+            elseif state == 64 then
+              state = 60
+            elseif state == 65 then
+              local t4_2 = r17
+              local t5 = r17
+              s78 = t11
+              s79 = t4_2
+              s80 = t5
+              local t6 = s82
+              s82.x = s81
+              t6.v = 0
+              s70 = false
+              t31 = true
+              state = 66
+            elseif state == 66 then
+              if 0 < t10 then
+                state = 67
+              else
+                state = 68
+              end
+            elseif state == 67 then
+              t25 = (s79 - s80) / t10
+              if t25 then
+                state = 69
+              else
+                state = 68
+              end
+            elseif state == 68 then
+              t25 = r17
+              state = 69
+            elseif state == 69 then
+              s80 = s79
+              t8 = r13(t14.X, 0, t14.Z)
+              t9_2 = t8.Magnitude
+              t11_1 = t9_2 > 3
+              if s92 then
+                state = 75
+              else
+                state = 70
+              end
+            elseif state == 70 then
+              if t13 then
+                state = 71
+              else
+                state = 83
+              end
+            elseif state == 71 then
+              if s94 <= s77 then
+                state = 72
+              else
+                state = 83
+              end
+            elseif state == 72 then
+              t4_9 = s104(t11_1)
+              if t4_9 then
+                state = 73
+              else
+                state = 74
+              end
+            elseif state == 73 then
+              s105(t4_9)
+              state = 74
+            elseif state == 74 then
+              s94 = s77 + 1
+              state = 83
+            elseif state == 75 then
+              s92.t = s92.t + t10
+              if t11_1 then
+                state = 76
+              else
+                state = 78
+              end
+            elseif state == 76 then
+              if s92.def.idle then
+                state = 77
+              else
+                state = 78
+              end
+            elseif state == 77 then
+              s92.t = r28(s92.t, s92.d - s92.def.bo)
+              state = 78
+            elseif state == 78 then
+              if s92.d <= s92.t then
+                state = 79
+              else
+                state = 83
+              end
+            elseif state == 79 then
+              if s92.def ~= s55.angry then
+                state = 81
+              else
+                state = 80
+              end
+            elseif state == 80 then
+              s31 = 0
+              table.clear(s61)
+              s94 = s77 + s51:NextNumber(4.5, 7.5)
+              state = 82
+            elseif state == 81 then
+              s94 = s77 + s51:NextNumber(3, 6.5)
+              state = 82
+            elseif state == 82 then
+              s93 = s92.def
+              s92 = nil
+              state = 83
+            elseif state == 83 then
+              t32 = s92
+              if s92 then
+                state = 84
+              else
+                state = 85
+              end
+            elseif state == 84 then
+              t32 = s92.def
+              state = 85
+            elseif state == 85 then
+              if s96 <= s77 then
+                state = 88
+              else
+                state = 86
+              end
+            elseif state == 86 then
+              if t12 then
+                state = 102
+              else
+                state = 87
+              end
+            elseif state == 87 then
+              t13_1 = t12
+              state = 104
+            elseif state == 88 then
+              t4_4 = s51:NextNumber()
+              if t11_1 then
+                state = 96
+              else
+                state = 89
+              end
+            elseif state == 89 then
+              if t4_4 < 0.38 then
+                state = 95
+              else
+                state = 90
+              end
+            elseif state == 90 then
+              if t4_4 < 0.62 then
+                state = 94
+              else
+                state = 91
+              end
+            elseif state == 91 then
+              if t4_4 < 0.8 then
+                state = 93
+              else
+                state = 92
+              end
+            elseif state == 92 then
+              s95 = "forward"
+              state = 100
+            elseif state == 93 then
+              s95 = "player"
+              state = 100
+            elseif state == 94 then
+              s95 = "around"
+              state = 100
+            elseif state == 95 then
+              s95 = "camera"
+              state = 100
+            elseif state == 96 then
+              if t4_4 < 0.75 then
+                state = 98
+              else
+                state = 97
+              end
+            elseif state == 97 then
+              t5_4 = "camera"
+              state = 99
+            elseif state == 98 then
+              t5_4 = "forward"
+              state = 99
+            elseif state == 99 then
+              s95 = t5_4
+              state = 100
+            elseif state == 100 then
+              s96 = s77 + s51:NextNumber(1.8, 4.2)
+              local t19 = s51:NextNumber(-7, 7)
+              local t22_1 = s51
+              s13_3 = r13(t19, s51:NextNumber(-2, 3.5), -s51.NextNumber(t22_1, 3, 9))
+              if t12 then
+                state = 102
+              else
+                state = 101
+              end
+            elseif state == 101 then
+              t13_1 = t12
+              state = 104
+            elseif state == 102 then
+              t13_1 = t32 ~= nil
+              if t13_1 then
+                state = 103
+              else
+                state = 104
+              end
+            elseif state == 103 then
+              t13_1 = t32.fcam == true
+              if t13_1 then
+                state = 105
+              else
+                state = 104
+              end
+            elseif state == 104 then
+              t21 = s95
+              state = 106
+            elseif state == 105 then
+              t21 = "camera"
+              state = 106
+            elseif state == 106 then
+              if t21 ~= "camera" then
+                state = 109
+              else
+                state = 107
+              end
+            elseif state == 107 then
+              if t12 then
+                state = 109
+              else
+                state = 108
+              end
+            elseif state == 108 then
+              t21 = "forward"
+              state = 109
+            elseif state == 109 then
+              local t12_1 = s91
+              s91 = t12_1 + ((r24((t9_2 - 2) / 14, 0, 1) - s91) * r34(4, t10))
+              t12_2 = (s81 + 0.3) + (0.12 * r18(s77 * 0.37))
+              t14_1 = t27 - s78
+              if t32 then
+                state = 110
+              else
+                state = 112
+              end
+            elseif state == 110 then
+              if t32.orb then
+                state = 111
+              else
+                state = 112
+              end
+            elseif state == 111 then
+              if 0.6 < ((s79.X * s79.X) + (s79.Z * s79.Z)) then
+                state = 124
+              else
+                state = 112
+              end
+            elseif state == 112 then
+              if t13_1 then
+                state = 121
+              else
+                state = 113
+              end
+            elseif state == 113 then
+              if t11_1 then
+                state = 120
+              else
+                state = 114
+              end
+            elseif state == 114 then
+              if t21 ~= "camera" then
+                state = 115
+              else
+                state = 121
+              end
+            elseif state == 115 then
+              if t21 ~= "player" then
+                state = 125
+              else
+                state = 116
+              end
+            elseif state == 116 then
+              if t29 then
+                state = 117
+              else
+                state = 125
+              end
+            elseif state == 117 then
+              t4_5 = t29 - s78
+              if 0.04 < ((t4_5.X * t4_5.X) + (t4_5.Z * t4_5.Z)) then
+                state = 118
+              else
+                state = 119
+              end
+            elseif state == 118 then
+              t12_2 = r43(t4_5)
+              state = 119
+            elseif state == 119 then
+              state = 125
+            elseif state == 120 then
+              t12_2 = r43(t8)
+              state = 125
+            elseif state == 121 then
+              if 0.04 < ((t14_1.X * t14_1.X) + (t14_1.Z * t14_1.Z)) then
+                state = 122
+              else
+                state = 123
+              end
+            elseif state == 122 then
+              t12_2 = r43(t14_1)
+              state = 123
+            elseif state == 123 then
+              state = 125
+            elseif state == 124 then
+              t12_2 = r43(r13(s79.X, 0, s79.Z))
+              state = 125
+            elseif state == 125 then
+              t7_1 = s82.x + r42(t12_2 - s82.x)
+              if t13_1 then
+                state = 127
+              else
+                state = 126
+              end
+            elseif state == 126 then
+              t8_2 = 32
+              t9_4 = 10.5
+              state = 128
+            elseif state == 127 then
+              t8_2 = 70
+              t9_4 = 16
+              state = 128
+            elseif state == 128 then
+              r46(s82, t7_1, t8_2, t9_4, t10)
+              t8_3 = r11(0, s82.x, 0)
+              t22_2 = t8_3:VectorToObjectSpace(s79)
+              r46(s83, r24(t22_2.Z * 0.05, -0.6, 0.6), 28, 8.5, t10)
+              r46(s85, r24(-t22_2.X * 0.04, -0.5, 0.5), 28, 8.5, t10)
+              t13_2 = t8_3:VectorToObjectSpace(t25) * -0.014
+              if 0.55 < t13_2.Magnitude then
+                state = 129
+              else
+                state = 130
+              end
+            elseif state == 129 then
+              t13_2 = t13_2.Unit * 0.55
+              state = 130
+            elseif state == 130 then
+              r46(s88, t13_2, 60, 7.5, t10)
+              r74(s100, s77)
+              if 0.01 < s91 then
+                state = 132
+              else
+                state = 131
+              end
+            elseif state == 131 then
+              t7_4 = 0
+              if t32 then
+                state = 135
+              else
+                state = 136
+              end
+            elseif state == 132 then
+              r75(s101, s77)
+              r67(s100, s101, s91)
+              t7_4 = 0
+              if t32 then
+                state = 135
+              else
+                state = 133
+              end
+            elseif state == 133 then
+              t4_11 = t22_2 * -0.03
+              if 0.6 < t4_11.Magnitude then
+                state = 137
+              else
+                state = 134
+              end
+            elseif state == 134 then
+              t4_12 = (t4_11 + s88.x) * 1
+              state = 139
+            elseif state == 135 then
+              t7_4 = r41(s92.t, s92.d, t32.bi, t32.bo)
+              r69(s102, s100)
+              t32.pose(s102, s92.t, s92.d)
+              r67(s100, s102, t7_4)
+              state = 136
+            elseif state == 136 then
+              t4_11 = t22_2 * -0.03
+              if 0.6 < t4_11.Magnitude then
+                state = 137
+              else
+                state = 138
+              end
+            elseif state == 137 then
+              t4_11 = t4_11.Unit * 0.6
+              state = 138
+            elseif state == 138 then
+              t4_12 = (t4_11 + s88.x) * (1 - (0.5 * t7_4))
+              state = 139
+            elseif state == 139 then
+              local t5_9 = s100.ra
+              t5_9.dir = t5_9.dir + (t4_12 * 0.8)
+              local t5_10 = s100.la
+              t5_10.dir = t5_10.dir + (t4_12 * 0.8)
+              local t5_11 = s100.rl
+              t5_11.dir = t5_11.dir + t4_12
+              local t5_12 = s100.ll
+              t5_12.dir = t5_12.dir + t4_12
+              local t4_13 = s100.wst
+              s100.wst = r11(s88.x.Z * 0.35, 0, -s88.x.X * 0.3) * t4_13
+              if t32 then
+                state = 140
+              else
+                state = 141
+              end
+            elseif state == 140 then
+              if t32.rate then
+                state = 142
+              else
+                state = 141
+              end
+            elseif state == 141 then
+              t9_6 = 15
+              t4_14 = r34(15, t10)
+              state = 145
+            elseif state == 142 then
+              t9_6 = r35(15, t32.rate, t7_4)
+              if t9_6 then
+                state = 144
+              else
+                state = 143
+              end
+            elseif state == 143 then
+              t9_6 = 15
+              state = 144
+            elseif state == 144 then
+              t4_14 = r34(t9_6, t10)
+              state = 145
+            elseif state == 145 then
+              t11_2 = t4_14
+              local t4_15, t5_13, t6_8 = ipairs(s7_3)
+              t900003_2 = (function(f, s, var)
+                local co = coroutine.wrap(function()
+                  coroutine.yield()
+                  for a, b in f, s, var do
+                    coroutine.yield(true, a, b)
+                  end
+                end)
+                co()
+                return co
+              end)(t4_15, t5_13, t6_8)
+              t514_2536_1 = table.pack(t900003_2())
+              if t514_2536_1[1] then
+                state = 147
+              else
+                state = 146
+              end
+            elseif state == 146 then
+              state = 150
+            elseif state == 147 then
+              t5_14 = t514_2536_1[3]
+              state = 148
+            elseif state == 148 then
+              local t16_1 = s27_1[t5_14]
+              local t14_2 = s100[t5_14]
+              local t12_3, t13_3 = s28(t16_1, t14_2)
+              s30(t16_1.j1, t12_3, t11_2)
+              s30(t16_1.j2, t13_3, t11_2)
+              s30(t16_1.j3, t14_2.tip, t11_2)
+              t503_2680_1 = table.pack(t900003_2())
+              if t503_2680_1[1] then
+                state = 229
+              else
+                state = 149
+              end
+            elseif state == 149 then
+              state = 150
+            elseif state == 150 then
+              t12_4 = 1
+              if t32 then
+                state = 151
+              else
+                state = 157
+              end
+            elseif state == 151 then
+              t11_3 = t32.look
+              if type(t11_3) ~= "function" then
+                state = 153
+              else
+                state = 152
+              end
+            elseif state == 152 then
+              t11_3 = t11_3(s92.t, s92.d)
+              if t11_3 then
+                state = 155
+              else
+                state = 154
+              end
+            elseif state == 153 then
+              if t11_3 then
+                state = 155
+              else
+                state = 154
+              end
+            elseif state == 154 then
+              t4_16 = r35(1, 1, t7_4)
+              state = 156
+            elseif state == 155 then
+              t4_16 = r35(1, t11_3, t7_4)
+              state = 156
+            elseif state == 156 then
+              t12_4 = t4_16
+              state = 157
+            elseif state == 157 then
+              t5_15 = (r14(s78) * t8_3) * r11(s83.x, 0, s85.x)
+              if t21 ~= "camera" then
+                state = 159
+              else
+                state = 158
+              end
+            elseif state == 158 then
+              t29 = t27
+              state = 164
+            elseif state == 159 then
+              if t21 ~= "player" then
+                state = 161
+              else
+                state = 160
+              end
+            elseif state == 160 then
+              if t29 then
+                state = 164
+              else
+                state = 161
+              end
+            elseif state == 161 then
+              if t21 ~= "around" then
+                state = 163
+              else
+                state = 162
+              end
+            elseif state == 162 then
+              t29 = t5_15 * s13_3
+              state = 164
+            elseif state == 163 then
+              t29 = t5_15 * r13(0, 0.6, -12)
+              state = 164
+            elseif state == 164 then
+              t23_1 = t5_15:VectorToObjectSpace(t29 - (t5_15 * s24))
+              t5_17 = 0
+              t6_9 = 0
+              if 0.05 < t23_1.Magnitude then
+                state = 165
+              else
+                state = 167
+              end
+            elseif state == 165 then
+              t11_5 = t23_1.Unit
+              t23_2 = r26(-t11_5.X, -t11_5.Z)
+              if r20(t23_2) < 2.2 then
+                state = 166
+              else
+                state = 167
+              end
+            elseif state == 166 then
+              t5_17 = r24(t23_2, -1.25, 1.25)
+              t6_9 = r24(r27(r24(t11_5.Y, -1, 1)), -0.6, 0.65)
+              state = 167
+            elseif state == 167 then
+              r46(s86, t5_17 * t12_4, 45, 12, t10)
+              r46(s87, t6_9 * t12_4, 45, 12, t10)
+              local t4_17 = r34(t9_6 * 0.9, t10)
+              local t5_19 = s100.wst
+              s30(s6.wst, r15(s87.x * 0.25, s86.x * 0.3, 0) * t5_19, t4_17)
+              local t5_20 = s100.nck
+              s30(s6.nck, r15(s87.x * 0.7, s86.x * 0.7, 0) * t5_20, t4_17)
+              s30(s6.rt, s100.hip, t4_17)
+              t11_4 = r13(0, ((r18(s77 * 1.9) * 0.085) + (r18(s77 * 0.77) * 0.035)) * s49, 0)
+              t18 = r16
+              t20_1 = r17
+              if t32 then
+                state = 168
+              else
+                state = 170
+              end
+            elseif state == 168 then
+              t18 = r16
+              t20_1 = r17
+              if t32.root then
+                state = 169
+              else
+                state = 170
+              end
+            elseif state == 169 then
+              local t4_18, t5_22 = t32.root(s92.t, s92.d)
+              t18 = r16:Lerp(t4_18, t7_4)
+              t20_1 = t5_22 * t7_4
+              state = 170
+            elseif state == 170 then
+              if t32 then
+                state = 171
+              else
+                state = 172
+              end
+            elseif state == 171 then
+              t5_21 = t32.rrate
+              if t5_21 then
+                state = 173
+              else
+                state = 172
+              end
+            elseif state == 172 then
+              t5_21 = 18
+              state = 173
+            elseif state == 173 then
+              local t4_19 = r34(t5_21, t10)
+              s89 = s89:Lerp(t18, t4_19)
+              s90 = s90:Lerp(t20_1, t4_19)
+              if t32 then
+                state = 174
+              else
+                state = 175
+              end
+            elseif state == 174 then
+              if t32.nolean then
+                state = 176
+              else
+                state = 175
+              end
+            elseif state == 175 then
+              t9_7 = ((r14(s78 + t11_4) * t8_3) * r14(s90)) * r14(s25_1)
+              t5_23 = s83.x * 1
+              t7_5 = s85.x * 1
+              state = 179
+            elseif state == 176 then
+              t4_20 = 1 - t7_4
+              if t4_20 then
+                state = 178
+              else
+                state = 177
+              end
+            elseif state == 177 then
+              t4_20 = 1
+              state = 178
+            elseif state == 178 then
+              t9_7 = ((r14(s78 + t11_4) * t8_3) * r14(s90)) * r14(s25_1)
+              t5_23 = s83.x * t4_20
+              t7_5 = s85.x * t4_20
+              state = 179
+            elseif state == 179 then
+              t13_4 = ((t9_7 * r11(t5_23, 0, t7_5)) * s89) * r14(-s25_1)
+              s22.CFrame = t13_4
+              t14_3 = t32 == s55.angry
+              t15_1 = 0
+              if t32 then
+                state = 180
+              else
+                state = 181
+              end
+            elseif state == 180 then
+              if t32.emb then
+                state = 183
+              else
+                state = 181
+              end
+            elseif state == 181 then
+              if t14_3 then
+                state = 188
+              else
+                state = 182
+              end
+            elseif state == 182 then
+              state = 197
+            elseif state == 183 then
+              t4_23 = s92.t / s92.d
+              if t32.emb[1] <= t4_23 then
+                state = 184
+              else
+                state = 186
+              end
+            elseif state == 184 then
+              if t4_23 <= t32.emb[2] then
+                state = 185
+              else
+                state = 186
+              end
+            elseif state == 185 then
+              t15_1 = 33
+              state = 186
+            elseif state == 186 then
+              t7_6 = 0
+              if t14_3 then
+                state = 188
+              else
+                state = 187
+              end
+            elseif state == 187 then
+              if 0 < t15_1 then
+                state = 192
+              else
+                state = 197
+              end
+            elseif state == 188 then
+              local t4_22, t5_24, t6_10
+              t4_22, t5_24, t6_10, t7_6 = s54(s92.t, s92.d)
+              t15_1 = 14 * t5_24
+              s98 += (t10 * t5_24) * (2.5 + s31)
+              if 1 <= s98 then
+                state = 189
+              else
+                state = 191
+              end
+            elseif state == 189 then
+              s98 -= 1
+              t5_25 = s58
+              t4_24 = s58.Emit
+              state = 190
+            elseif state == 190 then
+              t4_24(t5_25, 1)
+              if 1 <= s98 then
+                state = 228
+              else
+                state = 191
+              end
+            elseif state == 191 then
+              if 0 < t15_1 then
+                state = 192
+              else
+                state = 196
+              end
+            elseif state == 192 then
+              s97 += t10 * t15_1
+              if 1 <= s97 then
+                state = 193
+              else
+                state = 195
+              end
+            elseif state == 193 then
+              t4_25 = s97
+              state = 194
+            elseif state == 194 then
+              s97 = t4_25 - 1
+              s57:Emit(1)
+              if 1 <= s97 then
+                state = 227
+              else
+                state = 195
+              end
+            elseif state == 195 then
+              if t14_3 then
+                state = 196
+              else
+                state = 197
+              end
+            elseif state == 196 then
+              t7_7 = 1 - r36(t7_6 * 1.6)
+              if t7_7 then
+                state = 198
+              else
+                state = 197
+              end
+            elseif state == 197 then
+              t7_7 = r28(0, s99 - (t10 * 3))
+              state = 198
+            elseif state == 198 then
+              s99 = t7_7
+              if 0.01 < s99 then
+                state = 201
+              else
+                state = 199
+              end
+            elseif state == 199 then
+              if s59.Enabled then
+                state = 200
+              else
+                state = 210
+              end
+            elseif state == 200 then
+              s59.Enabled = false
+              state = 210
+            elseif state == 201 then
+              s59.Enabled = true
+              local t7_8, t8_4, t9_8 = ipairs(s60)
+              t900003_3 = (function(f, s, var)
+                local co = coroutine.wrap(function()
+                  coroutine.yield()
+                  for a, b in f, s, var do
+                    coroutine.yield(true, a, b)
+                  end
+                end)
+                co()
+                return co
+              end)(t7_8, t8_4, t9_8)
+              t1138_4422_1 = table.pack(t900003_3())
+              if t1138_4422_1[1] then
+                state = 203
+              else
+                state = 202
+              end
+            elseif state == 202 then
+              state = 209
+            elseif state == 203 then
+              t7_9 = t1138_4422_1[2]
+              t8_5 = t1138_4422_1[3]
+              t4_26 = s61[t7_9]
+              if t4_26 then
+                state = 205
+              else
+                state = 204
+              end
+            elseif state == 204 then
+              state = 206
+            elseif state == 205 then
+              t4_27 = r38((s77 - t4_26) / 0.24)
+              if t4_27 then
+                state = 207
+              else
+                state = 206
+              end
+            elseif state == 206 then
+              state = 226
+            elseif state == 207 then
+              local t11_6 = 0.6 + (0.4 * s99)
+              t8_5.us.Scale = (t4_27 * (1 + (0.13 * r18((s77 * 15) + (t7_9 * 2))))) * t11_6
+              t8_5.lb.TextTransparency = 1 - s99
+              t1162_4818_1 = table.pack(t900003_3())
+              if t1162_4818_1[1] then
+                state = 225
+              else
+                state = 208
+              end
+            elseif state == 208 then
+              state = 209
+            elseif state == 209 then
+              state = 210
+            elseif state == 210 then
+              s14_3 = r29(1, s14_3 + (t10 / 0.45))
+              local t23_3 = ((0.62 * s50) - (t27 - (t13_4 * s25_1)).Magnitude) / (0.3 * s50)
+              s15_1 = r28(1 - r36(s14_3), r24(t23_3, 0, 1))
+              if 0.02 < r20(s15_1 - s16_2) then
+                state = 214
+              else
+                state = 211
+              end
+            elseif state == 211 then
+              if s15_1 ~= 0 then
+                state = 213
+              else
+                state = 212
+              end
+            elseif state == 212 then
+              if s16_2 ~= 0 then
+                state = 214
+              else
+                state = 213
+              end
+            elseif state == 213 then
+              if t31 then
+                state = 220
+              else
+                state = 221
+              end
+            elseif state == 214 then
+              s16_2 = s15_1
+              local t10_1, t11_7, t12_5 = ipairs(s53)
+              t900003_4 = (function(f, s, var)
+                local co = coroutine.wrap(function()
+                  coroutine.yield()
+                  for a, b in f, s, var do
+                    coroutine.yield(true, a, b)
+                  end
+                end)
+                co()
+                return co
+              end)(t10_1, t11_7, t12_5)
+              t893_4904_1 = table.pack(t900003_4())
+              if t893_4904_1[1] then
+                state = 216
+              else
+                state = 215
+              end
+            elseif state == 215 then
+              state = 219
+            elseif state == 216 then
+              t11_8 = t893_4904_1[3]
+              state = 217
+            elseif state == 217 then
+              t11_8.LocalTransparencyModifier = s15_1
+              t925_4928_1 = table.pack(t900003_4())
+              if t925_4928_1[1] then
+                state = 224
+              else
+                state = 218
+              end
+            elseif state == 218 then
+              state = 219
+            elseif state == 219 then
+              if t31 then
+                state = 220
+              else
+                state = 221
+              end
+            elseif state == 220 then
+              s64()
+              state = 221
+            elseif state == 221 then
+              t4_28 = s14_3 >= 0.6
+              if t4_28 then
+                state = 222
+              else
+                state = 223
+              end
+            elseif state == 222 then
+              t4_28 = s15_1 < 0.5
+              state = 223
+            elseif state == 223 then
+              s63(t4_28)
+              return
+            elseif state == 224 then
+              t11_8 = t925_4928_1[3]
+              state = 217
+            elseif state == 225 then
+              t7_9 = t1162_4818_1[2]
+              t8_5 = t1162_4818_1[3]
+              t4_26 = s61[t7_9]
+              if t4_26 then
+                state = 205
+              else
+                state = 226
+              end
+            elseif state == 226 then
+              t4_27 = 0
+              state = 207
+            elseif state == 227 then
+              t4_25 = s97
+              state = 194
+            elseif state == 228 then
+              s98 -= 1
+              t5_25 = s58
+              t4_24 = s58.Emit
+              state = 190
+            elseif state == 229 then
+              t5_14 = t503_2680_1[3]
+              state = 148
+            elseif state == 230 then
+              return
+            end
+          end
+        end
+        s42 = "\000chibi" .. tostring(math.floor(os.clock() * 1000))
+        r3_2:BindToRenderStep(s42, Enum.RenderPriority.Camera.Value + 2, s44)
+        task.delay(0.05, function()
+          if s66 then
+            return
+          end
+          s57:Emit(28)
+        end)
+        local s40_2 = function()
+          if s66 then
+            return
+          end
+          local t8 = s55.angry
+          if s92 then
+            if s92.def ~= t8 then
+              s31 = 1
+              s105(t8)
+              s92.d = s32(1)
+            else
+              s31 = r29(s31 + 1, 3)
+              s92.d = s32(s31)
+              s92.t = r29(s92.t, 0.2)
+            end
+          else
+            s31 = 1
+            s105(t8)
+            s92.d = s32(1)
+            s61[s31] = s77
+            s58:Emit(4 + (2 * s31))
+            s94 = math.huge
+            return
+          end
+          s61[s31] = s77
+          s58:Emit(4 + (2 * s31))
+          s94 = math.huge
+        end
+        local s41_3 = function(t15)
+          local t1 = s22.CFrame
+          local t3 = t1.UpVector
+          local t11 = (t1 * s25_1) - (t3 * (s50 * 0.46))
+          local t19 = t3 * (s50 * 0.96)
+          local t13 = t15.Direction.Unit
+          local t22 = t15.Origin - t11
+          local t1_1 = t13:Dot(t19)
+          local t17 = t19:Dot(t19)
+          local t3_1 = t13:Dot(t22)
+          local t20 = t19:Dot(t22)
+          local t5 = t17 - (t1_1 * t1_1)
+          local t5_1
+          if 1e-06 < t5 then
+            t5_1 = r24((t20 - (t1_1 * t3_1)) / t5, 0, 1)
+          else
+            t5_1 = 0
+          end
+          local t1_2 = (t5_1 * t1_1) - t3_1
+          if t1_2 < 0 then
+            return false
+          end
+          if 250 < t1_2 then
+            return false
+          end
+          return ((t15.Origin + (t13 * t1_2)) - (t11 + (t19 * t5_1))).Magnitude <= (s50 * 0.27)
+        end
+        local s106 = -1
+        local s107 = function(t10)
+          if s66 then
+            return
+          end
+          if 0.5 < s15_1 then
+            return
+          end
+          if (s77 - s106) < 0.18 then
+            return
+          end
+          if s41_3(t10) then
+            s106 = s77
+            s40_2()
+            return
+          end
+        end
+        local s45 = function(t19, arg2)
+          if not arg2 then
+            if t19.UserInputType == Enum.UserInputType.MouseButton1 then
+              local t1 = r5_3.CurrentCamera
+              if t1 then
+                s107(t1:ScreenPointToRay(t19.Position.X, t19.Position.Y))
+                return
+              end
+              return
+            end
+          end
+        end
+        table.insert(s65, r4_3.InputBegan:Connect(s45))
+        table.insert(s65, r4_3.TouchTapInWorld:Connect(function(t11, arg2)
+          if arg2 then
+            return
+          end
+          local t2 = r5_3.CurrentCamera
+          if t2 then
+            s107(t2:ScreenPointToRay(t11.X, t11.Y))
+            return
+          end
+        end))
+        local s108 = {kill = function()
+          if s66 then
+            return
+          end
+          s66 = true
+          pcall(r3_2.UnbindFromRenderStep, r3_2, s42)
+          local t2, t3, t4 = ipairs(s65)
+          local t900001 = (function(f, s, var)
+            local co = coroutine.wrap(function()
+              coroutine.yield()
+              for a, b in f, s, var do
+                coroutine.yield(true, a, b)
+              end
+            end)
+            co()
+            return co
+          end)(t2, t3, t4)
+          local t20_19_1 = table.pack(t900001())
+          if t20_19_1[1] then
+            local t3_1 = t20_19_1[3]
+            while true do
+              t3_1:Disconnect()
+              local t23_27_1 = table.pack(t900001())
+              if t23_27_1[1] then
+                t3_1 = t23_27_1[3]
+              else
+                break
+              end
+            end
+          end
+          s47:Destroy()
+        end, trupd = function()
+          s62()
+        end, trbld = function()
+          s36_2()
+          s62()
+        end, play = function(t32)
+          if t32 ~= "angry" then
+            if s55[t32] then
+              s105(s55[t32])
+              return
+            end
+            return
+          end
+          s40_2()
+        end}
+        local s109 = 469080184
+        local s45_1 = function(arg1, arg2)
+          if arg2 == nil then
+            s108.kill()
+            return
+          end
+        end
+        s109 = 517105414
+        table.insert(s65, s47.AncestryChanged:Connect(s45_1))
+        return s108
+      end
+    end
+    s47:Destroy()
+    return nil
+  end
+  local r9 = nil
+  local r10_1 = 0
+  local r8_16
+  r8_16 = {start = function()
+    r10_1 += 1
+    local s4 = r10_1
+    if r9 then
+      r9.kill()
+      r9 = nil
+    end
+    task.spawn(function()
+      local t2 = r7_3(function()
+        return s4 ~= r10_1
+      end)
+      if t2 then
+        if s4 ~= r10_1 then
+          t2.kill()
+          return
+        end
+        r9 = t2
+        return
+      end
+    end)
+  end, stop = function()
+    r10_1 += 1
+    if r9 then
+      r9.kill()
+      r9 = nil
+      return
+    end
+  end, set = function(s31, s32)
+    if r33[s31] ~= s32 then
+      r33[s31] = s32
+      if r9 then
+        if s31 ~= "tw" then
+          if s31 ~= "ta" then
+            if s31 ~= "tfrom" then
+              if s31 ~= "trl" then
+                if s31 ~= "size" then
+                  return
+                end
+                r8_16.start()
+                return
+              end
+              r9.trbld()
+              return
+            end
+            r9.trbld()
+            return
+          end
+          r9.trupd()
+          return
+        end
+        r9.trupd()
+        return
+      end
+      return
+    end
+  end}
+  r8_16.play = function(s27)
+    if r9 then
+      r9.play(s27)
+      return
+    end
+  end
+  return r8_16
+    end)()
+    local d = getgenv().ZolarAdapt(Section):AddToggle({Name = "chibi", Default = false, Flag = "world_chibi", Option = true, Callback = function(mo)
+        if mo then yo.start() else yo.stop() end
+    end})
+    d.Option:AddToggle({Name = "look at me", Default = true, Flag = "world_chibi_cam", Callback = function(mo)
+        yo.set("cam", (mo and true) or false)
+    end})
+    d.Option:AddSlider({Name = "size", Default = 1, Min = 0.75, Max = 1.35, Round = 2, Type = "x", Flag = "world_chibi_size", Callback = function(mo)
+        yo.set("size", tonumber(mo) or 1)
+    end})
+    d.Option:AddToggle({Name = "trails", Default = true, Flag = "world_chibi_trl", Callback = function(mo)
+        yo.set("trl", (mo and true) or false)
+    end})
+    d.Option:AddDropdown({Name = "from", Default = "both", Values = {"both", "hands", "feet"}, Flag = "world_chibi_tfrom", Callback = function(mo)
+        yo.set("tfrom", ((type(mo) == "table") and mo[1]) or mo)
+    end})
+    d.Option:AddSlider({Name = "trail size", Default = 1, Min = 0.3, Max = 3, Round = 1, Type = "x", Flag = "world_chibi_tw", Callback = function(mo)
+        yo.set("tw", tonumber(mo) or 1)
+    end})
+    d.Option:AddSlider({Name = "trail transp", Default = 0.15, Min = 0, Max = 1, Round = 2, Flag = "world_chibi_ta", Callback = function(mo)
+        yo.set("ta", tonumber(mo) or 0.15)
+    end})
+    getgenv().chibi_unload = function() yo.stop() end
+end
+end)
+if not ok then warn("[Salad] chibi_mm2.lua: " .. tostring(err)) end
+end
+do
+local ok, err = pcall(function()
+local function appendPacked(destination, offset, ...)
+    local values=table.pack(...)
+    table.move(values,1,values.n,offset+1,destination)
+end
+local function unpackPacked(values) return table.unpack(values,1,values.n) end
+getgenv().ZolarMM2Extras = function(Sections)
+    local environment = getfenv()
+    local H = { AddSection = function() return Sections.Effects end }
+    getgenv().__SHITARO_EFFECTS_SEC = Sections.Effects
+    local y  
+     
+    local function M(name, data)
+        if type(writefile) ~= "function" or type(getcustomasset) ~= "function" then return nil end
+        local file = string.format("shv_%08x%08x%s", math.random(0, 268435455), math.random(0, 268435455), string.match(name, "(%.%w+)$") or "")
+        if not pcall(writefile, file, data) then return nil end
+        local ok, id = pcall(getcustomasset, file)
+        task.delay(8, function() pcall(delfile, file) end)
+        if ok and type(id) == "string" and id ~= "" then return id end
+        return nil
+    end
+     
+    local q = {}
+    local d, K  
+    do
+        local PlayersService1 = environment.game:GetService("Players")
+        local ReplicatedStorageService2 = environment.game:GetService("ReplicatedStorage")
+        local p, i = PlayersService1.LocalPlayer
+        local function k()
+            local environment65 = getfenv()
+            if i then
+                local I = i
+                return I
+            end
+            local I = ReplicatedStorageService2:FindFirstChild("Modules")
+            local V = I and I:FindFirstChild("CurrentRoundClient")
+            if V then
+                I = "ModuleScript"
+                if not (V:IsA(I)) then
+                    return nil
+                end
+            else
+                return nil
+            end
+            I = environment65.require(V)
+            if environment65["type"](I) ~= "table" then
+                return nil
+            end
+            i = I
+            V = i
+            return V
+        end
+        q.data = function()
+            local environment66, i = getfenv(), k()
+            local k = i and i.PlayerData
+            if environment66["type"](k) ~= "table" then
+                return nil
+            end
+            return k
+        end
+        q.entry = function(V)
+            local i = q.data()
+            if not (i) then
+                return nil
+            end
+            return i[V.Name]
+        end
+        q.role = function(V)
+            local i = q.entry(V)
+            local k, S = (i and i.Role) or nil, V.Character
+            if k == "Zombie" then
+                return "Murderer"
+            elseif k then
+                if S then
+                    if S:GetAttribute("Zombie") == true then
+                        return "Murderer"
+                    end
+                end
+            end
+            if k == "Survivor" then
+                return "Sheriff"
+            end
+            return k
+        end
+        q.perk = function(V)
+            local i = q.entry(V)
+            return (i and i.Perk) or nil
+        end
+        q.alive = function(V)
+            local i = q.entry(V)
+            if i then
+                if i.Dead then
+                    return false
+                end
+            end
+            i = V.Character
+            V = i and i:FindFirstChildOfClass("Humanoid")
+            return (V ~= nil) and (V.Health > 0)
+        end
+        q.stored = function(V, i)
+            local k = V.Character
+            local S = k and (k:FindFirstChild(i))
+            if S then
+                return S, true
+            end
+            k = V:FindFirstChildOfClass("Backpack")
+            S = k and (k:FindFirstChild(i))
+            if S then
+                return S, false
+            end
+            return nil, false
+        end
+        q.sheriff = function()
+            if q.stored(p, "Gun") ~= nil then
+                return true
+            end
+            local V = q.role(p)
+            return (V == "Sheriff") or (V == "Hero")
+        end
+        q.murderer = function()
+            local V = q.data()
+            if not (V) then
+                return nil
+            end
+            for i, k in V, nil, nil do
+                local V = PlayersService1:FindFirstChild(i)
+                i = V and V.Character
+                if k.Role == "Murderer" then
+                    if k.Dead then
+                    elseif V then
+                        return V
+                    end
+                elseif k.Role == "Zombie" then
+                    if k.Dead then
+                    elseif V then
+                        return V
+                    end
+                elseif i then
+                    if i:GetAttribute("Zombie") == true then
+                        if k.Dead then
+                        elseif V then
+                            return V
+                        end
+                    end
+                end
+            end
+            return nil
+        end
+        q.team = function(V, i)
+            local environment67 = getfenv()
+            if environment67["type"](V) ~= "table" then
+                return nil
+            end
+            local S = i and i.Character
+            if S then
+                if S:GetAttribute("Zombie") == true then
+                    return "Zombie"
+                end
+            end
+            if V.KnifeEnabled == nil then
+                if V.GunEnabled == nil then
+                    if V.Role ~= "Zombie" then
+                        if V.Role ~= "Survivor" then
+                            return nil
+                        end
+                    end
+                end
+            end
+            S = V.Team or V.Role
+            return ((environment67["type"](S) == "string") and S) or nil
+        end
+        q.ally = function(V)
+            local i = q.data()
+            if i then
+                if V == p then
+                    return false
+                end
+            else
+                return false
+            end
+            local k = q.team(i[p.Name], p)
+            return (k ~= nil) and (q.team(i[V.Name], V) == k)
+        end
+        q.target = function(V)
+            local environment68, k = getfenv(), q.data()
+            if not (k) then
+                return nil
+            end
+            local S = q.team(k[p.Name], p)
+            if not (S) then
+                return q.murderer()
+            end
+            local p = environment68.workspace.CurrentCamera
+            local I, R, Q, Fo = p and p.CFrame
+            for so, zo in k, nil, nil do
+                p = PlayersService1:FindFirstChild(so)
+                so = q.team(zo, p)
+                if so then
+                    if so ~= S then
+                        if zo.Dead then
+                        else
+                            environment68 = p and p.Character
+                            local o = environment68 and environment68:FindFirstChild("HumanoidRootPart")
+                            if o then
+                                if q.alive(p) then
+                                    local i = 0
+                                    if I then
+                                        local k = o.Position - I.Position
+                                        i = if k.Magnitude > 0 then k.Unit:Dot(I.LookVector) else i
+                                    else
+                                    end
+                                    R = if p == V then i else R
+                                    if Q then
+                                        if i > Q then
+                                            Q, Fo = i, p
+                                        else
+                                        end
+                                    else
+                                        Q, Fo = i, p
+                                    end
+                                else
+                                end
+                            else
+                            end
+                        end
+                    else
+                    end
+                else
+                end
+            end
+            if R then
+                if (Q - R) < 0.05 then
+                    return V
+                end
+            end
+            return Fo
+        end
+    end
+     
+    local queued = {}
+    local savedQueue = getgenv().__PLR_QUEUE
+    getgenv().__PLR_QUEUE = function(key, name, fn) queued[#queued + 1] = { key = key, name = name, fn = fn } end
+    local function block(name, fn)
+        local ok, err = pcall(fn)
+        if not ok then warn("[mm2 extras] " .. name .. ": " .. tostring(err)) end
+    end
+    block("footsteps", function()
+        local r = Sections.Effects
+        do
+            local RunService6 = environment.game:GetService("RunService")
+            local TweenService = environment.game:GetService("TweenService")
+            local PlayersService7 = environment.game:GetService("Players")
+            local k, S = PlayersService7.LocalPlayer, {}
+            S.only = false
+            S.life = 60
+            S.gap = 0.2
+            S.cap = 600
+            S.acc = 0
+            S.foot = "LeftFoot"
+            S.conn = nil
+            S.fold = nil
+            S.tpl = nil
+            S.list = {}
+            local I, R, Q = "last", environment.setmetatable, {__mode = "k"}
+            S[I] = R({}, Q)
+            S.size = environment.Vector3.new(1.5, 0.2, 1)
+            S.down = environment.Vector3.new(0, -3.05, 0)
+            S.img = "http://www.roblox.com/asset/?id=154662351"
+            S.cut = environment.Vector2.new(0, 100)
+            S.span = environment.Vector2.new(100, 100)
+            S.murder = environment.Color3.fromRGB(255, 60, 60)
+            S.sheriff = environment.Color3.fromRGB(60, 140, 255)
+            S.innocent = environment.Color3.fromRGB(80, 255, 120)
+            local R = environment.RaycastParams.new()
+            R.FilterType = environment.Enum.RaycastFilterType.Exclude
+            local function Q(Fo)
+                if Fo == "Murderer" then
+                    return S.murder
+                end
+                if Fo == "Sheriff" then
+                    return S.sheriff
+                elseif Fo == "Hero" then
+                    return S.sheriff
+                end
+                return S.innocent
+            end
+            local function Fo(so, zo, Co, Lo, vo, Do, To, no)
+                local environment257 = getfenv()
+                local jo = environment257.Instance.new("Frame")
+                jo.Name = zo
+                jo.BackgroundTransparency = 1
+                jo.ClipsDescendants = true
+                jo.Size = environment257.UDim2.fromOffset(Co, Lo)
+                jo.Position = environment257.UDim2.fromScale(vo, Do)
+                jo.AnchorPoint = environment257.Vector2.new(vo, 0.5)
+                jo.Parent = so
+                Lo = environment257.Instance.new("ImageLabel")
+                Lo.BackgroundTransparency = 1
+                Lo.Size = environment257.UDim2.fromOffset(100, 100)
+                Lo.Position = environment257.UDim2.fromScale(To, no)
+                Lo.AnchorPoint = environment257.Vector2.new(To, no)
+                Lo.Image = S.img
+                Lo.ImageRectOffset = S.cut
+                Lo.ImageRectSize = S.span
+                Lo.Parent = jo
+            end
+            local function so(zo, Co, Lo)
+                local environment258 = getfenv()
+                local Do = environment258.Instance.new("Frame")
+                Do.Name = Co
+                Do.BackgroundTransparency = 1
+                Do.Size = environment258.UDim2.fromScale(1, 1)
+                Do.Visible = false
+                Do.Parent = zo
+                Fo(Do, "Foot", 65, 100, 1, Lo, 1, 0)
+                Fo(Do, "Heel", 50, 30, 0, Lo, 0, 0.5)
+            end
+            local function Fo()
+                local environment259 = getfenv()
+                if S.tpl then
+                    return S.tpl
+                end
+                local Co = environment259.Instance.new("Part")
+                Co.Name = "\000"
+                Co.Anchored = true
+                Co.CanCollide = false
+                Co.CanQuery = false
+                Co.CanTouch = false
+                Co.CastShadow = false
+                Co.Transparency = 1
+                Co.Size = S.size
+                local Lo = environment259.Instance.new("SurfaceGui")
+                Lo.Name = "g"
+                Lo.Face = environment259.Enum.NormalId.Top
+                Lo.LightInfluence = 0
+                Lo.SizingMode = environment259.Enum.SurfaceGuiSizingMode.PixelsPerStud
+                Lo.PixelsPerStud = 100
+                Lo.ZIndexBehavior = environment259.Enum.ZIndexBehavior.Global
+                Lo.Parent = Co
+                so(Lo, "LeftFoot", 0)
+                so(Lo, "RightFoot", 1)
+                S.tpl = Co
+                return Co
+            end
+            local function so(zo, Co, Lo)
+                local environment260, Do = getfenv(), S.fold
+                if if Do then not S.fold.Parent else not Do then
+                    S.fold = environment260.Instance.new("Folder")
+                    S.fold.Name = "\000"
+                    S.fold.Parent = environment260.workspace
+                end
+                Do = Co.CFrame
+                R.FilterDescendantsInstances = {zo}
+                zo = environment260.workspace:Raycast(Co.Position, -Do.UpVector * 12, R)
+                local R, To, no = (zo and zo.Position) or (Do * environment260.CFrame.new(S.down)).Position, S.foot, Fo():Clone()
+                zo = no.g
+                zo[To].Visible = true
+                zo[((To == "LeftFoot") and "RightFoot") or "LeftFoot"]:Destroy()
+                no.CFrame = environment260.CFrame.lookAt(R, R + Do.LookVector)
+                Do, Co = Q(Lo), S.life
+                Lo = Co * 0.05
+                R = environment260.TweenInfo.new(Co - Lo, environment260.Enum.EasingStyle.Linear, environment260.Enum.EasingDirection.Out, 0, false, Lo)
+                for Q, Fo in zo[To]:GetDescendants() do
+                    Q = "ImageLabel"
+                    if Fo:IsA(Q) then
+                        Fo.ImageColor3 = Do
+                        TweenService:Create(Fo, R, {ImageTransparency = 1}):Play()
+                    end
+                end
+                no.Parent = S.fold
+                S.list[#S.list + 1] = {no, environment260.os.clock() + Co}
+            end
+            local function p(R)
+                local environment261, Fo = getfenv(), "acc"
+                S[Fo] = S[Fo] + R
+                if S.acc < 0.25 then
+                    return
+                end
+                S.acc = 0
+                Fo = environment261.os.clock()
+                while S.list[1] and ((S.list[1][2] <= Fo) or (#S.list > S.cap)) do
+                    environment261.table.remove(S.list, 1)[1]:Destroy()
+                end
+                for zo, Co in PlayersService7:GetPlayers() do
+                    R, environment261 = (Co ~= k) and q.role(Co)
+                    if R then
+                        Fo = S.only
+                        environment261 = if Fo then R == "Murderer" else not Fo
+                    else
+                        environment261 = R
+                    end
+                    if environment261 then
+                        if q.alive(Co) then
+                            zo = Co.Character
+                            local i = zo and zo:FindFirstChild("HumanoidRootPart")
+                            if i then
+                                local k = "LeftFoot"
+                                if zo:FindFirstChild(k) then
+                                    local k = "RightFoot"
+                                    if zo:FindFirstChild(k) then
+                                        local k = S.last[Co]
+                                        if k then
+                                            if (i.Position - k).Magnitude >= S.gap then
+                                                S.last[Co] = i.Position
+                                                so(zo, i, R)
+                                            end
+                                        else
+                                            S.last[Co] = i.Position
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+                S.foot = ((S.foot == "LeftFoot") and "RightFoot") or "LeftFoot"
+            end
+            local function i()
+                local environment262 = getfenv()
+                if S.conn then
+                    S.conn:Disconnect()
+                    S.conn = nil
+                end
+                for R, R in S.list, nil, nil do
+                    R[1]:Destroy()
+                end
+                environment262.table.clear(S.list)
+                environment262.table.clear(S.last)
+                S.foot = "LeftFoot"
+                if S.tpl then
+                    S.tpl:Destroy()
+                    S.tpl = nil
+                end
+                if S.fold then
+                    S.fold:Destroy()
+                    S.fold = nil
+                end
+            end
+            I = r:AddToggle({Name = "footsteps", Icon = "footprints", Default = false, Flag = "esp_footsteps", Option = true, Callback = function(k)
+                if k then
+                    if not (S.conn) then
+                        S.acc = 0
+                        S.conn = RunService6.Heartbeat:Connect(p)
+                    end
+                else
+                    i()
+                end
+            end})
+            I.Option:AddToggle({Name = "murder only", Icon = "sword", Default = false, Flag = "esp_footsteps_murder", Callback = function(V)
+                S.only = V
+            end})
+            I.Option:AddSlider({Name = "lifetime", Default = 60, Min = 5, Max = 60, Round = 0, Type = "s", Flag = "esp_footsteps_life", Callback = function(V)
+                S.life = V
+            end})
+            I.Option:AddColorPicker({Name = "murder", Default = environment.Color3.fromRGB(255, 60, 60), Flag = "esp_footsteps_murder_col", Callback = function(V)
+                S.murder = V
+            end})
+            I.Option:AddColorPicker({Name = "sheriff", Default = environment.Color3.fromRGB(60, 140, 255), Flag = "esp_footsteps_sheriff_col", Callback = function(V)
+                S.sheriff = V
+            end})
+            I.Option:AddColorPicker({Name = "innocent", Default = environment.Color3.fromRGB(80, 255, 120), Flag = "esp_footsteps_innocent_col", Callback = function(V)
+                S.innocent = V
+            end})
+            environment.getgenv().footsteps_unload = i
+        end
+    end)
+    block("knife trail", function()
+    do
+        local A = {}
+        A.col = environment.Color3.fromRGB(150, 115, 255)
+        A.style = "streak"
+        A.sparks = true
+        local RunService9 = environment.game:GetService("RunService")
+        local CollectionService4 = environment.game:GetService("CollectionService")
+        local V, p, i, k, S, I, R, Q = environment.getgenv().__SHITARO_EFFECTS_SEC or H:AddSection({Name = "effects", Position = "right"}), environment.Color3.new(1, 1, 1), {}, {}, {}
+        local function Fo(...)
+            local environment331, zo, Co = getfenv(), {...}, {}
+            for Lo = 1, #zo, 2 do
+                Co[#Co + 1] = environment331.NumberSequenceKeypoint.new(zo[Lo], zo[Lo + 1])
+            end
+            return environment331.NumberSequence.new(Co)
+        end
+        local function so(...)
+            local environment332, Co, Lo = getfenv(), {...}, {}
+            for vo = 1, #Co, 2 do
+                Lo[#Lo + 1] = environment332.ColorSequenceKeypoint.new(Co[vo], Co[vo + 1])
+            end
+            return environment332.ColorSequence.new(Lo)
+        end
+        local function zo(Co, Lo, vo)
+            local environment333 = getfenv()
+            local To = environment333.math.clamp((vo - Co) / (Lo - Co), 0, 1)
+            return (To * To) * (3 - (2 * To))
+        end
+        local function Co(Lo, vo)
+            local environment334, To, no, xo = getfenv(), Lo .. vo, 4294967295, 1
+            local Lo, jo = #To, 1
+            for Ao = xo, Lo, jo do
+                local Lo, xo = environment334.bit32.bxor, I
+                no = (Lo(xo[environment334.bit32.band(environment334.bit32.bxor(no, environment334.string.byte(To, Ao)), 255)], environment334.bit32.rshift(no, 8)))
+            end
+            return environment334.string.pack(">I4", #vo) .. (To .. environment334.string.pack(">I4", environment334.bit32.bnot(no)))
+        end
+        local function Lo(vo, Do, To)
+            local environment335 = getfenv()
+            if not (I) then
+                I = {}
+                local xo, jo, Ao = 0, 255, 1
+                for eo = xo, jo, Ao do
+                    local xo = eo
+                    for jo = 1, 8, 1 do
+                        xo = ((environment335.bit32.band(xo, 1) == 1) and environment335.bit32.bxor(environment335.bit32.rshift(xo, 1), 3988292384)) or environment335.bit32.rshift(xo, 1)
+                    end
+                    I[eo] = xo
+                end
+            end
+            local I = (vo * 4) + 1
+            local xo = I * Do
+            local jo, Ao, eo = environment335.buffer.create(xo), 1, 0
+            for co = 0, Do - 1, 1 do
+                local ro = co * I
+                for Ko = 0, vo - 1, 1 do
+                    environment335.buffer.writeu32(jo, (ro + 1) + (Ko * 4), (environment335.math.floor((environment335.math.clamp(To((Ko + 0.5) / vo, (co + 0.5) / Do), 0, 1) * 255) + 0.5) * 16777216) + 16777215)
+                end
+                for Ko = ro, (ro + I) - 1, 1 do
+                    Ao = (Ao + environment335.buffer.readu8(jo, Ko)) % 65521
+                    eo = (eo + Ao) % 65521
+                end
+                if (co % 8) == 7 then
+                    environment335.task.wait()
+                end
+            end
+            To = {"x\001"}
+            for co = 0, xo - 1, 65535 do
+                I = environment335.math.min(65535, xo - co)
+                To[#To + 1] = environment335.string.pack("<BI2I2", (((co + I) >= xo) and 1) or 0, I, 65535 - I) .. environment335.buffer.readstring(jo, co, I)
+            end
+            To[#To + 1] = environment335.string.pack(">I4", (eo * 65536) + Ao)
+            return "\137PNG\013\n\026\n" .. (Co("IHDR", environment335.string.pack(">I4I4BBBBB", vo, Do, 8, 6, 0, 0, 0)) .. (Co("IDAT", environment335.table.concat(To)) .. Co("IEND", "")))
+        end
+        local function I()
+            local environment336 = getfenv()
+            if Q then
+                return
+            elseif A.busy then
+                return
+            end
+            A.busy = true
+            local vo, Do = environment336.pcall(function()
+                local environment337 = getfenv()
+                local To, no = environment337.Random.new(7), {}
+                for xo = 1, 16, 1 do
+                    local jo = ((xo - 0.5) / 16) + To:NextNumber(-0.015, 0.015)
+                    local Ao, eo, co, ro = 1 - environment337.math.abs((jo * 2) - 1), {}, 0.012, 0.024
+                    local Co, Ko, Xo, yo = To:NextNumber(co, ro), 0.25 + (0.75 * Ao), 0.55, 1
+                    local co, ro, Po = Ko * To:NextNumber(Xo, yo), 0.4, 1
+                    Ko, Xo, yo = To:NextNumber(ro, Po) * (0.35 + (0.65 * Ao)), 0, 0.08
+                    appendPacked(eo, 0, jo, Co, co, Ko, To:NextNumber(Xo, yo))
+                    no[xo] = eo
+                end
+                return {line = M("kt.png", Lo(32, 64, function(Co, To)
+                    local environment338 = getfenv()
+                    return (environment338.math.sin(3.141592653589793 * Co) ^ 2) * ((1 - To) ^ 1.1)
+                end)) or "", dot = M("kt.png", Lo(32, 32, function(Co, To)
+                    local environment339 = getfenv()
+                    return environment339.math.clamp(1 - (environment339.math.sqrt(((Co - 0.5) ^ 2) + ((To - 0.5) ^ 2)) * 2), 0, 1) ^ 2
+                end)) or "", wisp = M("kt.png", Lo(256, 64, function(M, Co)
+                    local environment340, To = getfenv(), 0
+                    for xo, jo in no, nil, nil do
+                        xo = (M - jo[1]) / jo[2]
+                        To = if (xo * xo) < 9 then environment340.math.max(To, ((environment340.math.exp(-xo * xo) * jo[4]) * ((1 - zo(jo[5], jo[3], Co)) ^ 1.2)) * zo(jo[5] - 0.02, jo[5] + 0.02, Co)) else To
+                    end
+                    return To
+                end)) or ""}
+            end)
+            Q = (vo and Do) or {line = "", dot = "", wisp = ""}
+        end
+        local function M(zo, Co, Lo, vo, Do, To, no, xo, jo)
+            local environment341 = getfenv()
+            local eo, co, ro = environment341.Instance.new("Attachment"), environment341.Instance.new("Attachment"), environment341.Instance.new("Trail")
+            eo.Name, co.Name, ro.Name = "\000", "\000", "\000"
+            eo.Position, co.Position = environment341.Vector3.new(-Co / 2, 0, 0), environment341.Vector3.new(Co / 2, 0, 0)
+            eo.Parent, co.Parent = zo, zo
+            ro.Attachment0, ro.Attachment1 = eo, co
+            ro.FaceCamera = true
+            ro.Lifetime = Lo
+            ro.MinLength = 0.03
+            ro.LightEmission = vo
+            ro.LightInfluence = 0
+            ro.Brightness = Do
+            ro.Texture = To
+            ro.TextureMode = environment341.Enum.TextureMode.Stretch
+            ro.Color = no
+            ro.Transparency = xo or environment341.NumberSequence.new(0)
+            ro.WidthScale = jo or environment341.NumberSequence.new(1)
+            ro.Parent = zo
+        end
+        local zo = {}
+        zo.streak = function(Co, Lo)
+            local vo, Do, To, no, xo = 0.14, 0.32, 1, 2, Q
+            M(Co, vo, Do, To, no, xo.line, so(0, p, 0.3, Lo[2], 1, Lo[1]), nil, Fo(0, 1, 1, 0.15))
+            vo, To, Do, no, xo = 0.6, 0.2, 1, 1, Q
+            M(Co, vo, To, Do, no, xo.line, so(0, Lo[2], 1, Lo[1]), Fo(0, 0.5, 1, 1), Fo(0, 1, 1, 0.3))
+        end
+        zo.wisp = function(Co, Lo)
+            local vo, Do, To, no, xo = 1, 0.3, 0.6, 1.4, Q
+            M(Co, vo, Do, To, no, xo.wisp, so(0, p, 0.2, Lo[2], 0.6, Lo[1], 1, Lo[3]))
+            vo, xo, To, Do, no = 0.1, 0.22, 1, 2, Q
+            M(Co, vo, xo, To, Do, no.line, so(0, p, 1, Lo[2]), nil, Fo(0, 1, 1, 0.2))
+        end
+        zo.echo = function(Co, Lo)
+            local vo, Do, To, no, xo = 0.1, 0.2, 1, 1.5, Q
+            M(Co, vo, Do, To, no, xo.line, so(0, p, 1, Lo[1]), nil, Fo(0, 1, 1, 0.2))
+        end
+        local function M(Co, Lo)
+            local environment342 = getfenv()
+            local Do, To = environment342.Instance.new("Attachment"), environment342.Instance.new("ParticleEmitter")
+            Do.Name, To.Name = "\000", "\000"
+            local no, xo = "Texture", Q
+            To[no] = xo.dot
+            To.Rate = 120
+            To.Lifetime = environment342.NumberRange.new(0.18, 0.42)
+            To.Speed = environment342.NumberRange.new(1.5, 5.5)
+            To.SpreadAngle = environment342.Vector2.new(180, 180)
+            To.Drag = 5
+            To.Acceleration = environment342.Vector3.new(0, -5, 0)
+            To.Size = Fo(0, 0.12, 1, 0)
+            To.Transparency = Fo(0, 0, 0.7, 0.2, 1, 1)
+            To.Color = so(0, p, 1, Lo[1])
+            To.LightEmission = 1
+            To.LightInfluence = 0
+            To.Brightness = 2
+            To.Parent = Do
+            Do.Parent = Co
+        end
+        local function Fo(so, Co)
+            local environment343, vo = getfenv(), so:Clone()
+            if not (vo) then
+                return
+            end
+            for Do, To in vo:GetDescendants() do
+                so = "DataModelMesh"
+                if To:IsA(so) then
+                    Do = "SpecialMesh"
+                    if To:IsA(Do) then
+                        To.TextureId = ""
+                    end
+                else
+                    To:Destroy()
+                end
+            end
+            for Do, Do in vo:GetTags() do
+                vo:RemoveTag(Do)
+            end
+            so = "MeshPart"
+            if vo:IsA(so) then
+                vo.TextureID = ""
+            end
+            vo.Name = "\000"
+            vo.Anchored, vo.CanCollide, vo.CanQuery, vo.CanTouch, vo.CastShadow = true, false, false, false, false
+            vo.Material, vo.Color, vo.Transparency, vo.LocalTransparencyModifier = environment343.Enum.Material.ForceField, Co, 0.15, 0
+            return vo
+        end
+        local function so(Co, Lo, vo)
+            local environment344, To = getfenv(), Co:GetAttribute("Direction")
+            To = (((environment344["typeof"](To) == "Vector3") and (To.Magnitude > 0.01)) and To.Unit) or vo.CFrame.LookVector
+            local no, xo, jo = A.col:ToHSV()
+            local Ao, eo, co, ro = {}, A.col, A.col, 0.55
+            appendPacked(Ao, 0, eo, co:Lerp(p, ro), environment344.Color3.fromHSV(no, environment344.math.min(1, xo + 0.25), jo * 0.8))
+            no = environment344.Instance.new("Part")
+            no.Name, no.Size, no.Transparency = "\000", environment344.Vector3.one * 0.05, 1
+            no.Anchored, no.CanCollide, no.CanQuery, no.CanTouch, no.CastShadow = true, false, false, false, false
+            Lo.rot = environment344.CFrame.lookAt(environment344.Vector3.zero, To, ((environment344.math.abs(To.Y) > 0.99) and environment344.Vector3.xAxis) or environment344.Vector3.yAxis)
+            no.CFrame = Lo.rot + vo.Position
+            Co = zo[A.style] or zo.streak
+            Co(no, Ao)
+            if A.sparks then
+                M(no, Ao)
+            end
+            if Co == zo.echo then
+                co = vo:FindFirstChild("VH")
+                Lo.src = ((co and co:IsA("BasePart")) and co) or vo
+                Lo.g, Lo.acc = Fo(Lo.src, Ao[1]), 0
+            end
+            no.Parent = R
+            Lo.kv, Lo.p = vo, no
+        end
+        local function M(p, Fo)
+            local environment345 = getfenv()
+            i[p] = nil
+            if Fo.g then
+                Fo.g:Destroy()
+            end
+            p = Fo.p
+            if not p then
+                return
+            end
+            for Co, Lo in p:GetDescendants() do
+                Fo = "Trail"
+                if Lo:IsA(Fo) then
+                    Lo.Enabled = false
+                else
+                    Co = "ParticleEmitter"
+                    if Lo:IsA(Co) then
+                        Lo.Enabled = false
+                    end
+                end
+            end
+            environment345.task.delay(0.6, p.Destroy, p)
+        end
+        local function p(Fo)
+            local environment346 = getfenv()
+            local Co = environment346.os.clock()
+            for Lo, vo in i, nil, nil do
+                if not (vo.kv) then
+                    local Do = Q and Lo:FindFirstChild("KnifeVisual")
+                    if Do and Do:IsA("BasePart") then
+                        so(Lo, vo, Do)
+                    elseif Lo.Parent then
+                        if (Co - vo.t) > 2 then
+                            i[Lo] = nil
+                        end
+                    else
+                        i[Lo] = nil
+                    end
+                end
+                if vo.kv then
+                    local Q = Lo.Parent
+                    if if Q then not vo.kv.Parent else not Q then
+                        M(Lo, vo)
+                    else
+                        vo.p.CFrame = vo.rot + vo.kv.Position
+                        if vo.g then
+                            vo.acc = environment346.math.min(vo.acc + Fo, 0.1)
+                            while true do
+                                local M, Q = vo.acc, 0.016666666666666666
+                                if not (M >= Q) then
+                                    break
+                                end
+                                vo.acc -= 0.016666666666666666
+                                Q = vo.g:Clone()
+                                Q.CFrame = vo.src.CFrame
+                                Q.Parent = R
+                                k[Q] = Co
+                            end
+                        end
+                    end
+                end
+            end
+            for M, Q in k, nil, nil do
+                environment346 = (Co - Q) / 0.24
+                if environment346 >= 1 then
+                    k[M] = nil
+                    M:Destroy()
+                else
+                    M.Transparency = 0.15 + (0.85 * environment346)
+                end
+            end
+        end
+        local function M()
+            local environment347 = getfenv()
+            for Fo, so in S, nil, nil do
+                so:Disconnect()
+                S[Fo] = nil
+            end
+            for Fo, so in i, nil, nil do
+                if so.g then
+                    so.g:Destroy()
+                end
+                i[Fo] = nil
+            end
+            environment347.table.clear(k)
+            if R then
+                R:Destroy()
+            end
+            R = nil
+        end
+        local function k()
+            local environment348 = getfenv()
+            if S[1] then
+                return
+            end
+            R = environment348.Instance.new("Folder")
+            local Fo = R
+            Fo.Name = "\000"
+            Fo = R
+            Fo.Parent = environment348.workspace
+            environment348.task.spawn(I)
+            S[1] = CollectionService4:GetInstanceAddedSignal("ThrowingKnife"):Connect(function(o)
+                local environment349 = getfenv()
+                if not (i[o]) then
+                    i[o] = {t = environment349.os.clock()}
+                end
+            end)
+            S[2] = RunService9.PreRender:Connect(p)
+        end
+        d = V:AddToggle({Name = "knife trail", Icon = "sword", Default = false, Flag = "fx_knife_trail", Option = true, Premium = true, Callback = function(r)
+            if r then
+                k()
+            else
+                M()
+            end
+        end}).Option
+        d:AddColorPicker({Name = "color", Default = A.col, Flag = "fx_knife_trail_col", Callback = function(r)
+            A.col = r
+        end})
+        d:AddDropdown({Name = "style", Default = "streak", Values = {"streak", "wisp", "echo"}, Flag = "fx_knife_trail_style", Callback = function(r)
+            local environment350 = getfenv()
+            A.style = ((environment350["type"](r) == "table") and r[1]) or r
+        end})
+        d:AddToggle({Name = "sparks", Icon = "zap", Default = true, Flag = "fx_knife_trail_sparks", Callback = function(r)
+            A.sparks = r
+        end})
+        environment.getgenv().ktrail_unload = M
+    end
+    end)
+    block("knife warning", function()
+    do
+        local A = {}
+        A.col = environment.Color3.fromRGB(255, 80, 80)
+        A.fill = environment.Color3.fromRGB(16, 16, 20)
+        A.size = 15
+        A.stroke = 2
+        local RunService10 = environment.game:GetService("RunService")
+        local CollectionService5 = environment.game:GetService("CollectionService")
+        local HttpService2 = environment.game:GetService("HttpService")
+        local V = environment.game:GetService("Players").LocalPlayer
+        local p, i = environment.getgenv().__SHITARO_EFFECTS_SEC or H:AddSection({Name = "effects", Position = "right"}), {}
+        appendPacked(i, 0, "oc", "ot", "ic", "it", "im", "tx")
+        local k, S, I, R = {}, {}, {}
+        local function Q()
+            local environment351 = getfenv()
+            if R then
+                return
+            elseif A.busy then
+                return
+            end
+            A.busy = true
+            local so, zo, Co = 1, 5, 1
+            for Lo = so, zo, Co do
+                local so, zo = environment351.pcall(function()
+                    local environment352 = getfenv()
+                    return HttpService2:JSONDecode(environment352.game:HttpGet("https://thumbnails.roblox.com/v1/assets?assetIds=91165848022002&size=150x150&format=Png&isCircular=false")).data[1].imageUrl
+                end)
+                if so then
+                    if environment351["type"](zo) == "string" then
+                        if zo ~= "" then
+                            local o, so = environment351.pcall(environment351.game.HttpGet, environment351.game, zo)
+                            if o then
+                                if environment351["type"](so) == "string" then
+                                    if #so > 64 then
+                                        R = so
+                                        break
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+                environment351.task.wait(1)
+            end
+            A.busy = false
+        end
+        local function o(Fo, so, zo)
+            local environment353 = getfenv()
+            local Lo = environment353.Drawing.new(Fo)
+            Lo.ZIndex = so
+            for Fo, so in zo, nil, nil do
+                Lo[Fo] = so
+            end
+            return Lo
+        end
+        local function Fo()
+            local environment354 = getfenv()
+            return environment354.table.remove(S) or {oc = o("Circle", 1, {Filled = true, NumSides = 48}), ot = o("Triangle", 1, {Filled = true}), ic = o("Circle", 2, {Filled = true, NumSides = 48}), it = o("Triangle", 2, {Filled = true}), im = o("Image", 3, {}), tx = o("Text", 3, {Center = true, Outline = true, Color = environment354.Color3.new(1, 1, 1)})}
+        end
+        local function o(so, zo)
+            for Co, Co in i, nil, nil do
+                so[Co].Visible = zo
+            end
+        end
+        local function so(zo, Co, Lo, vo, Do)
+            local environment355 = getfenv()
+            Co.Position, Co.Radius = Lo, Do
+            zo.PointA = Lo + ((vo * Do) * 1.8)
+            zo.PointB = Lo + (environment355.Vector2.new((vo.X * 0.5556) - (vo.Y * 0.8315), (vo.X * 0.8315) + (vo.Y * 0.5556)) * Do)
+            zo.PointC = Lo + (environment355.Vector2.new((vo.X * 0.5556) + (vo.Y * 0.8315), (vo.Y * 0.5556) - (vo.X * 0.8315)) * Do)
+        end
+        local function zo(Co)
+            local environment356 = getfenv()
+            local vo = environment356.workspace.CurrentCamera
+            if vo then
+                if environment356.next(k) == nil then
+                    return
+                end
+            else
+                return
+            end
+            local Do, To = vo.ViewportSize / 2, V.Character
+            local no = To and To:FindFirstChild("HumanoidRootPart")
+            local xo, jo, Ao, eo, co, ro = (no and no.Position) or vo.CFrame.Position, q.role(V) == "Murderer", 1 - environment356.math.exp(-Co * 16), 1 - environment356.math.exp(-Co * 12), 1 - environment356.math.exp(-Co * 30), 1 - environment356.math.exp(-Co * 8)
+            for Ko, Xo in k, nil, nil do
+                Co = Ko.Parent and (Ko:FindFirstChild("KnifeVisual") or Ko:FindFirstChild("BladePosition"))
+                if Xo.own == nil then
+                    no = Ko:FindFirstChild("HandleLink")
+                    local yo = no and no.Value
+                    if yo then
+                        local no, Po = "own", yo:IsDescendantOf(V) or ((To ~= nil) and yo:IsDescendantOf(To))
+                        Xo[no] = Po
+                    end
+                end
+                local V = ((Co and Co:IsA("BasePart")) and not jo) and not Xo.own
+                if V then
+                    Xo.at = Co.Position
+                end
+                Xo.a += (((V and 1) or 0) - Xo.a) * ((V and co) or ro)
+                local Co, To = Xo.d, Ko.Parent
+                if if To then not To else Xo.a < 0.02 then
+                    o(Co, false)
+                    S[#S + 1] = Co
+                    k[Ko] = nil
+                elseif Xo.at then
+                    if Xo.a > 0.02 then
+                        V = A.size
+                        local To, no, jo, co = environment356.math.clamp(A.stroke, 0, V - 1), environment356.math.floor((V * 1.07) + 0.5), vo:WorldToViewportPoint(Xo.at)
+                        local ro = vo.CFrame:PointToObjectSpace(Xo.at)
+                        local vo = environment356.math.atan2(-ro.Y, ro.X)
+                        Xo.ang = (Xo.ang and (Xo.ang + (((((vo - Xo.ang) + 3.141592653589793) % 6.283185307179586) - 3.141592653589793) * eo))) or vo
+                        vo = environment356.Vector2.new(environment356.math.cos(Xo.ang), environment356.math.sin(Xo.ang))
+                        ro = Do + (vo * environment356.math.min((Do.X - (V * 2.8)) / environment356.math.max(environment356.math.abs(vo.X), 0.001), (Do.Y - (V * 2.8)) / environment356.math.max(environment356.math.abs(vo.Y), 0.001)))
+                        if co then
+                            Xo.sp = environment356.Vector2.new(jo.X, jo.Y)
+                        end
+                        jo = (co and 0) or 1
+                        Xo.o = (Xo.o and (Xo.o + ((jo - Xo.o) * Ao))) or jo
+                        jo = (Xo.sp or ro):Lerp(ro, Xo.o)
+                        so(Co.ot, Co.oc, jo, vo, V)
+                        so(Co.it, Co.ic, jo, vo, V - To)
+                        if R then
+                            if not (Co.ink) then
+                                Co.im.Data = R
+                                Co.ink = true
+                            end
+                        end
+                        Co.oc.Color, Co.ot.Color, Co.im.Color = A.col, A.col, A.col
+                        Co.ic.Color, Co.it.Color = A.fill, A.fill
+                        Co.oc.Transparency, Co.ic.Transparency, Co.im.Transparency, Co.tx.Transparency = Xo.a, Xo.a, Xo.a, Xo.a
+                        Co.ot.Transparency, Co.it.Transparency = Xo.a * Xo.o, Xo.a * Xo.o
+                        Co.im.Size = environment356.Vector2.new(no, no)
+                        Co.im.Position = jo - environment356.Vector2.new(no / 2, (no / 2) + (V / 15))
+                        Co.tx.Size = environment356.math.max(10, environment356.math.floor((V * 0.87) + 0.5))
+                        Co.tx.Text = environment356.math.floor((Xo.at - xo).Magnitude + 0.5) .. "m"
+                        co = Co.tx.TextBounds
+                        ro = jo - (vo * (((V + 4) + ((environment356.math.abs(vo.X) * co.X) / 2)) + ((environment356.math.abs(vo.Y) * co.Y) / 2)))
+                        Co.tx.Position = (jo + environment356.Vector2.new(0, V + 2)):Lerp(ro - environment356.Vector2.new(0, co.Y / 2), Xo.o)
+                        o(Co, true)
+                    else
+                        o(Co, false)
+                    end
+                else
+                    o(Co, false)
+                end
+            end
+        end
+        local function V()
+            for R, so in I, nil, nil do
+                so:Disconnect()
+                I[R] = nil
+            end
+            for R, so in k, nil, nil do
+                o(so.d, false)
+                S[#S + 1] = so.d
+                k[R] = nil
+            end
+        end
+        local function o()
+            local environment357 = getfenv()
+            if I[1] then
+                return
+            end
+            environment357.task.spawn(Q)
+            I[1] = CollectionService5:GetInstanceAddedSignal("ThrowingKnife"):Connect(function(M)
+                if not (k[M]) then
+                    k[M] = {a = 0, d = Fo()}
+                end
+            end)
+            I[2] = RunService10.PreRender:Connect(zo)
+        end
+        K = p:AddToggle({Name = "knife warning", Icon = "bell", Default = false, Flag = "fx_knife_warn", Option = true, Premium = true, Callback = function(r)
+            if r then
+                o()
+            else
+                V()
+            end
+        end}).Option
+        K:AddColorPicker({Name = "primary", Default = A.col, Flag = "fx_knife_warn_col", Callback = function(r)
+            A.col = r
+        end})
+        K:AddColorPicker({Name = "fill", Default = A.fill, Flag = "fx_knife_warn_fill", Callback = function(r)
+            A.fill = r
+        end})
+        K:AddSlider({Name = "size", Min = 8, Max = 32, Default = 15, Round = 0, Type = "px", Flag = "fx_knife_warn_size", Callback = function(r)
+            local environment358 = getfenv()
+            A.size = environment358.tonumber(r) or 15
+        end})
+        K:AddSlider({Name = "stroke", Min = 0, Max = 6, Default = 2, Round = 1, Type = "px", Flag = "fx_knife_warn_stroke", Callback = function(r)
+            local environment359 = getfenv()
+            A.stroke = environment359.tonumber(r) or 2
+        end})
+        environment.getgenv().kwarn_unload = function()
+            local environment360 = getfenv()
+            V()
+            for r, r in S, nil, nil do
+                for M, M in i, nil, nil do
+                    environment360.pcall(function()
+                        r[M]:Destroy()
+                    end)
+                end
+            end
+            environment360.table.clear(S)
+        end
+    end
+    end)
+    block("round timer", function()
+(function()
+        local environment525 = getfenv()
+        local A = environment525.getgenv()
+        local r = A.rtimer_unload
+        if environment525["type"](r) == "function" then
+            environment525.pcall(r)
+        end
+        local PlayersService13, RunService14 = environment525.game:GetService("Players"), environment525.game:GetService("RunService")
+        local GuiService1 = environment525.game:GetService("GuiService")
+        local V = PlayersService13.LocalPlayer
+        local r, p = A.shitaro_mobile == true
+        local A, i, k, S, I = 0
+        local function R()
+            local Q = V:FindFirstChildOfClass("PlayerGui")
+            local V = Q and Q:FindFirstChild("MainGUI")
+            return V and V:FindFirstChild("Game")
+        end
+        local function V(Q)
+            local environment526 = getfenv()
+            local so = environment526.math.floor(Q / 60)
+            return (((so > 0) and (so .. "m ")) or "") .. ((Q - (so * 60)) .. "s")
+        end
+        local function Q()
+            local environment527 = getfenv()
+            if i then
+                environment527.pcall(function()
+                    i:Destroy()
+                end)
+            end
+            i, k, S, I = nil, nil, nil, nil
+        end
+        local function Fo()
+            local environment528, zo = getfenv(), y and y.scr
+            if zo then
+                if not (zo.Parent) then
+                    return false
+                end
+            else
+                return false
+            end
+            if i then
+                local Co = i
+                if Co.Parent == zo then
+                    if k then
+                        local Co = k
+                        if Co.Parent == i then
+                            return true
+                        end
+                    end
+                end
+            end
+            Q()
+            local Co = environment528.Instance.new("Frame")
+            Co.Name = "RoundTimer"
+            Co.BackgroundTransparency = 1
+            Co.BorderSizePixel = 0
+            Co.AnchorPoint = environment528.Vector2.new(0.5, 0)
+            Co.Position = environment528.UDim2.new(0.5, 0, 0, 8)
+            Co.Size = environment528.UDim2.fromOffset(180, 36)
+            Co.ZIndex = 1000
+            Co.Visible = false
+            local Lo = environment528.Instance.new("TextLabel")
+            Lo.Name = "XPText"
+            Lo.BackgroundTransparency = 1
+            Lo.BorderSizePixel = 0
+            Lo.Size = environment528.UDim2.fromScale(1, 1)
+            Lo.ZIndex = 1001
+            Lo.Font = environment528.Enum.Font.GothamBold
+            Lo.TextSize = 20
+            Lo.TextScaled = false
+            Lo.TextWrapped = false
+            Lo.TextXAlignment = environment528.Enum.TextXAlignment.Center
+            Lo.TextYAlignment = environment528.Enum.TextYAlignment.Center
+            Lo.TextStrokeColor3 = environment528.Color3.new()
+            Lo.TextStrokeTransparency = 0.25
+            Lo.TextColor3 = environment528.Color3.new(1, 1, 1)
+            Lo.Text = ""
+            Lo.Parent = Co
+            Co.Parent = zo
+            i, k = Co, Lo
+            return true
+        end
+        local function so(zo)
+            local environment529 = getfenv()
+            if i then
+                local Lo = i
+                if Lo.Parent == zo then
+                    if k then
+                        local Lo = k
+                        if Lo.Parent == i then
+                            return true
+                        end
+                    end
+                end
+            end
+            Q()
+            local Lo = zo:FindFirstChild("Timer")
+            local vo = Lo and Lo:FindFirstChild("XPText")
+            if not (vo) then
+                return false
+            end
+            local Do = environment529.Instance.new("Frame")
+            Do.Name = "RoundTimer"
+            Do.BackgroundTransparency = 1
+            Do.BorderSizePixel = 0
+            Do.AnchorPoint = Lo.AnchorPoint
+            Do.Position = Lo.Position
+            Do.Size = Lo.Size
+            Do.ZIndex = Lo.ZIndex
+            Do.Visible = false
+            local To = environment529.Instance.new("TextLabel")
+            To.Name = "XPText"
+            To.BackgroundTransparency = 1
+            To.BorderSizePixel = 0
+            To.AnchorPoint = vo.AnchorPoint
+            To.Position = vo.Position
+            To.Size = vo.Size
+            To.ZIndex = vo.ZIndex
+            To.FontFace = vo.FontFace
+            To.TextSize = vo.TextSize
+            To.TextScaled = vo.TextScaled
+            To.TextWrapped = vo.TextWrapped
+            To.TextXAlignment = vo.TextXAlignment
+            To.TextYAlignment = vo.TextYAlignment
+            To.TextStrokeColor3 = vo.TextStrokeColor3
+            To.TextStrokeTransparency = vo.TextStrokeTransparency
+            To.TextColor3 = environment529.Color3.new(1, 1, 1)
+            To.Text = ""
+            To.Parent = Do
+            S, i, k = Lo.Position, Do, To
+            Do.Parent = zo
+            return true
+        end
+        local function zo(Co)
+            if r then
+                return Fo()
+            end
+            return (Co and so(Co)) or false
+        end
+        local function Fo(so, Co)
+            local environment530 = getfenv()
+            local vo, Do = environment530.pcall(GuiService1.GetGuiInset, GuiService1)
+            local o, To = ((vo and (environment530["typeof"](Do) == "Vector2")) and (Do.Y + 8)) or 8, environment530.workspace.CurrentCamera
+            vo = (To and To.ViewportSize) or environment530.Vector2.new(800, 600)
+            To, Do = vo.X * 0.5, if so then if so:IsA("GuiObject") then if so.Visible then so:FindFirstChild("XPText", true) else nil else nil else nil
+            Do = Do or (if Co then if Co:IsA("GuiObject") then Co:FindFirstChild("XPText", true) else Do else Do)
+            Co = nil
+            if Do then
+                local no = "GuiObject"
+                if Do:IsA(no) then
+                    if Do.AbsoluteSize.X > 0 then
+                        if Do.AbsoluteSize.Y > 0 then
+                            local no = Do.AbsolutePosition.X + (Do.AbsoluteSize.X * 0.5)
+                            Co = if so then if Do:IsDescendantOf(so) then (Do.AbsolutePosition.Y + Do.AbsoluteSize.Y) + 4 else Do.AbsolutePosition.Y else Do.AbsolutePosition.Y
+                            To = no
+                        else
+                            Co = o
+                        end
+                    else
+                        Co = o
+                    end
+                else
+                    Co = o
+                end
+            else
+                Co = o
+            end
+            To, Co = environment530.math.clamp(To, 90, environment530.math.max(vo.X - 90, 90)), environment530.math.clamp(Co, o, environment530.math.max(environment530.math.min(vo.Y - 40, o + 64), o))
+            local Do, no = i
+            if Do then
+                o = i
+                no = o.Parent
+            else
+                no = Do
+            end
+            o, Do = environment530.pcall(function()
+                return no and no.AbsolutePosition
+            end)
+            if o then
+                if environment530["typeof"](Do) == "Vector2" then
+                    so, vo = To - Do.X, Co - Do.Y
+                    To, Co = so, vo
+                else
+                end
+            else
+            end
+            return environment530.UDim2.fromOffset(environment530.math.floor(To + 0.5), environment530.math.floor(Co + 0.5))
+        end
+        local function o()
+            local environment531, Co = getfenv(), R()
+            if not (zo(Co)) then
+                return
+            end
+            local R = environment531.workspace:FindFirstChild("RoundTimerPart")
+            local zo, Lo, vo = (R and environment531.tonumber(R:GetAttribute("Time"))) or (-1), Co and Co:FindFirstChild("Timer"), Co and Co:FindFirstChild("EarnedXP")
+            Co = (Lo and Lo.Visible) and not ((r and vo) and vo.Visible)
+            Co = (zo <= 0) or Co
+            if Co then
+                R = i
+                if R.Visible then
+                    local Do = i
+                    Do.Visible = false
+                end
+                return
+            end
+            zo = environment531.math.floor(zo)
+            R = nil
+            if r then
+                R = (Fo(vo, Lo))
+            else
+                Co = 0
+                if vo then
+                    if vo.Visible then
+                        local r = vo:FindFirstChild("XPText")
+                        local Fo
+                        if r then
+                            local Do, To = r.Position.Y.Offset + r.Size.Y.Offset, k
+                            Fo = (Do - To.Position.Y.Offset) + 6
+                        else
+                            Fo = r
+                        end
+                        Co = Fo or 56
+                    else
+                    end
+                else
+                end
+                local r = (Lo and Lo.Position) or S
+                R = environment531.UDim2.new(r.X.Scale, r.X.Offset, r.Y.Scale, r.Y.Offset + Co)
+            end
+            Lo = i
+            if Lo.Position ~= R then
+                vo = i
+                vo.Position = R
+            end
+            if I ~= zo then
+                I = zo
+                Lo = k
+                Lo.Text = V(zo)
+                R = k
+                R.TextColor3 = ((zo <= 30) and environment531.Color3.fromRGB(255, 0, 0)) or environment531.Color3.new(1, 1, 1)
+            end
+            environment531 = i
+            if not (environment531.Visible) then
+                vo = i
+                vo.Visible = true
+            end
+        end
+        local function r()
+            local environment532 = getfenv()
+            if p then
+                environment532.pcall(function()
+                    p:Disconnect()
+                end)
+            end
+            p = nil
+            Q()
+        end
+        local function V()
+            local environment533 = getfenv()
+            if p then
+                return
+            end
+            A = 0
+            p = RunService14.Heartbeat:Connect(function(M)
+                local environment534 = getfenv()
+                A += M
+                M = A
+                if M < 0.1 then
+                    return
+                end
+                A = 0
+                environment534.pcall(o)
+            end)
+            environment533.pcall(o)
+        end
+        environment525.getgenv().__PLR_QUEUE("tools", "round timer", function(A)
+            A:AddToggle({Name = "round timer", Icon = "clock", Default = false, Flag = "RoundTimer", Premium = true, Callback = function(A)
+                if A then
+                    V()
+                else
+                    r()
+                end
+            end})
+        end)
+        environment525.getgenv().rtimer_unload = r
+    end)()
+    end)
+    block("bhop", function()
+        local PlayersService14, RunService15 = environment.game:GetService("Players"), environment.game:GetService("RunService")
+        local r = environment.workspace
+        local M = PlayersService14.LocalPlayer
+        local UserInputService2 = environment.game:GetService("UserInputService")
+        local o = false
+        local V = 40
+        local p = false
+        local i = 80
+        local k = false
+        local S = 40
+        local I = false
+        local R = false
+        local Q = false
+        local Fo, so, zo, Co = 100
+        local Lo = environment.CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+        local vo = false
+        local Do = false
+        local To = 0
+        local no = 0
+        UserInputService2.JumpRequest:Connect(function()
+            local environment535 = getfenv()
+            no = environment535.os.clock()
+        end)
+        local function xo()
+            local environment536 = getfenv()
+            if (environment536.os.clock() - no) < 0.2 then
+                return true
+            end
+            local no = environment536.Enum.KeyCode.Space
+            if UserInputService2:IsKeyDown(no) then
+                return true
+            end
+            return false
+        end
+        local j
+        local function no()
+            local environment537, Ao = getfenv(), r.CurrentCamera
+            if not (Ao) then
+                return nil
+            end
+            local eo = Ao.CFrame.LookVector
+            return environment537.math.atan2(-eo.X, -eo.Z)
+        end
+        local function jo()
+            local Ao = M.Character
+            return Ao and Ao:FindFirstChildOfClass("Humanoid")
+        end
+        local function Ao()
+            local eo = M.Character
+            return eo and eo:FindFirstChild("HumanoidRootPart")
+        end
+        local co = RunService15.Heartbeat:Connect(function()
+            local environment538 = getfenv()
+            if not (k) then
+                vo = false
+                Do = false
+                To, j = 0, nil
+                return
+            end
+            local Ko, Xo = jo(), Ao()
+            if if Ko then not Xo else not Ko then
+                vo = false
+                Do = false
+                To, j = 0, nil
+                return
+            end
+            local Ao = Ko:GetState()
+            local yo = Ao == environment538.Enum.HumanoidStateType.Jumping
+            local Po = yo or (Ao == environment538.Enum.HumanoidStateType.Freefall)
+            if I or R then
+                To = 0
+                if yo then
+                    if not (vo) then
+                        Ao = Ko.MoveDirection
+                        Ao = if Ao.Magnitude < 0.1 then Xo.CFrame.LookVector else Ao
+                        Ao = environment538.Vector3.new(Ao.X, 0, Ao.Z)
+                        if Ao.Magnitude > 0 then
+                            Ao = Ao.Unit
+                            local _o = Xo.AssemblyLinearVelocity
+                            Xo.AssemblyLinearVelocity = environment538.Vector3.new(Ao.X * S, _o.Y, Ao.Z * S)
+                            Do = true
+                        end
+                    end
+                end
+                if Do and Po then
+                    if R then
+                        local Ao = no()
+                        if Ao and j then
+                            local _o = Ao - j
+                            while _o > 3.141592653589793 do
+                                _o -= 6.283185307179586
+                            end
+                            while _o < (-3.141592653589793) do
+                                _o += 6.283185307179586
+                            end
+                            if environment538.math.abs(_o) > 0.0005 then
+                                local Ao = Xo.AssemblyLinearVelocity
+                                local uo = environment538.Vector3.new(Ao.X, 0, Ao.Z)
+                                if uo.Magnitude > 1 then
+                                    local wo = environment538.CFrame.fromEulerAnglesYXZ(0, _o, 0) * uo
+                                    Xo.AssemblyLinearVelocity = environment538.Vector3.new(wo.X, Ao.Y, wo.Z)
+                                end
+                            end
+                        end
+                    end
+                    local Ao = Ko.MoveDirection
+                    if Ao.Magnitude > 0.1 then
+                        Ao = environment538.Vector3.new(Ao.X, 0, Ao.Z).Unit
+                        local _o = Xo.AssemblyLinearVelocity
+                        local uo, wo = environment538.Vector3.new(_o.X, 0, _o.Z), Ao * S
+                        local Ao = uo:Lerp(wo, 0.3)
+                        Xo.AssemblyLinearVelocity = environment538.Vector3.new(Ao.X, _o.Y, Ao.Z)
+                    elseif R then
+                        local Ao = Xo.AssemblyLinearVelocity
+                        local _o = environment538.Vector3.new(Ao.X, 0, Ao.Z)
+                        if _o.Magnitude > 0.1 then
+                            if _o.Magnitude < S then
+                                local uo = _o.Unit * S
+                                Xo.AssemblyLinearVelocity = environment538.Vector3.new(uo.X, Ao.Y, uo.Z)
+                            end
+                        end
+                    end
+                end
+                if not (Po) then
+                    Do = false
+                end
+            else
+                local Ao = environment538.math.max(Ko.WalkSpeed, 1)
+                local _o, uo, wo = environment538.math.max(S, Ao), environment538.math.max, S
+                local mo = uo(wo * 0.1, 1)
+                if To < Ao then
+                    To = Ao
+                end
+                if yo then
+                    if not (vo) then
+                        To = environment538.math.min(To + mo, _o)
+                        Ao = Xo.AssemblyLinearVelocity
+                        uo = environment538.Vector3.new(Ao.X, 0, Ao.Z)
+                        wo = nil
+                        if uo.Magnitude > 0.1 then
+                            wo = uo.Unit
+                        else
+                            local Eo = Ko.MoveDirection
+                            if Eo.Magnitude > 0.1 then
+                                wo = environment538.Vector3.new(Eo.X, 0, Eo.Z).Unit
+                            else
+                                local Eo = Xo.CFrame.LookVector
+                                wo = environment538.Vector3.new(Eo.X, 0, Eo.Z)
+                                wo = ((wo.Magnitude > 0) and wo.Unit) or environment538.Vector3.new(0, 0, 0)
+                            end
+                        end
+                        if wo.Magnitude > 0 then
+                            Xo.AssemblyLinearVelocity = environment538.Vector3.new(wo.X * To, Ao.Y, wo.Z * To)
+                            Do = true
+                        end
+                    end
+                end
+                if Po then
+                    if Do then
+                        uo = Xo.AssemblyLinearVelocity
+                        _o, mo = environment538.Vector3.new(uo.X, 0, uo.Z), Ko.MoveDirection
+                        local Ao = if mo.Magnitude > 0.1 then environment538.Vector3.new(mo.X, 0, mo.Z).Unit else if _o.Magnitude > 0.1 then _o.Unit else nil
+                        if Ao then
+                            local wo = environment538.math.max(_o.Magnitude, To)
+                            Xo.AssemblyLinearVelocity = environment538.Vector3.new(Ao.X * wo, uo.Y, Ao.Z * wo)
+                        end
+                    end
+                end
+                if not (Po) then
+                    Do = false
+                    if xo() then
+                        Ko.Jump = true
+                    else
+                        To = 0
+                    end
+                end
+            end
+            j, vo = no(), yo
+        end)
+        environment.getgenv().__PLR_QUEUE("misc", "bhop", function(j)
+            local V = j:AddToggle({Name = "bhop", Icon = "footprints", Default = false, Flag = "Bhop", Option = true, Callback = function(j)
+                k = j
+            end})
+            V.Option:AddSlider({Name = "Power", Default = 40, Min = 10, Max = 150, Round = 0, Flag = "char_bhop_power", Callback = function(j)
+                S = j
+            end})
+            V.Option:AddToggle({Name = "strafe", Icon = "move", Default = false, Flag = "BhopStrafe", Callback = function(j)
+                I = j
+            end})
+            V.Option:AddToggle({Name = "auto strafe", Icon = "compass", Default = false, Flag = "BhopAutoStrafe", Callback = function(j)
+                R = j
+            end})
+        end)
+    end)
+    getgenv().__PLR_QUEUE = savedQueue
+     
+    local places = {
+        tools = Sections.Tools or getgenv().__MISC_TOOLS_SEC,
+        misc = Sections.Move or getgenv().__PLAYER_MISC_SEC,
+    }
+    for _, entry in ipairs(queued) do
+        local section = places[entry.key]
+        if section then
+            local ok, err = pcall(entry.fn, section)
+            if not ok then warn("[mm2 extras] " .. entry.name .. ": " .. tostring(err)) end
+        end
+    end
+end
+end)
+if not ok then warn("[Salad] mm2_extras.lua: " .. tostring(err)) end
 end
 do
 local ok, err = pcall(function()
@@ -60264,7 +67322,8 @@ local function adapt(section)
 	local HIDDEN = {
 		world_fullbright = true, world_custom_fog = true, world_time = true, world_effects = true,
 		world_custom_ambient = true, world_exposure = true, world_shader_enabled = true,
-		world_skybox = true, esp_arrows = true, world_aura = true, sheriffcros = true,
+		world_skybox = true, esp_arrows = true, world_aura = true, sheriffcros = true, local_china_hat = true, local_china_hat_col = true, local_landing_circle = true,
+		["Self Chams"] = true, local_self_chams_type = true, local_self_chams_col = true,
 	}
 	local nothing
 	nothing = setmetatable({}, {
@@ -62774,7 +69833,7 @@ local visuals_left = Sec
 		end
 	end
 end
-local function loadLocal(Sec)
+local function loadLocal(Sec, Secs)
 do
 	local sv = Sec
 	local players = game:GetService("Players")
@@ -63111,6 +70170,8 @@ do
 			if part and part.Parent then
 				part.Material = d[1]
 				part.Color = d[2]
+				if d[3] ~= nil then pcall(function() part.TextureID = d[3] end) end
+				if d[4] ~= nil then part.Transparency = d[4] end
 			end
 		end
 		sc_cache = {}
@@ -63179,12 +70240,29 @@ do
 			flat_clear(sc_flat)
 			chrom_clear(sc_chrom)
 			surfs_detach(sc_surfs, sc_surf)
+			local spec = getgenv().__ZolarSelfMaterials and getgenv().__ZolarSelfMaterials[sc_type]
+			local material = spec and spec[1] or Enum.Material.ForceField
+			local texture = spec and spec[2] and getgenv().__ZolarSelfTexture(spec[2]) or nil
+			local color = getgenv().__ZolarSelfColor and getgenv().__ZolarSelfColor() or sc_col
+			local alpha = getgenv().__ZolarSelfAlpha and getgenv().__ZolarSelfAlpha() or 0
+			local second = getgenv().__ZolarSelfSecond and getgenv().__ZolarSelfSecond() or nil
+			local rootPart = char:FindFirstChild("HumanoidRootPart")
+			local baseY = rootPart and rootPart.Position.Y or 0
 			for i = 1, #parts do
 				local p = parts[i]
 				if p.Parent then
-					if not sc_cache[p] then sc_cache[p] = {p.Material, p.Color} end
-					p.Material = Enum.Material.ForceField
-					p.Color = sc_col
+					local mesh = p:IsA("MeshPart")
+					if not sc_cache[p] then sc_cache[p] = {p.Material, p.Color, mesh and p.TextureID or nil, p.Transparency} end
+					p.Material = material
+					if second then
+						 
+						local fraction = math.clamp((p.Position.Y - (baseY - 3)) / 5.6, 0, 1)
+						p.Color = second:Lerp(color, fraction)
+					else
+						p.Color = color
+					end
+					if mesh then pcall(function() p.TextureID = texture or sc_cache[p][3] end) end
+					if alpha > 0 and sc_cache[p][4] < 1 then p.Transparency = math.max(sc_cache[p][4], alpha) end
 				end
 			end
 		end
@@ -64093,6 +71171,77 @@ do
 			sc_col = c
 		end
 	})
+	 
+	do
+		local sc = Secs and Secs.SelfChams and getgenv().ZolarAdapt and getgenv().ZolarAdapt(Secs.SelfChams) or sv
+		local se = Secs and Secs.SelfEsp and getgenv().ZolarAdapt and getgenv().ZolarAdapt(Secs.SelfEsp) or sv
+		 
+		 
+		local names = { "Flat", "Shaded", "Glow", "Glow Outline", "Iridescent", "Water Flow", "Glossy", "Glass", "ForceField", "Gradient", "Ghost", "Metallic", "Metal", "Chrome", "Crystal", "Ice", "Lava", "Wireframe", "Neon", "Neon Ghost", "Diamond", "Hologram", "Obsidian", "Gold Foil", "Frostbite", "Molten", "Prism", "Mirror", "Foil", "Ghost FF", "FF Hex", "FF Grid", "FF Lines", "FF Rings", "FF Scan", "Glass Metal", "Plastic", "SmoothPlastic", "Wood", "WoodPlanks", "Marble", "Slate", "Concrete", "Granite", "Brick", "Pebble", "Cobblestone", "Rock", "Sandstone", "Basalt", "CrackedLava", "Asphalt", "LeafyGrass", "Salt", "Limestone", "Pavement", "DiamondPlate", "CorrodedMetal", "Fabric", "Sand", "Grass", "Snow", "Mud", "Ground", "Glacier", "Leather", "Cardboard", "Carpet", "Plaster", "Rubber" }
+		local on, material, color, rainbow, speed = false, "Glow", sc_col, false, 1
+		local fade, pulse, pulse_speed, two_tone, second_col = 0, false, 1.5, false, Color3.fromRGB(255, 0, 170)
+		local engine
+		local function getEngine()
+			if engine then return engine end
+			local make = getgenv().__saladSelfChams2
+			if type(make) ~= "function" then return nil end
+			local ok, made = pcall(make, getfenv())
+			if ok then engine = made end
+			return engine
+		end
+		run.RenderStepped:Connect(function()
+			if not on and not engine then return end
+			local api = getEngine()
+			if not api then return end
+			local tint = rainbow and Color3.fromHSV((os.clock() * 0.15 * speed) % 1, 0.85, 1) or color
+			local alpha = 1 - fade
+			if pulse then alpha *= 0.45 + 0.55 * (0.5 + 0.5 * math.sin(os.clock() * pulse_speed * math.pi)) end
+			api.settings.chamsGradA, api.settings.chamsGradB, api.settings.chamsSpeed = tint, second_col, speed
+			pcall(api.step, on, material, tint, alpha, two_tone)
+		end)
+		getgenv().__ZolarSelfChamsClear = function() if engine then pcall(engine.clear) end end
+		getgenv().__ZolarSelfShells = function()
+			if not on or not engine then return {} end
+			local ok, list = pcall(engine.shells)
+			return ok and list or {}
+		end
+		sc:AddToggle({ Name = "self chams", Default = false, Flag = "self_chams_on", Callback = function(v) on = v end })
+		sc:AddDropdown({ Name = "material", Default = "Glow", Values = names, Flag = "self_chams_material", Callback = function(v) material = table.find(names, v) and v or "Glow" end })
+		sc:AddColorPicker({ Name = "color", Default = sc_col, Flag = "self_chams_color", Callback = function(c) color = c end })
+		sc:AddToggle({ Name = "rainbow", Default = false, Flag = "self_chams_rainbow", Callback = function(v) rainbow = v end })
+		sc:AddSlider({ Name = "rainbow speed", Min = 0.2, Max = 4, Default = 1, Round = 1, Flag = "self_chams_speed", Callback = function(v) speed = v end })
+		sc:AddSlider({ Name = "transparency", Min = 0, Max = 0.9, Default = 0, Round = 2, Flag = "self_chams_alpha", Callback = function(v) fade = v end })
+		sc:AddToggle({ Name = "two tone", Default = false, Flag = "self_chams_twotone", Callback = function(v) two_tone = v end })
+		sc:AddColorPicker({ Name = "second color", Default = second_col, Flag = "self_chams_second", Callback = function(c) second_col = c end })
+		sc:AddToggle({ Name = "pulse", Default = false, Flag = "self_chams_pulse", Callback = function(v) pulse = v end })
+		sc:AddSlider({ Name = "pulse speed", Min = 0.3, Max = 6, Default = 1.5, Round = 1, Flag = "self_chams_pulse_speed", Callback = function(v) pulse_speed = v end })
+		 
+		local hl, hl_on, hl_fill, hl_out, hl_fill_a, hl_top = nil, false, Color3.fromRGB(0, 200, 255), Color3.fromRGB(255, 255, 255), 0.6, true
+		local function hl_update()
+			local char = lp.Character
+			if not hl_on or not char then
+				if hl then hl.Enabled = false end
+				return
+			end
+			if not hl or not hl.Parent then
+				hl = Instance.new("Highlight")
+				hl.Name = "ZolarSelfHighlight"
+				hl.Parent = (gethui and gethui()) or game:GetService("CoreGui")
+			end
+			hl.Adornee = char
+			hl.Enabled = true
+			hl.FillColor, hl.OutlineColor = hl_fill, hl_out
+			hl.FillTransparency = hl_fill_a
+			hl.OutlineTransparency = 0
+			hl.DepthMode = hl_top and Enum.HighlightDepthMode.AlwaysOnTop or Enum.HighlightDepthMode.Occluded
+		end
+		run.Heartbeat:Connect(hl_update)
+		se:AddToggle({ Name = "self outline", Default = false, Flag = "self_outline_on", Callback = function(v) hl_on = v end })
+		se:AddColorPicker({ Name = "outline color", Default = hl_out, Flag = "self_outline_color", Callback = function(c) hl_out = c end })
+		se:AddColorPicker({ Name = "fill color", Default = hl_fill, Flag = "self_fill_color", Callback = function(c) hl_fill = c end })
+		se:AddSlider({ Name = "fill transparency", Min = 0, Max = 1, Default = 0.6, Round = 2, Flag = "self_fill_alpha", Callback = function(v) hl_fill_a = v end })
+		se:AddToggle({ Name = "always on top", Default = true, Flag = "self_outline_top", Callback = function(v) hl_top = v end })
+	end
 	local tc_tgl = sv:AddToggle({
 		Name = "tool chams",
 		Default = false,
@@ -65153,7 +72302,7 @@ local player_tab = {
 				local gallery = Sections.Models:ImageList({
 					Name = cfg.Name, Key = cfg.Flag or "models", Thumb = cfg.Thumb or "Asset", Cell = cfg.Cell, Column = 2, Title = "Models", Hint = "pick one to wear it", Gear = cfg.Gear, Plain = true,
 					Empty = cfg.Empty, Items = cfg.Values, Flag = cfg.Flag,
-					Callback = function(v) if v then cfg.Callback(v) end end,
+					Callback = function(v) cfg.Callback(v) end,
 				})
 				if cfg.Default then gallery:SetValue(cfg.Default, true) end
 				return {
@@ -68061,6 +75210,7 @@ end;
 end
 getgenv().ZolarVisuals = function(Sections)
 	if not Sections.Esp then return end
+	getgenv().ZolarAdapt = adapt
 	 
 	local effects = Sections.Effects and adapt(Sections.Effects)
 	if effects then
@@ -70903,45 +78053,7 @@ do
 			end
 		})
 	end)
-	getgenv().__PLR_QUEUE("misc", "bhop", function(target)
-		local bhop = target:AddToggle({
-			Name = "bhop",
-			Default = false,
-			Flag = "Bhop",
-			Option = true,
-			Callback = function(v)
-				boost_on = v
-			end
-		})
-		bhop.Option:AddSlider({
-			Name = "Power",
-			Default = 40,
-			Min = 10,
-			Max = 150,
-			Round = 0,
-			Flag = "char_bhop_power",
-			Callback = function(v)
-				boost_value = v
-			end
-		})
-		bhop.Option:AddToggle({
-			Name = "Strafe",
-			Default = false,
-			Flag = "BhopStrafe",
-			Callback = function(v)
-				boost_strafe_on = v
-			end
-		})
-		bhop.Option:AddToggle({
-			Name = "Auto Strafe",
-			Default = false,
-			Flag = "BhopAutoStrafe",
-			Callback = function(v)
-				boost_auto_strafe_on = v
-			end
-		})
-	end)
-	getgenv().__PLR_QUEUE("misc", "aspect ratio", function(target)
+	getgenv().__PLR_QUEUE("camera", "aspect ratio", function(target)
 		local aspect = target:AddToggle({
 			Name = "aspect ratio",
 			Default = false,
@@ -70967,7 +78079,7 @@ do
 	local fov_on, fov_value = false, 70
 	local fov_original = nil
 	local fov_conn = nil
-	getgenv().__PLR_QUEUE("misc", "custom fov", function(target)
+	getgenv().__PLR_QUEUE("camera", "custom fov", function(target)
 		local customfov = target:AddToggle({
 			Name = "custom fov",
 			Default = false,
@@ -72790,70 +79902,7 @@ do
 		local s = snd_pool[kind]
 		if s then pcall(function() s.Volume = v end) end
 	end
-	getgenv().__PLR_QUEUE("alerts", "sheriff kill", function(target)
-		local sheriff_tgl = target:AddToggle({
-			Name = "sheriff kill",
-			ToolTip = "Plays when you kill the murderer as sheriff/hero",
-			Default = false,
-			Flag = "SoundsSheriffKill",
-			Option = true,
-			Callback = function(v)
-				snd_apply("sheriff", v)
-			end
-		})
-		snd_drops.sheriff = sheriff_tgl.Option:AddDropdown({
-			Name = "sound",
-			Default = "mc bow",
-			Values = SND_LIST,
-			Flag = "SoundsSheriffValue",
-			Callback = function(v)
-				snd_set_name("sheriff", v)
-			end
-		})
-		sheriff_tgl.Option:AddSlider({
-			Name = "volume",
-			Default = 1,
-			Min = 0.1,
-			Max = 5,
-			Round = 1,
-			Flag = "SoundsSheriffVolume",
-			Callback = function(v)
-				snd_set_volume("sheriff", v)
-			end
-		})
-	end)
-	getgenv().__PLR_QUEUE("alerts", "murder kill", function(target)
-		local murder_tgl = target:AddToggle({
-			Name = "murder kill",
-			ToolTip = "Plays when you kill someone as murderer",
-			Default = false,
-			Flag = "SoundsMurderKill",
-			Option = true,
-			Callback = function(v)
-				snd_apply("murder", v)
-			end
-		})
-		snd_drops.murder = murder_tgl.Option:AddDropdown({
-			Name = "sound",
-			Default = "skeet",
-			Values = SND_LIST,
-			Flag = "SoundsMurderValue",
-			Callback = function(v)
-				snd_set_name("murder", v)
-			end
-		})
-		murder_tgl.Option:AddSlider({
-			Name = "volume",
-			Default = 1,
-			Min = 0.1,
-			Max = 5,
-			Round = 1,
-			Flag = "SoundsMurderVolume",
-			Callback = function(v)
-				snd_set_volume("murder", v)
-			end
-		})
-	end)
+	 
 	getgenv().SOUNDS_UNLOAD = function()
 		snd_alive = false
 		snd_cfg.sheriff.on = false
@@ -73115,60 +80164,6 @@ local function load_farm()
 do
 	local players = game:GetService("Players")
 	local lp = players.LocalPlayer
-	local autograb_on = false
-	local grab_rs = game:GetService("ReplicatedStorage")
-	local grab_round_mod = nil
-	local function grab_has_role()
-		if not grab_round_mod then
-			local ok, m = pcall(function()
-				return require(grab_rs:WaitForChild("Modules"):WaitForChild("CurrentRoundClient"))
-			end)
-			if ok and type(m) == "table" then grab_round_mod = m end
-		end
-		local d = grab_round_mod and grab_round_mod.PlayerData
-		if type(d) ~= "table" then return false end
-		local me = d[lp.Name]
-		return me ~= nil and me.Role ~= nil and not me.Dead
-	end
-	local function has_knife()
-		local char = lp.Character
-		if char and char:FindFirstChild("Knife") then return true end
-		local backpack = lp:FindFirstChildOfClass("Backpack")
-		if backpack and backpack:FindFirstChild("Knife") then return true end
-		return false
-	end
-	local function grab_gun(obj)
-		if not autograb_on or has_knife() then return end
-		if not grab_has_role() then return end
-		local char = lp.Character
-		local root = char and char:FindFirstChild("HumanoidRootPart")
-		if not root then return end
-		pcall(function() obj.CFrame = root.CFrame end)
-		local prompt = obj:FindFirstChildOfClass("ProximityPrompt")
-		if prompt then
-			pcall(function() fireproximityprompt(prompt) end)
-		end
-	end
-	local function scan_guns()
-		for _, obj in pairs(workspace:GetDescendants()) do
-			if obj.Name == "GunDrop" and obj:IsA("BasePart") then
-				grab_gun(obj)
-			end
-		end
-	end
-	local grab_desc_conn = nil
-	local function grab_desc_added(obj)
-		if obj.Name == "GunDrop" and obj:IsA("BasePart") then
-			task.wait(0.1)
-			grab_gun(obj)
-		end
-	end
-	local function grab_desc_stop()
-		if grab_desc_conn then
-			pcall(function() grab_desc_conn:Disconnect() end)
-			grab_desc_conn = nil
-		end
-	end
 	local run = game:GetService("RunService")
 	local cs = game:GetService("CollectionService")
 	local rs = game:GetService("ReplicatedStorage")
@@ -73522,23 +80517,6 @@ do
 		end
 	end)
 	local misc_section = sheriff_sec
-	sheriff_sec:AddToggle({
-		Name = "grab gun",
-		ToolTip = "Automatically grabs the gun when it drops",
-		Default = false,
-		Flag = "Auto Gun",
-		Callback = function(v)
-			autograb_on = v
-			if v then
-				if not grab_desc_conn then
-					grab_desc_conn = workspace.DescendantAdded:Connect(grab_desc_added)
-				end
-				task.spawn(scan_guns)
-			else
-				grab_desc_stop()
-			end
-		end
-	})
 	getgenv().AUTOFARM_UNLOAD = function()
 		autofarm_on = false
 		autoreset_on = false
@@ -73551,10 +80529,6 @@ do
 		farm_mode = "Basic"
 		if farm_conn then pcall(function() farm_conn:Disconnect() end) farm_conn = nil end
 		farm_release()
-	end
-	getgenv().AUTOGRAB_UNLOAD = function()
-		autograb_on = false
-		grab_desc_stop()
 	end
 end
 end
@@ -73584,6 +80558,8 @@ getgenv().ZolarModules = function(S)
 	 
 	getgenv().__PLR_FLUSH("misc", getgenv().__PLAYER_MISC_SEC)
 	getgenv().__PLR_FLUSH("char", getgenv().__PLAYER_CHAR_SEC)
+	 
+	getgenv().__PLR_FLUSH("camera", S.Camera and adapt(S.Camera) or getgenv().__PLAYER_MISC_SEC)
 end
 getgenv().ZolarModulesUnload = function()
 	for _, name in {
@@ -73694,9 +80670,12 @@ local auraGallery
 local auraAtlas
 local auraEquip
 local auraSlots = { count = 0 }
+local flagSeen = {}
 local function flagFor(kind, text)
-	flagCount += 1
-	return string.format("salad_%d_%s_%s", flagCount, kind, string.lower(string.gsub(tostring(text or ""), "%W", "")))
+	 
+	local base = string.format("salad_%s_%s", kind, string.lower(string.gsub(tostring(text or ""), "%W", "")))
+	flagSeen[base] = (flagSeen[base] or 0) + 1
+	return flagSeen[base] == 1 and base or (base .. "_" .. flagSeen[base])
 end
 local function textHandle(label)
 	return setmetatable({}, {
@@ -73770,10 +80749,17 @@ sectionOf = function(host, owner)
 		if string.find(text, "^Zombies") or text == "Anti AFK" or text == "Auto Shoot Murder" or text == "Auto Fling Sheriff" or text == "Trolly Dances" then
 			return { Row = nil, SetSilent = function() end, Set = function() end }
 		end
+		if text == "Equip aura" then
+			local hidden = { Row = nil }
+			function hidden.Set(_, value) if o.Callback then o.Callback(value and true or false) end end
+			function hidden.SetSilent() end
+			auraEquip = hidden
+			return hidden
+		end
 		local silent, ready = false, false
 		local handle = { Row = nil }
 		local toggle = host:Toggle({
-			Flag = flagFor("toggle", o.Text),
+			Flag = (not o.NoSave) and flagFor("toggle", o.Text) or nil,
 			Name = titled(o.Text),
 			Default = o.Default == true,
 			Callback = function(value)
@@ -73808,7 +80794,7 @@ sectionOf = function(host, owner)
 		local silent, ready = false, false
 		local handle = { Row = nil }
 		local slider = host:Slider({
-			Flag = flagFor("slider", o.Text),
+			Flag = (not o.NoSave) and flagFor("slider", o.Text) or nil,
 			Name = titled(o.Text),
 			Min = o.Min or 0,
 			Max = o.Max or 1,
@@ -73918,6 +80904,7 @@ sectionOf = function(host, owner)
 			default = labelOf[o.Default] or labels[1]
 		end
 		local drop = host:Dropdown({
+			Flag = (not o.NoSave) and flagFor(o.Multi and "multi" or "drop", o.Text) or nil,
 			Name = titled(o.Text),
 			Items = labels,
 			Default = default,
@@ -73959,6 +80946,7 @@ sectionOf = function(host, owner)
 	function S:Colorpicker(o)
 		local silent, ready = false, false
 		local picker = host:Colorpicker({
+			Flag = (not o.NoSave) and flagFor("color", o.Text) or nil,
 			Name = titled(o.Text),
 			Default = o.Default,
 			Transparency = 1 - (o.DefaultAlpha or 1),
@@ -74409,7 +81397,9 @@ local function start(S)
 	end)
 	local visuals = tab("Visuals", "eye")
 	visuals:Sub("Random")
+	ghosting = true
 	visuals:Group({ Title = "Effects", Side = "Left" })
+	ghosting = false
 	visuals._curSub = "Random"
 	feature("game effects", function()
 		local _, stop = mods.GameEffects.install(with({ section = visuals }))
@@ -74428,10 +81418,12 @@ local function start(S)
 		local _, stop = mods.AuraTint.install(with({}))
 		return stop
 	end)
+	ghosting = true
 	feature("walk trail", function()
 		local _, stop = mods.WalkTrail.install(with({ section = visuals }))
 		return stop
 	end)
+	ghosting = false
 	feature("optimizer", function()
 		return mods.Optimizer.install(with({ section = visuals }))
 	end)
@@ -74486,9 +81478,11 @@ local function start(S)
 	end)
 	local general = tab("Settings", "settings")
 	general:Sub("UI")
+	ghosting = true
 	feature("general (afk, stretch, trolly npc)", function()
 		mods.SaladApplication.installGeneral(with({ section = general }))
 	end)
+	ghosting = false
 	feature("trolly", function()
 		return mods.SaladApplication.Trolly.install(with({ parent = nil, hostGui = nova.U.hostGui }))
 	end)
@@ -74600,8 +81594,10 @@ local function start(S)
 			end
 			return list
 		end
-		local function replay(title, wanted)
-			combat:Header(title)
+		local renamed = { ["Shot Sound"] = "Hit Sound", ["Preview Shot"] = "Preview Hit" }
+		local function replay(title, wanted, zsection)
+			local target = zsection and sectionOf(zsection, combat) or combat
+			if not zsection then target:Header(title) end
 			for _, call in ipairs(recorded) do
 				local method, options = call[1], call[2]
 				local text = tostring(options.Text)
@@ -74610,12 +81606,16 @@ local function start(S)
 						options = table.clone(options)
 						options.Options = withHits(options.Options)
 					end
-					combat[method](combat, options)
+					if renamed[text] then
+							options = table.clone(options)
+							options.Text = renamed[text]
+						end
+						target[method](target, options)
 				end
 			end
 		end
-		replay("Shot Sound", { ["Shot Sound"] = true, ["Preview Shot"] = true, ["Sound Volume"] = true })
-		replay("Kill Sound", { ["Kill Sound"] = true, ["Preview Kill"] = true })
+		replay("Hit Sound", { ["Shot Sound"] = true, ["Preview Shot"] = true, ["Sound Volume"] = true }, S and S.HitSound)
+		replay("Kill Sound", { ["Kill Sound"] = true, ["Preview Kill"] = true, ["Sound Volume"] = true }, S and S.KillSound)
 		return stop
 	end)
 	feature("map vote", function()
@@ -75396,12 +82396,30 @@ Zolar.SoundHook = function(kind, state)
 	if not menuSound.on then return end
 	local tone = toneFile[menuSound.tone]
 	if not tone then return end
-	if kind == "toggle" then
+	if kind == "toggle" or kind == "popup" or kind == "window" then
 		play(state and tone.on or tone.off, menuSound.volume)
 	else
 		play(tone.on, menuSound.volume)
 	end
 end
+ 
+keep(UserInputService.InputBegan:Connect(function(input)
+	if not menuSound.typing then return end
+	if input.UserInputType ~= Enum.UserInputType.Keyboard then return end
+	local box = UserInputService:GetFocusedTextBox()
+	local window = Zolar.Windows and Zolar.Windows[1]
+	local top = window and window.Items and window.Items.TopBar and window.Items.TopBar.Instance
+	local gui = top and top:FindFirstAncestorWhichIsA("ScreenGui")
+	if not box or not gui or not box:IsDescendantOf(gui) then return end
+	local items = window.Items
+	if items.SearchBox and items.SearchBox.Instance == box then return end
+	 
+	if input.KeyCode == Enum.KeyCode.Backspace then
+		play("menusounds/light7_off.ogg", 0.4, 1.1)
+	else
+		play("menusounds/light7_on.ogg", 0.5, 1 + math.random(-6, 6) / 100)
+	end
+end))
  
 local stickers = {}
 local stickerNames = {}
@@ -75434,13 +82452,31 @@ local function overlay()
 end
  
 local function newSticker()
-	return { on = false, name = stickerNames[1], x = 50, y = 50, z = 100, size = 160, rotation = 0, inGame = false, clock = 0 }
+	return { on = false, name = stickerNames[1], x = 50, y = 50, z = 100, size = 160, rotation = 0, inGame = false, clock = 0,
+		attach = false, offset = nil }
+end
+ 
+local function menuFrame()
+	local window = Zolar.Windows and Zolar.Windows[1]
+	local main = window and window.Items and window.Items.Main
+	return main and main.Instance or nil
+end
+ 
+local function attachOffset(item)
+	local main = menuFrame()
+	local camera = workspace.CurrentCamera
+	if not main or not camera then item.offset = nil return end
+	local view = camera.ViewportSize
+	local at = Vector2.new(item.x / 100 * view.X, item.y / 100 * view.Y)
+	item.offset = at - main.AbsolutePosition
 end
 local function placeSticker(item)
 	if not item.image or not item.image.Parent then return end
 	item.image.ZIndex = item.z
 	item.image.Size = UDim2.fromOffset(item.size, item.size)
-	item.image.Position = UDim2.fromScale(item.x / 100, item.y / 100)
+	if not (item.attach and item.offset) then
+		item.image.Position = UDim2.fromScale(item.x / 100, item.y / 100)
+	end
 	item.image.Rotation = item.rotation
 end
 local function ensureImage(item)
@@ -75460,10 +82496,18 @@ keep(RunService.Heartbeat:Connect(function(dt)
 	local open = windowIsOpen()
 	for _, item in ipairs(stickerList) do
 		local entry = stickers[item.name]
-		local show = item.on and entry ~= nil and (item.inGame or open)
+		 
+		local show = item.on and entry ~= nil and (item.attach and open or not item.attach and (item.inGame or open))
 		if show then
 			local image = ensureImage(item)
 			image.Visible = true
+			if item.attach then
+				if not item.offset then attachOffset(item) end
+				local main = menuFrame()
+				if main and item.offset then
+					image.Position = UDim2.fromOffset(main.AbsolutePosition.X + item.offset.X, main.AbsolutePosition.Y + item.offset.Y)
+				end
+			end
 			if entry.kind == "sheet" then
 				item.clock += dt
 				local frame = math.floor(item.clock * (entry.fps or 30)) % entry.frames
@@ -75502,6 +82546,10 @@ local function saveBindPosition()
 	pcall(function()
 		writefile(BIND_FILE, game:GetService("HttpService"):JSONEncode({ x = bindList.x, y = bindList.y }))
 	end)
+	 
+	if Zolar.Flags then
+		Zolar.Flags.bindlist_pos = bindList.x and { x = bindList.x, y = bindList.y } or { }
+	end
 end
 local bindGui, bindRoot, bindRows = nil, nil, {}
 local bindSignature = ""
@@ -75559,18 +82607,21 @@ local function makeBindGui()
 		end
 		keep(bindRoot.InputBegan:Connect(function(input)
 			if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch then return end
+			 
 			local inset = game:GetService("GuiService"):GetGuiInset()
 			local start = bindRoot.AbsolutePosition
-			bindList.x = bindList.x or start.X
-			bindList.y = bindList.y or (start.Y + inset.Y)
-			bindList.x, bindList.y = start.X, start.Y + inset.Y
-			drag = { origin = input.Position, x = bindList.x, y = bindList.y }
+			local startY = start.Y + inset.Y
+			bindList.x, bindList.y = start.X, startY
+			bindRoot.AnchorPoint = Vector2.new(0, 0)
+			bindRoot.Position = UDim2.fromOffset(start.X, startY)
+			drag = { origin = Vector2.new(input.Position.X, input.Position.Y), x = start.X, y = startY }
 		end))
 		keep(UserInputService.InputChanged:Connect(function(input)
 			if not drag then return end
 			if input.UserInputType ~= Enum.UserInputType.MouseMovement and input.UserInputType ~= Enum.UserInputType.Touch then return end
-			local delta = input.Position - drag.origin
+			local delta = Vector2.new(input.Position.X, input.Position.Y) - drag.origin
 			bindList.x, bindList.y = clampOffsets(drag.x + delta.X, drag.y + delta.Y)
+			bindRoot.Position = UDim2.fromOffset(bindList.x, bindList.y)
 		end))
 		keep(UserInputService.InputEnded:Connect(function(input)
 			if not drag then return end
@@ -75788,8 +82839,14 @@ for _, name in ipairs({ "arr", "arrow", "arrow3", "arrow_glow", "arrows", "arrow
 	arrowNames[#arrowNames + 1] = name
 	arrowFiles[name] = "images/" .. name .. ".png"
 end
+ 
+ 
+local ARROW_FIX = {
+	arrow = { scale = 2.3 }, arrow3 = { scale = 4.2 }, arrow_glow = { scale = 1.25 }, triangle = { scale = 1.3 },
+	arrows2 = { turn = 180, scale = 0.95 }, triangle3 = { turn = -90 }, arr = { scale = 1.05 },
+}
 local arrows = {
-	on = false, style = "arrows", size = 46, radius = 0.42, onlyOffscreen = true,
+	on = false, style = "arrows", size = 64, radius = 0.3, onlyOffscreen = true,
 	colorA = Color3.fromRGB(255, 255, 255), colorB = Color3.fromRGB(120, 120, 130), salad = true,
 }
 local arrowGui
@@ -75853,9 +82910,11 @@ keep(RunService.RenderStepped:Connect(function()
 		direction = direction.Unit
 		entry.image.Visible = true
 		entry.image.Image = id or ""
-		entry.image.Size = UDim2.fromOffset(arrows.size * beat, arrows.size * beat)
+		local fix = ARROW_FIX[arrows.style] or {}
+		local pixels = arrows.size * beat * (fix.scale or 1)
+		entry.image.Size = UDim2.fromOffset(pixels, pixels)
 		entry.image.Position = UDim2.fromOffset(centre.X + direction.X * reach, centre.Y + direction.Y * reach)
-		entry.image.Rotation = math.deg(math.atan2(direction.X, -direction.Y))
+		entry.image.Rotation = math.deg(math.atan2(direction.X, -direction.Y)) + (fix.turn or 0)
 		entry.gradient.Color = ColorSequence.new(arrows.colorA, arrows.colorB)
 	end
 	for player, entry in arrowPool do
@@ -75868,19 +82927,59 @@ end))
  
 local circleFiles = {}
 local circleNames = {}
-for _, entry in ipairs(filesIn("circles", { png = true })) do
-	if not string.find(entry.name, "_%dx%d") and not string.find(entry.name, "animation") then
-		circleNames[#circleNames + 1] = entry.name
-		circleFiles[entry.name] = entry.file
+ 
+ 
+local CIRCLE_CATALOG = {
+	{ "circle", "Soft Ring" },
+	{ "neonring", "Neon Ring", add = true },
+	{ "haloring", "Halo Ring", add = true },
+	{ "ripple", "Ripple" },
+	{ "swirl", "Vortex", add = true },
+	{ "omut3", "Whirlpool" },
+	{ "134160165648626", "Smoke Swirl" },
+	{ "boom1", "Shockwave", add = true },
+	{ "shatter", "Cracked Ground", add = true },
+	{ "85362844633530", "Light Burst" },
+	{ "17068400400", "Star Flare", add = true },
+	{ "neonstar", "Neon Star" },
+	{ "circle4", "Alchemy Seal" },
+	{ "imagephotoroom", "Arcane Circle" },
+	{ "img", "Thorn Ring" },
+	{ "konchal", "Text Ring" },
+	{ "pentos", "Rune Fragments" },
+	{ "compass_star", "Star Compass" },
+	{ "cube_seal", "Metatron Seal" },
+	{ "hex_seal", "Hexagram Seal" },
+	{ "flower_seal", "Lotus Mandala" },
+	{ "animation1_8x8_64", "Spin Wave", grid = 8 },
+	{ "animation2_8x8_64", "Shatter Pulse", grid = 8 },
+	{ "puff_4x4_16", "Smoke Puff", grid = 4, add = true },
+}
+do
+	local present = {}
+	for _, entry in ipairs(filesIn("circles", { png = true })) do present[entry.name] = entry.file end
+	for _, row in ipairs(CIRCLE_CATALOG) do
+		if present[row[1]] then
+			circleNames[#circleNames + 1] = row[2]
+			circleFiles[row[2]] = { file = present[row[1]], add = row.add, grid = row.grid }
+		end
 	end
 end
 local jump = {
-	on = false, style = circleFiles.circle and "circle" or circleNames[1], size = 9, time = 0.7, glow = 1,
+	on = false, style = circleFiles["Soft Ring"] and "Soft Ring" or circleNames[1], size = 9, time = 0.7, glow = 1,
 	colorA = Color3.fromRGB(255, 255, 255), colorB = Color3.fromRGB(170, 170, 180), spin = false, lift = 0.05,
+	onJump = true, onLand = false,
 }
+local function curve(points)
+	local keys = {}
+	for _, point in ipairs(points) do keys[#keys + 1] = NumberSequenceKeypoint.new(point[1], point[2]) end
+	return NumberSequence.new(keys)
+end
+ 
+ 
 local function ring(position)
-	local file = circleFiles[jump.style]
-	local id = file and asset(file)
+	local entry = circleFiles[jump.style]
+	local id = entry and asset(entry.file)
 	if not id then return end
 	local part = Instance.new("Part")
 	part.Name = "ZolarJumpCircle"
@@ -75888,55 +82987,67 @@ local function ring(position)
 	part.CanCollide, part.CanTouch, part.CanQuery = false, false, false
 	part.CastShadow = false
 	part.Transparency = 1
-	part.Size = Vector3.new(1, 0.05, 1)
+	part.Size = Vector3.new(0.2, 0.2, 0.2)
 	part.CFrame = CFrame.new(position + Vector3.new(0, jump.lift, 0))
 	part.Parent = Workspace
-	local gui = Instance.new("SurfaceGui")
-	gui.Face = Enum.NormalId.Top
-	gui.AlwaysOnTop = false
-	gui.LightInfluence = 0
-	gui.Brightness = math.max(0.1, jump.glow)
-	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
-	gui.PixelsPerStud = 50
-	gui.Parent = part
-	local image = Instance.new("ImageLabel")
-	image.BackgroundTransparency = 1
-	image.Size = UDim2.fromScale(1, 1)
-	image.Image = id
-	image.ImageColor3 = Color3.new(1, 1, 1)
-	image.Parent = gui
-	local gradient = Instance.new("UIGradient")
-	gradient.Color = ColorSequence.new(jump.colorA, jump.colorB)
-	gradient.Rotation = 90
-	gradient.Parent = image
-	local duration = jump.time
 	local size = jump.size
-	local spin = jump.spin and math.random(-180, 180) or 0
-	local start = os.clock()
-	task.spawn(function()
-		while part.Parent do
-			local alpha = (os.clock() - start) / duration
-			if alpha >= 1 then break end
-			local eased = 1 - (1 - alpha) ^ 3
-			part.Size = Vector3.new(0.5 + size * eased, 0.05, 0.5 + size * eased)
-			image.ImageTransparency = alpha ^ 1.6
-			image.Rotation = spin * eased
-			RunService.RenderStepped:Wait()
-		end
-		part:Destroy()
-	end)
+	local duration = jump.time
+	local emitter = Instance.new("ParticleEmitter")
+	emitter.Texture = id
+	emitter.Rate = 0
+	emitter.Lifetime = NumberRange.new(duration)
+	emitter.Speed = NumberRange.new(0.05)
+	emitter.SpreadAngle = Vector2.new(0, 0)
+	emitter.EmissionDirection = Enum.NormalId.Top
+	emitter.Orientation = Enum.ParticleOrientation.VelocityPerpendicular
+	emitter.LockedToPart = true
+	emitter.LightInfluence = 0
+	emitter.LightEmission = entry.add and 1 or math.clamp(jump.glow / 2, 0, 1)
+	emitter.ZOffset = 0
+	emitter.Size = curve({ { 0, size * 0.08 }, { 0.15, size * 0.55 }, { 0.35, size * 0.8 }, { 0.65, size * 0.94 }, { 1, size } })
+	emitter.Transparency = curve({ { 0, 0.05 }, { 0.45, 0.12 }, { 0.75, 0.55 }, { 1, 1 } })
+	emitter.Color = ColorSequence.new(jump.colorA, jump.colorB)
+	emitter.Rotation = NumberRange.new(jump.spin and math.random(0, 359) or 0)
+	emitter.RotSpeed = NumberRange.new(jump.spin and math.random(-120, 120) or 0)
+	pcall(function() emitter.Brightness = math.max(0.1, jump.glow) end)
+	if entry.grid then
+		pcall(function()
+			emitter.FlipbookLayout = entry.grid == 8 and Enum.ParticleFlipbookLayout.Grid8x8 or Enum.ParticleFlipbookLayout.Grid4x4
+			emitter.FlipbookMode = Enum.ParticleFlipbookMode.OneShot
+			emitter.FlipbookStartRandom = false
+		end)
+	end
+	emitter.Parent = part
+	emitter:Emit(1)
+	task.delay(duration + 0.3, function() part:Destroy() end)
 end
 local function bindJump(character)
 	local humanoid = character:WaitForChild("Humanoid", 10)
 	local root = character:WaitForChild("HumanoidRootPart", 10)
 	if not humanoid or not root then return end
-	keep(humanoid.StateChanged:Connect(function(_, new)
-		if new ~= Enum.HumanoidStateType.Jumping or not jump.on then return end
+	local airborneAt
+	local function ground()
 		local params = RaycastParams.new()
 		params.FilterType = Enum.RaycastFilterType.Exclude
 		params.FilterDescendantsInstances = { character }
 		local hit = Workspace:Raycast(root.Position, Vector3.new(0, -8, 0), params)
 		ring(hit and hit.Position or (root.Position - Vector3.new(0, 3, 0)))
+	end
+	keep(humanoid.StateChanged:Connect(function(_, new)
+		if new == Enum.HumanoidStateType.Jumping or new == Enum.HumanoidStateType.Freefall then
+			airborneAt = airborneAt or os.clock()
+		end
+		if not jump.on then
+			if new == Enum.HumanoidStateType.Landed then airborneAt = nil end
+			return
+		end
+		if new == Enum.HumanoidStateType.Jumping and jump.onJump then ground() end
+		 
+		if new == Enum.HumanoidStateType.Landed then
+			local air = airborneAt and os.clock() - airborneAt or 0
+			airborneAt = nil
+			if jump.onLand and air >= 0.25 then ground() end
+		end
 	end))
 end
 if LocalPlayer.Character then task.spawn(bindJump, LocalPlayer.Character) end
@@ -76130,11 +83241,25 @@ getgenv().ZolarExtras = function(S)
 		S.Binds:Dropdown({
 			Name = "Side", Items = { "Left", "Right" }, Default = "Left", Flag = "bindlist_side",
 			Callback = function(value)
+				if bindList.side == value then return end
 				bindList.side = value
 				bindList.x, bindList.y = nil, nil
 				saveBindPosition()
 			end,
 		})
+		 
+		Zolar.Flags.bindlist_pos = bindList.x and { x = bindList.x, y = bindList.y } or { }
+		Zolar.SetFlags.bindlist_pos = function(value)
+			if type(value) == "table" and tonumber(value.x) and tonumber(value.y) then
+				bindList.x, bindList.y = tonumber(value.x), tonumber(value.y)
+			else
+				bindList.x, bindList.y = nil, nil
+			end
+			Zolar.Flags.bindlist_pos = bindList.x and { x = bindList.x, y = bindList.y } or { }
+			pcall(function()
+				writefile(BIND_FILE, game:GetService("HttpService"):JSONEncode({ x = bindList.x, y = bindList.y }))
+			end)
+		end
 	end
 	 
 	local pad = S.Sticker
@@ -76166,12 +83291,25 @@ getgenv().ZolarExtras = function(S)
 				panel:Slider({
 					Name = entry[1], Min = entry[3], Max = entry[4], Default = entry[5], Decimals = entry[6],
 					Flag = "sticker" .. index .. "_" .. entry[2],
-					Callback = function(value) item[entry[2]] = value; placeSticker(item) end,
+					Callback = function(value)
+						item[entry[2]] = value
+						if item.attach and (entry[2] == "x" or entry[2] == "y") then attachOffset(item) end
+						placeSticker(item)
+					end,
 				})
 			end
 			panel:Toggle({
 				Name = "In game", Default = false, Flag = "sticker" .. index .. "_ingame",
 				Callback = function(value) item.inGame = value end,
+			})
+			 
+			panel:Toggle({
+				Name = "Connect to menu", Default = false, Flag = "sticker" .. index .. "_attach",
+				Callback = function(value)
+					item.attach = value
+					if value then attachOffset(item) else item.offset = nil end
+					placeSticker(item)
+				end,
 			})
 		end
 		addSticker(1)
@@ -76215,11 +83353,11 @@ getgenv().ZolarExtras = function(S)
 		Callback = function(value) arrows.colorB = value end,
 	})
 	screen:Slider({
-		Name = "Size", Min = 16, Max = 140, Default = arrows.size, Decimals = 1, Flag = "arrows_size",
+		Name = "Size", Min = 16, Max = 200, Default = arrows.size, Decimals = 1, Flag = "arrows_size",
 		Callback = function(value) arrows.size = value end,
 	})
 	screen:Slider({
-		Name = "Distance", Min = 0.15, Max = 0.48, Default = arrows.radius, Decimals = 0.01, Flag = "arrows_radius",
+		Name = "Distance", Min = 0.1, Max = 0.48, Default = arrows.radius, Decimals = 0.01, Flag = "arrows_radius",
 		Callback = function(value) arrows.radius = value end,
 	})
 	screen:Toggle({
@@ -76264,6 +83402,14 @@ getgenv().ZolarExtras = function(S)
 		rings:Toggle({
 			Name = "Spin", Default = false, Flag = "jump_spin",
 			Callback = function(value) jump.spin = value end,
+		})
+		rings:Toggle({
+			Name = "On jump", Default = true, Flag = "jump_onjump",
+			Callback = function(value) jump.onJump = value end,
+		})
+		rings:Toggle({
+			Name = "On landing", Default = false, Flag = "jump_onland",
+			Callback = function(value) jump.onLand = value end,
 		})
 		rings:Button({ Name = "Preview", Callback = function() getgenv().ZolarJumpTest() end })
 	end
@@ -79339,6 +86485,13 @@ local GROUPS = {
 	cosmetic = { kinds = { Cosmetic = true }, multi = true },
 	trail = { kinds = { Trail = true }, multi = false },
 }
+ 
+local function renderFile(key)
+	local file = "fxthumbs/render/" .. tostring(key):gsub("[^%w_%-]", "_") .. ".jpg"
+	local have = false
+	pcall(function() have = isfile(DIR .. file) end)
+	return have and file or nil
+end
 local function thumbFile(id)
 	return "fxthumbs/" .. tostring(id):gsub("[^%w_%.%-]", "_") .. ".png"
 end
@@ -79352,7 +86505,10 @@ local function rowsOf(group)
 			local have = false
 			pcall(function() have = isfile(DIR .. file) end)
 			local row = { name = entry.id, label = entry.label }
-			if entry.g == "nullscape" and shop then
+			local rendered = group == "aura" and renderFile(entry.id)
+			if rendered then
+				row.thumbfn = function() return Remote.asset(rendered) or shop or "" end
+			elseif entry.g == "nullscape" and shop then
 				row.thumb = shop
 			elseif have then
 				row.thumbfn = function() return Remote.asset(file) or shop or "" end
@@ -79423,7 +86579,7 @@ getgenv().ZolarFx = function(Sections)
 			local multi = GROUPS[group].multi
 			local settings = sub:Section({ Name = title, Side = 1 })
 			sub:ImageList({
-				Name = title, Key = "fx_" .. group, Thumb = "Asset", Column = 2, Multi = multi, Cell = 92,
+				Name = title, Key = "fx_" .. group, Flag = "fx_pick_" .. group, Thumb = "Asset", Column = 2, Multi = multi, Cell = 92,
 				Items = rowsOf(group), Empty = "Nothing here",
 				Callback = function(value)
 					local list = multi and value or (value and { value } or {})
@@ -79438,10 +86594,6 @@ getgenv().ZolarFx = function(Sections)
 		local sub = Sections.Auras
 		 
 		for _, row in ipairs(rowsOf("aura")) do auraHub.unusual[#auraHub.unusual + 1] = row end
-		local unusualSettings = sub:Section({ Name = "Unusual auras", Side = 1 })
-		controls(unusualSettings, "aura", {
-			{ "glow", "Glow", 0, 3, 1 }, { "rate", "Amount", 0, 3, 1 }, { "size", "Size", 0.2, 3, 1 }, { "speed", "Speed", 0.2, 3, 1 },
-		})
 		 
 		local ok, made = pcall(buildAura)
 		if not ok then
@@ -79449,22 +86601,33 @@ getgenv().ZolarFx = function(Sections)
 		else
 			aura = made
 			getgenv().ZolarFxAura = made
-			local A = aura.A
-			local settings = sub:Section({ Name = "Classic auras", Side = 1 })
-			settings:Colorpicker({
-				Name = "Color", Default = A.Color,
-				Callback = function(c) A.Color = c; A.Tint = true; aura.tune() end,
-			})
-			settings:Toggle({ Name = "Custom color", Default = true, Callback = function(v) A.Tint = v; aura.tune() end })
-			for _, f in ipairs({
-				{ "Glow", "Glow", 0, 6, 2 }, { "Amount", "Rate", 0.1, 4, 1 },
-				{ "Size", "Size", 0.25, 3, 1 }, { "Speed", "Speed", 0.05, 5, 1 },
-			}) do
-				settings:Slider({
-					Name = f[1], Min = f[3], Max = f[4], Default = f[5], Decimals = 0.05,
-					Callback = function(v) A[f[2]] = v; aura.tune() end,
-				})
+		end
+		 
+		 
+		local shared = { color = Color3.fromRGB(255, 255, 255), tint = false, glow = 1, rate = 1, size = 1, speed = 1 }
+		local function applyShared()
+			local state = tuneState.aura
+			state.tint = shared.tint or nil
+			state.first, state.second = shared.color, shared.color
+			state.glow, state.rate, state.size, state.speed = shared.glow, shared.rate, shared.size, shared.speed
+			tune("aura")
+			if aura then
+				local A = aura.A
+				A.Color, A.Tint = shared.color, shared.tint
+				A.Glow, A.Amount, A.Size, A.Speed = shared.glow * 2, shared.rate, shared.size, shared.speed
+				aura.tune()
 			end
+		end
+		getgenv().__saladAuraShared = function(field, value)
+			if field == "size" then shared.size = tonumber(value) or 1
+			elseif field == "density" then shared.rate = tonumber(value) or 1
+			elseif field == "glow" then shared.glow = (tonumber(value) or 100) / 100
+			elseif field == "custom" then shared.tint = value == true
+			elseif field == "color" then shared.color, shared.tint = value, true
+			else return end
+			applyShared()
+		end
+		if aura then
 			for _, name in ipairs(aura.ORDER) do
 				auraHub.classic[#auraHub.classic + 1] = {
 					name = "c:" .. name, label = name,
@@ -79518,13 +86681,13 @@ getgenv().ZolarFx = function(Sections)
 		auraHub.dispatch = dispatch
 		getgenv().ZolarAuraHub = auraHub
 		auraHub.list = sub:ImageList({
-			Name = "Auras", Key = "fx_auras", Thumb = "Asset", Column = 2, Multi = true, Cell = 92,
+			Name = "Auras", Key = "fx_auras", Flag = "fx_pick_auras", Thumb = "Asset", Column = 2, Multi = true, Cell = 92,
 			Items = auraRows(), Empty = "No auras",
 			Callback = function(value) dispatch(value, "auras") end,
 		})
 		if Sections.Hats then
 			auraHub.hatList = Sections.Hats:ImageList({
-				Name = "China hats", Key = "fx_hats", Thumb = "Asset", Multi = true, Cell = 92,
+				Name = "China hats", Key = "fx_hats", Flag = "fx_pick_hats", Thumb = "Asset", Multi = true, Cell = 92,
 				Items = auraHub.hats, Empty = "No hats",
 				Callback = function(value) dispatch(value, "hats") end,
 			})
@@ -79576,7 +86739,7 @@ getgenv().ZolarFx = function(Sections)
 				end
 			end
 			sub:ImageList({
-				Name = "Trails", Key = "fx_trails", Thumb = "Asset", Column = 2, Cell = 92,
+				Name = "Trails", Key = "fx_trails", Flag = "fx_pick_trails", Thumb = "Asset", Column = 2, Cell = 92,
 				Items = rows, Empty = "No trails",
 				Callback = function(v)
 					if type(v) ~= "string" or v == "" then
@@ -79604,7 +86767,13 @@ getgenv().ZolarAurasSalad = function(params)
 		for _, row in ipairs(items or {}) do
 			local copy = table.clone(row)
 			copy.name = "p:" .. row.name
-			if (row.place or 0) >= 128 then
+			local rendered = renderFile(copy.name)
+			if rendered then
+				copy.thumb, copy.rect = nil, nil
+				copy.thumbfn = function() return Remote.asset(rendered) or "" end
+			end
+			 
+			if (row.place or 0) >= 128 or string.sub(tostring(row.name), 1, 3) == "ph_" then
 				auraHub.hats[#auraHub.hats + 1] = copy
 				auraHub.hatSet[copy.name] = true
 			else
@@ -79637,6 +86806,1001 @@ getgenv().ZolarFxApi = FX
 print("[fx] ready, " .. #FX.Catalog .. " effects")
 end)
 if not ok then warn("[Salad] fx.lua: " .. tostring(err)) end
+end
+do
+local ok, err = pcall(function()
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+local LocalPlayer = Players.LocalPlayer
+local SAVE = "Zolar/Data/catalog.json"
+local API = "https://yanderov.lol/api/rbx"
+local TAG = "ZolarCatalog"
+local connections = {}
+local alive = true
+local function keep(connection)
+	connections[#connections + 1] = connection
+	return connection
+end
+local request = request or http_request or (syn and syn.request)
+ 
+local CATEGORIES = {
+	{ "All accessories", "wNYJso48d1XnhMyFWT3oX3" },
+	{ "Hats", "thukPQUFe5EHxRrtsgq43u" },
+	{ "Hair", "d6a7M7r9MMrpf7z7VxW9ZS" },
+	{ "Face accessories", "b5rkQhGSfwhfTK177y6ERa" },
+	{ "Neck", "tvckLAbtDAGwF9Y2sph2Ce" },
+	{ "Shoulder", "8i1sggNTrxoN799hpRrR1S" },
+	{ "Front", "kj535RzJxHTCnXPBLo5KaE" },
+	{ "Back", "7yGywzp5JeDsNjhXWJqSw3" },
+	{ "Waist", "6jYQPDtkVwQZcKtvVpyYAN" },
+	{ "All clothing", "5G3bZScC9Hxp2D2EUtGSNm" },
+	{ "Classic T-Shirts", "43H35nJKHzCQM63q3wPaJG" },
+	{ "Classic Shirts", "2a2rf9qyeTd8W5iegK2Prc" },
+	{ "Classic Pants", "49cFNAJWuwiJJVUSADG6DR" },
+	{ "3D T-Shirts", "fLRqNzGqjX7MzcqeMro9hc" },
+	{ "3D Shirts", "pJ71PxerdfEuarTNRtSZYs" },
+	{ "Sweaters", "31M6WgEMmyq9TTfk3pUUpZ" },
+	{ "Jackets", "kPZpEVNdProGcqMbj1jDKJ" },
+	{ "3D Pants", "1MvRtnnsy2FJWmkErSBxBa" },
+	{ "Shorts", "etAPg889P243JyjdbZCXhw" },
+	{ "Dresses & skirts", "oSSCBSqkQPZu6HataAUAxB" },
+	{ "Shoes", "uLRgNoJ1awZkhpVw9WyvKo" },
+	{ "Heads & faces", "s5NLP7BS9PRLKvUVca4XKg" },
+	{ "Bodies", "kfHzJwaNYM8s2CWRqYUhRa" },
+	{ "Everything for the body", "mwkR3QvDBVzYk4o9RAVVa2" },
+}
+local SORTS = {
+	{ "Relevance", 0 }, { "Most favorited", 1 }, { "Bestselling", 2 },
+	{ "Recently updated", 3 }, { "Price: low to high", 4 }, { "Price: high to low", 5 },
+}
+ 
+local BODY_TYPES = { [27] = true, [28] = true, [29] = true, [30] = true, [31] = true }
+local SKIP_TYPES = { [78] = true, [48] = true, [49] = true, [50] = true, [51] = true, [52] = true, [53] = true, [54] = true, [55] = true, [56] = true, [61] = true }
+local state = {
+	category = CATEGORIES[1], sort = SORTS[1], keyword = "",
+	rows = {}, byId = {}, cursor = nil, loading = false, token = 0,
+	worn = {}, wornOrder = {},
+	hide = { accessories = false, shirt = false, pants = false, tshirt = false, face = false },
+	skin = { on = false, color = Color3.fromRGB(234, 184, 146) },
+}
+local list, status
+local function setStatus(text)
+	if status then pcall(function() status:Set(text) end) end
+end
+ 
+local function save()
+	 
+	pcall(function()
+		local Z = getgenv().Zolar
+		if Z and Z.Flags then Z.Flags.catalog_worn = table.clone(state.wornOrder) end
+	end)
+	pcall(function()
+		writefile(SAVE, HttpService:JSONEncode({
+			worn = state.wornOrder, hide = state.hide,
+			skin = { on = state.skin.on, color = state.skin.color:ToHex() },
+		}))
+	end)
+end
+pcall(function()
+	if not isfile(SAVE) then return end
+	local data = HttpService:JSONDecode(readfile(SAVE))
+	if type(data) ~= "table" then return end
+	for _, key in ipairs(type(data.worn) == "table" and data.worn or {}) do
+		key = tostring(key)
+		if not state.worn[key] then
+			state.worn[key] = true
+			state.wornOrder[#state.wornOrder + 1] = key
+		end
+	end
+	if type(data.hide) == "table" then
+		for key in pairs(state.hide) do state.hide[key] = data.hide[key] == true end
+	end
+	if type(data.skin) == "table" then
+		state.skin.on = data.skin.on == true
+		pcall(function() state.skin.color = Color3.fromHex(data.skin.color) end)
+	end
+end)
+ 
+local function get(url)
+	if not request then return nil, "no request function" end
+	for attempt = 1, 5 do
+		local ok, response = pcall(request, { Url = url, Method = "GET" })
+		if ok and response then
+			if response.StatusCode == 200 then return response.Body end
+			if response.StatusCode == 429 then
+				setStatus("Roblox asks to wait, retrying...")
+				task.wait(2 + attempt * 1.5)
+			else
+				return nil, "HTTP " .. tostring(response.StatusCode)
+			end
+		else
+			task.wait(1)
+		end
+	end
+	return nil, "too many requests, try again in a minute"
+end
+local function getJson(url)
+	local body, err = get(url)
+	if not body then return nil, err end
+	local ok, data = pcall(function() return HttpService:JSONDecode(body) end)
+	if not ok then return nil, "bad answer" end
+	return data
+end
+local function refreshList()
+	if not list then return end
+	pcall(function() list:SetData(table.clone(state.rows)) end)
+	local wornHere = {}
+	for _, key in ipairs(state.wornOrder) do
+		if state.byId[key] then wornHere[#wornHere + 1] = key end
+	end
+	pcall(function() list:SetValue(wornHere, true) end)
+end
+local function rowFor(item)
+	local bundle = item.itemType == "Bundle"
+	local id = tostring(item.id)
+	return {
+		name = bundle and ("b" .. id) or id,
+		id = id,
+		label = tostring(item.name or id),
+		thumb = bundle and ("rbxthumb://type=BundleThumbnail&id=" .. id .. "&w=150&h=150")
+			or ("rbxthumb://type=Asset&id=" .. id .. "&w=150&h=150"),
+	}
+end
+local function fetch(more)
+	if state.loading then return end
+	if more and not state.cursor then setStatus("That is everything for this search") return end
+	state.loading = true
+	state.token += 1
+	local token = state.token
+	if not more then
+		state.rows, state.byId, state.cursor = {}, {}, nil
+		refreshList()
+	end
+	setStatus("Loading " .. state.category[1] .. "...")
+	local url = API .. "?kind=search&taxonomy=" .. state.category[2] .. "&sort=" .. state.sort[2]
+		.. (state.keyword ~= "" and ("&keyword=" .. HttpService:UrlEncode(state.keyword)) or "")
+		.. (more and state.cursor and ("&cursor=" .. HttpService:UrlEncode(state.cursor)) or "")
+	task.spawn(function()
+		local data, err = getJson(url)
+		if token ~= state.token or not alive then return end
+		state.loading = false
+		if not data then
+			setStatus("Could not load: " .. tostring(err))
+			return
+		end
+		state.cursor = data.next
+		for _, item in ipairs(type(data.items) == "table" and data.items or {}) do
+			if item.id and (item.itemType == "Asset" or item.itemType == "Bundle") then
+				local row = rowFor(item)
+				if not state.byId[row.name] then
+					state.byId[row.name] = row
+					state.rows[#state.rows + 1] = row
+				end
+			end
+		end
+		refreshList()
+		setStatus(#state.rows .. " items" .. (state.cursor and " - Load more for the next page" or ""))
+	end)
+end
+ 
+local templates, bundles = {}, {}
+ 
+local function template(id)
+	if templates[id] then return templates[id] end
+	 
+	 
+	local ok, objects
+	for attempt = 1, 4 do
+		ok, objects = pcall(function() return game:GetObjects("rbxassetid://" .. id) end)
+		if not (ok and type(objects) == "table" and #objects > 0) then
+			local InsertService = game:GetService("InsertService")
+			local loaded, model = pcall(function() return InsertService:LoadAsset(tonumber(id)) end)
+			if loaded and model then ok, objects = true, model:GetChildren() end
+		end
+		if ok and type(objects) == "table" and #objects > 0 then break end
+		task.wait(0.6 * attempt)
+	end
+	local found = false
+	if ok and type(objects) == "table" then
+		local folders = {}
+		for _, object in ipairs(objects) do
+			if object:IsA("Folder") then folders[object.Name] = object end
+		end
+		local body = folders.R15ArtistIntent or folders.R15Fixed
+		if body and body:FindFirstChildWhichIsA("MeshPart") then
+			found = { kind = "body", parts = body }
+		else
+			for _, object in ipairs(objects) do
+				if object:IsA("Accessory") then found = { kind = "accessory", object = object } break end
+				if object:IsA("Shirt") then found = { kind = "shirt", object = object } break end
+				if object:IsA("Pants") then found = { kind = "pants", object = object } break end
+				if object:IsA("ShirtGraphic") then found = { kind = "tshirt", object = object } break end
+				if object:IsA("Decal") then found = { kind = "face", object = object } break end
+				if object:IsA("SpecialMesh") or object:IsA("MeshPart") then found = { kind = "head", object = object } break end
+				local inner = object:FindFirstChildWhichIsA("Accessory", true)
+				if inner then found = { kind = "accessory", object = inner } break end
+			end
+		end
+	end
+	if found then templates[id] = found end
+	return found
+end
+ 
+local function bundle(id)
+	if bundles[id] then return bundles[id] end
+	local data = getJson(API .. "?kind=bundle&id=" .. id)
+	local ids = false
+	if data and type(data.items) == "table" then
+		ids = {}
+		for _, item in ipairs(data.items) do
+			if item.id and not SKIP_TYPES[tonumber(item.assetType) or 0] then ids[#ids + 1] = tostring(item.id) end
+		end
+	end
+	if ids and #ids > 0 then bundles[id] = ids end
+	return ids
+end
+ 
+local function piecesOf(key)
+	local out = {}
+	if string.sub(key, 1, 1) == "b" then
+		for _, id in ipairs(bundle(string.sub(key, 2)) or {}) do
+			local piece = template(id)
+			if piece then out[#out + 1] = { id = id, piece = piece } end
+		end
+	else
+		local piece = template(key)
+		if piece then out[#out + 1] = { id = key, piece = piece } end
+	end
+	return out
+end
+ 
+local stash = {}        
+local faded = {}        
+local painted = {}      
+ 
+ 
+ 
+ 
+local rig = { model = nil, pairs = {}, welds = {}, decals = {}, conns = {} }
+local R15 = {
+	"LowerTorso", "UpperTorso", "Head", "LeftUpperArm", "LeftLowerArm", "LeftHand", "RightUpperArm", "RightLowerArm", "RightHand",
+	"LeftUpperLeg", "LeftLowerLeg", "LeftFoot", "RightUpperLeg", "RightLowerLeg", "RightFoot",
+}
+local function undoRig()
+	for _, c in ipairs(rig.conns) do pcall(function() c:Disconnect() end) end
+	table.clear(rig.conns)
+	for weld, saved in pairs(rig.welds) do
+		if weld.Parent then pcall(function() weld.Part0, weld.Part1, weld.C0, weld.C1 = saved[1], saved[2], saved[3], saved[4] end) end
+	end
+	table.clear(rig.welds)
+	for decal, transparency in pairs(rig.decals) do
+		if decal.Parent then pcall(function() decal.Transparency = transparency end) end
+	end
+	table.clear(rig.decals)
+	table.clear(rig.pairs)
+	rig.model, rig.visual = nil, nil
+end
+ 
+local function moveWeld(weld, handle, entry)
+	if rig.welds[weld] then return end
+	local hAtt, vAtt
+	for _, a in ipairs(handle:GetChildren()) do
+		if a:IsA("Attachment") then
+			local match = entry.part:FindFirstChild(a.Name)
+			if match and match:IsA("Attachment") then hAtt, vAtt = a, match break end
+		end
+	end
+	rig.welds[weld] = { weld.Part0, weld.Part1, weld.C0, weld.C1 }
+	pcall(function()
+		if weld.Part0 == handle then
+			weld.Part1 = entry.part
+			if hAtt then weld.C0, weld.C1 = hAtt.CFrame, vAtt.CFrame end
+		else
+			weld.Part0 = entry.part
+			if hAtt then weld.C0, weld.C1 = vAtt.CFrame, hAtt.CFrame end
+		end
+	end)
+end
+local function moveAccessories(character)
+	if not rig.visual then return end
+	for _, accessory in ipairs(character:GetChildren()) do
+		if accessory:IsA("Accessory") then
+			local handle = accessory:FindFirstChild("Handle")
+			if handle then
+				for _, weld in ipairs(handle:GetChildren()) do
+					if weld:IsA("JointInstance") then
+						local other = weld.Part0 == handle and weld.Part1 or weld.Part0
+						local entry = other and rig.visual[other.Name]
+						if entry and entry.original == other then moveWeld(weld, handle, entry) end
+					end
+				end
+			end
+		end
+	end
+end
+ 
+local function moveGrip()
+	if not rig.visual or not rig.visual.RightHand then return end
+	local entry = rig.visual.RightHand
+	local grip = entry.original:FindFirstChild("RightGrip")
+	if grip and grip:IsA("JointInstance") and not rig.welds[grip] then
+		local attachment = entry.part:FindFirstChild("RightGripAttachment")
+		rig.welds[grip] = { grip.Part0, grip.Part1, grip.C0, grip.C1 }
+		pcall(function()
+			grip.Part0 = entry.part
+			if attachment then grip.C0 = attachment.CFrame end
+		end)
+	end
+end
+local function stripPart(part, keepOnly)
+	for _, d in ipairs(part:GetDescendants()) do
+		if d:IsA("JointInstance") or d:IsA("WeldConstraint") or d:IsA("LuaSourceContainer")
+			or d:IsA("WrapLayer") or d:IsA("Sound") then d:Destroy() end
+	end
+	if keepOnly then
+		for _, d in ipairs(part:GetChildren()) do
+			if not (d:IsA("Attachment") or d:IsA("DataModelMesh") or d:IsA("Decal") or d:IsA("SurfaceAppearance") or d:IsA("FaceControls") or d:IsA("WrapTarget")) then
+				d:Destroy()
+			end
+		end
+	end
+end
+local function buildRig(character, sources, headMesh, id)
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	local root = character:FindFirstChild("HumanoidRootPart")
+	if not humanoid or not root or not character:FindFirstChild("UpperTorso") then return false end
+	local function scaleOf(head)
+		local function value(name)
+			local object = humanoid:FindFirstChild(name)
+			return object and object:IsA("NumberValue") and object.Value or 1
+		end
+		if head then local h = value("HeadScale") return Vector3.new(h, h, h) end
+		return Vector3.new(value("BodyWidthScale"), value("BodyHeightScale"), value("BodyDepthScale"))
+	end
+	local model = Instance.new("Model")
+	model.Name = TAG .. "_Body"
+	model:SetAttribute(TAG, id)
+	local fake = Instance.new("Humanoid")
+	 
+	pcall(function() fake.RigType = humanoid.RigType end)
+	pcall(function() fake.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None end)
+	pcall(function() fake.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff end)
+	pcall(function() fake.RequiresNeck = false end)
+	pcall(function() fake.BreakJointsOnDeath = false end)
+	pcall(function() fake.EvaluateStateMachine = false end)
+	fake.Parent = model
+	local visual = {}
+	for _, name in ipairs(R15) do
+		local original = character:FindFirstChild(name)
+		if original and original:IsA("BasePart") then
+			local source = sources[name]
+			local part
+			if source then
+				part = source:Clone()
+				stripPart(part, false)
+				local scale = scaleOf(name == "Head")
+				part.Size = source.Size * scale
+				for _, a in ipairs(part:GetDescendants()) do
+					if a:IsA("Attachment") then a.Position = a.Position * scale end
+				end
+			else
+				local archivable = original.Archivable
+				original.Archivable = true
+				local ok, copy = pcall(function() return original:Clone() end)
+				original.Archivable = archivable
+				if ok and copy then
+					part = copy
+					stripPart(part, true)
+					if name == "Head" and headMesh then
+						for _, d in ipairs(part:GetChildren()) do if d:IsA("DataModelMesh") then d:Destroy() end end
+						headMesh:Clone().Parent = part
+					end
+				end
+			end
+			if part then
+				part.Name = name
+				part.Anchored, part.CanCollide, part.CanTouch, part.CanQuery, part.Massless = false, false, false, false, true
+				part.CFrame = original.CFrame
+				part.Parent = model
+				visual[name] = { part = part, original = original }
+			end
+		end
+	end
+	 
+	for _, entry in pairs(visual) do
+		 
+		local motor, parentPart, name0, name1, c0, c1
+		for _, m in ipairs(entry.original:GetChildren()) do
+			if m:IsA("Motor6D") and m.Part1 == entry.original and m.Part0 then
+				motor, parentPart = m, m.Part0
+				name0, name1, c0, c1 = m.Name .. "RigAttachment", m.Name .. "RigAttachment", m.C0, m.C1
+				break
+			end
+			if m:IsA("AnimationConstraint") and m.Attachment0 and m.Attachment1 and m.Attachment1.Parent == entry.original then
+				motor, parentPart = m, m.Attachment0.Parent
+				name0, name1, c0, c1 = m.Attachment0.Name, m.Attachment1.Name, m.Attachment0.CFrame, m.Attachment1.CFrame
+				break
+			end
+		end
+		if motor and parentPart and parentPart:IsA("BasePart") then
+			local parent = visual[parentPart.Name] and visual[parentPart.Name].original == parentPart and visual[parentPart.Name].part or parentPart
+			local a0, a1 = parent:FindFirstChild(name0), entry.part:FindFirstChild(name1)
+			local joint = Instance.new("Motor6D")
+			joint.Name = motor.Name
+			joint.Part0, joint.Part1 = parent, entry.part
+			joint.C0 = a0 and a0:IsA("Attachment") and a0.CFrame or c0
+			joint.C1 = a1 and a1:IsA("Attachment") and a1.CFrame or c1
+			joint.Parent = entry.part
+			rig.pairs[#rig.pairs + 1] = { joint, motor }
+		else
+			local weld = Instance.new("Weld")
+			weld.Part0, weld.Part1 = entry.part, entry.original
+			weld.Parent = entry.part
+		end
+	end
+	 
+	local head = visual.Head
+	if head and sources.Head and not head.part:FindFirstChildWhichIsA("Decal") and not head.part:FindFirstChildWhichIsA("FaceControls") then
+		for _, d in ipairs(head.original:GetChildren()) do
+			if d:IsA("Decal") then d:Clone().Parent = head.part end
+		end
+	end
+	 
+	for _, entry in pairs(visual) do
+		if faded[entry.original] == nil then faded[entry.original] = entry.original.Transparency end
+		entry.original.Transparency = 1
+		for _, d in ipairs(entry.original:GetChildren()) do
+			if d:IsA("Decal") and rig.decals[d] == nil then rig.decals[d] = d.Transparency d.Transparency = 1 end
+		end
+	end
+	model.Parent = character
+	rig.model, rig.visual = model, visual
+	 
+	local runService = game:GetService("RunService")
+	local ok, event = pcall(function() return runService.PreSimulation end)
+	if not ok or not event then event = runService.Stepped end
+	rig.conns[#rig.conns + 1] = event:Connect(function()
+		for _, pair in ipairs(rig.pairs) do
+			local joint, motor = pair[1], pair[2]
+			if joint.Parent and motor.Parent then joint.Transform = motor.Transform end
+		end
+	end)
+	rig.conns[#rig.conns + 1] = character.ChildAdded:Connect(function(child)
+		task.defer(function()
+			if child:IsA("Accessory") then moveAccessories(character) end
+			if child:IsA("Tool") then task.wait() moveGrip() end
+		end)
+	end)
+	if visual.RightHand then
+		rig.conns[#rig.conns + 1] = visual.RightHand.original.ChildAdded:Connect(function(child)
+			if child.Name == "RightGrip" then task.defer(moveGrip) end
+		end)
+	end
+	moveAccessories(character)
+	moveGrip()
+	return true
+end
+ 
+ 
+local function wrapRig(character)
+	if not rig.model or not rig.visual then return end
+	for _, d in ipairs(rig.model:GetChildren()) do
+		if d:IsA("Accessory") and d:GetAttribute(TAG .. "_Wrap") then d:Destroy() end
+	end
+	for _, accessory in ipairs(character:GetChildren()) do
+		if accessory:IsA("Accessory") and accessory:FindFirstChildWhichIsA("WrapLayer", true) then
+			local handle = accessory:FindFirstChild("Handle")
+			if handle and handle:IsA("BasePart") then
+				local archivable = accessory.Archivable
+				accessory.Archivable = true
+				local ok, copy = pcall(function() return accessory:Clone() end)
+				accessory.Archivable = archivable
+				if ok and copy then
+					copy:SetAttribute(TAG .. "_Wrap", true)
+					copy:SetAttribute(TAG, accessory:GetAttribute(TAG) or "wrap")
+					for _, d in ipairs(copy:GetDescendants()) do
+						if d:IsA("JointInstance") or d:IsA("WeldConstraint") or d:IsA("LuaSourceContainer") then d:Destroy() end
+					end
+					local copyHandle = copy:FindFirstChild("Handle")
+					copyHandle.CanCollide, copyHandle.CanTouch, copyHandle.CanQuery, copyHandle.Massless = false, false, false, true
+					copy.Parent = rig.model
+					 
+					local own, target
+					for _, child in ipairs(copyHandle:GetChildren()) do
+						if child:IsA("Attachment") then
+							for _, entry in pairs(rig.visual) do
+								local match = entry.part:FindFirstChild(child.Name)
+								if match and match:IsA("Attachment") then own, target = child, match break end
+							end
+							if own then break end
+						end
+					end
+					local weld = Instance.new("Weld")
+					weld.Name = "AccessoryWeld"
+					weld.Part0 = copyHandle
+					weld.Part1 = target and target.Parent or rig.visual.UpperTorso and rig.visual.UpperTorso.part
+					if own and target then weld.C0, weld.C1 = own.CFrame, target.CFrame end
+					weld.Parent = copyHandle
+					if faded[handle] == nil then faded[handle] = handle.Transparency end
+					handle.Transparency = 1
+				end
+			end
+		end
+	end
+end
+ 
+local function dressRig(character)
+	if not rig.model then return end
+	for _, d in ipairs(rig.model:GetChildren()) do
+		if d:IsA("Clothing") or d:IsA("ShirtGraphic") or d:IsA("BodyColors") then d:Destroy() end
+	end
+	 
+	local chosen = {}
+	for _, d in ipairs(character:GetChildren()) do
+		if d:IsA("Clothing") or d:IsA("ShirtGraphic") or d:IsA("BodyColors") then
+			local class = d.ClassName
+			if not chosen[class] or d:GetAttribute(TAG) ~= nil and chosen[class]:GetAttribute(TAG) == nil then chosen[class] = d end
+		end
+	end
+	for _, d in pairs(chosen) do
+		do
+			local archivable = d.Archivable
+			d.Archivable = true
+			local ok, copy = pcall(function() return d:Clone() end)
+			d.Archivable = archivable
+			if ok and copy then
+				if copy:IsA("BodyColors") and state.skin.on then
+					for _, key in ipairs({ "HeadColor3", "TorsoColor3", "LeftArmColor3", "RightArmColor3", "LeftLegColor3", "RightLegColor3" }) do
+						copy[key] = state.skin.color
+					end
+				end
+				copy.Parent = rig.model
+			end
+		end
+	end
+end
+local function findAttachment(character, name)
+	if rig.model and rig.model.Parent == character then
+		for _, d in ipairs(rig.model:GetDescendants()) do
+			if d:IsA("Attachment") and d.Name == name and d.Parent and d.Parent:IsA("BasePart") then return d end
+		end
+	end
+	for _, d in ipairs(character:GetDescendants()) do
+		if d:IsA("Attachment") and d.Name == name and d.Parent and d.Parent:IsA("BasePart")
+			and not d:FindFirstAncestorWhichIsA("Accessory") and d.Parent:GetAttribute(TAG) == nil then
+			return d
+		end
+	end
+end
+local function weldTo(part, target, c0, c1)
+	local weld = Instance.new("Weld")
+	weld.Name = "AccessoryWeld"
+	weld.Part0, weld.Part1 = part, target
+	weld.C0, weld.C1 = c0 or CFrame.identity, c1 or CFrame.identity
+	weld.Parent = part
+end
+local function wearAccessory(character, source, id)
+	local accessory = source:Clone()
+	accessory.Name = TAG .. "_" .. id
+	accessory:SetAttribute(TAG, id)
+	local handle = accessory:FindFirstChild("Handle")
+	if not handle or not handle:IsA("BasePart") then accessory:Destroy() return end
+	for _, d in ipairs(accessory:GetDescendants()) do
+		if d:IsA("JointInstance") or d:IsA("WeldConstraint") or d:IsA("LuaSourceContainer") then d:Destroy() end
+	end
+	handle.CanCollide, handle.CanTouch, handle.CanQuery = false, false, false
+	handle.Massless, handle.Anchored = true, false
+	local own, target
+	for _, child in ipairs(handle:GetChildren()) do
+		if child:IsA("Attachment") then
+			local match = findAttachment(character, child.Name)
+			if match then own, target = child, match break end
+		end
+	end
+	accessory.Parent = character
+	if own and target then
+		weldTo(handle, target.Parent, own.CFrame, target.CFrame)
+	else
+		local head = character:FindFirstChild("Head")
+		if not head then accessory:Destroy() return end
+		weldTo(handle, head, accessory.AttachmentPoint, CFrame.new(0, head.Size.Y / 2, 0))
+	end
+end
+ 
+local function overlay(character, original, source, id)
+	local part = source:Clone()
+	part.Name = TAG .. "_" .. original.Name
+	part:SetAttribute(TAG, id)
+	for _, d in ipairs(part:GetDescendants()) do
+		if d:IsA("JointInstance") or d:IsA("WeldConstraint") or d:IsA("LuaSourceContainer")
+			or d:IsA("Attachment") or d:IsA("WrapTarget") then d:Destroy() end
+	end
+	part.Size = original.Size
+	part.CanCollide, part.CanTouch, part.CanQuery = false, false, false
+	part.Massless, part.Anchored = true, false
+	part.CFrame = original.CFrame
+	part.Parent = character
+	weldTo(part, original)
+	if faded[original] == nil then faded[original] = original.Transparency end
+	original.Transparency = 1
+	return part
+end
+local function headOverlay(character, mesh, id)
+	local head = character:FindFirstChild("Head")
+	if not head then return end
+	local part
+	if mesh:IsA("MeshPart") then
+		part = overlay(character, head, mesh, id)
+	else
+		part = Instance.new("Part")
+		part.Name = TAG .. "_Head"
+		part:SetAttribute(TAG, id)
+		part.Size = head.Size
+		part.CanCollide, part.CanTouch, part.CanQuery = false, false, false
+		part.Massless = true
+		part.Color = head.Color
+		part.CFrame = head.CFrame
+		local m = mesh:Clone()
+		m.Parent = part
+		part.Parent = character
+		weldTo(part, head)
+		if faded[head] == nil then faded[head] = head.Transparency end
+		head.Transparency = 1
+	end
+	return part
+end
+local function restoreFaded()
+	for part, transparency in pairs(faded) do
+		if part.Parent then part.Transparency = transparency end
+	end
+	table.clear(faded)
+end
+local function applyHide(character, extra)
+	for i = #stash, 1, -1 do
+		local item = stash[i]
+		if not (state.hide[item.kind] or extra[item.kind]) or item.character ~= character then
+			if item.character == character then pcall(function() item.object.Parent = item.parent end) end
+			table.remove(stash, i)
+		end
+	end
+	local function hide(object, kind)
+		for _, item in ipairs(stash) do if item.object == object then return end end
+		stash[#stash + 1] = { object = object, parent = object.Parent, kind = kind, character = character }
+		object.Parent = nil
+	end
+	local function on(kind) return state.hide[kind] or extra[kind] end
+	for _, child in ipairs(character:GetChildren()) do
+		if child:GetAttribute(TAG) == nil then
+			if on("accessories") and child:IsA("Accessory") then hide(child, "accessories") end
+			if on("shirt") and child:IsA("Shirt") then hide(child, "shirt") end
+			if on("pants") and child:IsA("Pants") then hide(child, "pants") end
+			if on("tshirt") and child:IsA("ShirtGraphic") then hide(child, "tshirt") end
+		end
+	end
+	local head = character:FindFirstChild("Head")
+	if head and on("face") then
+		for _, d in ipairs(head:GetChildren()) do
+			if d:IsA("Decal") and d:GetAttribute(TAG) == nil then hide(d, "face") end
+		end
+	end
+end
+local function paintSkin(character)
+	for part, color in pairs(painted) do
+		if part.Parent then part.Color = color end
+	end
+	table.clear(painted)
+	if not state.skin.on then return end
+	for _, part in ipairs(character:GetChildren()) do
+		if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+			local mine = part:GetAttribute(TAG) ~= nil
+			if mine or part.Parent == character and (part:IsA("MeshPart") or part.Name == "Head" or part.Name == "Torso"
+				or string.find(part.Name, "Arm") or string.find(part.Name, "Leg")) then
+				if not mine then painted[part] = part.Color end
+				part.Color = state.skin.color
+			end
+		end
+	end
+end
+local function clearWorn(character)
+	undoRig()
+	for _, d in ipairs(character:GetDescendants()) do
+		if d:GetAttribute(TAG) ~= nil then d:Destroy() end
+	end
+	restoreFaded()
+end
+local function apply()
+	local character = LocalPlayer.Character
+	if not character or not character:FindFirstChild("Head") then return end
+	 
+	local pieces = {}
+	for _, key in ipairs(state.wornOrder) do
+		for _, entry in ipairs(piecesOf(key)) do pieces[#pieces + 1] = entry end
+	end
+	clearWorn(character)
+	local replaces = {}
+	for _, entry in ipairs(pieces) do
+		local kind = entry.piece.kind
+		if kind == "shirt" or kind == "pants" or kind == "tshirt" or kind == "face" then replaces[kind] = true end
+		if kind == "head" then replaces.face = true end
+	end
+	applyHide(character, replaces)
+	 
+	local sources, headMesh, bodyId = {}, nil, nil
+	for _, entry in ipairs(pieces) do
+		local piece = entry.piece
+		if piece.kind == "body" then
+			for _, source in ipairs(piece.parts:GetChildren()) do
+				if source:IsA("MeshPart") then sources[source.Name] = source end
+			end
+			bodyId = bodyId or entry.id
+		elseif piece.kind == "head" then
+			if piece.object:IsA("MeshPart") then sources.Head = piece.object else headMesh = piece.object end
+			bodyId = bodyId or entry.id
+		end
+	end
+	local rigged = false
+	if bodyId then
+		local ok, made = pcall(buildRig, character, sources, headMesh, bodyId)
+		rigged = ok and made == true
+		if not ok then warn("[catalog] body: " .. tostring(made)) end
+	end
+	for _, entry in ipairs(pieces) do
+		local piece, id = entry.piece, entry.id
+		if rigged and (piece.kind == "body" or piece.kind == "head") then
+			 
+		elseif piece.kind == "accessory" then
+			pcall(wearAccessory, character, piece.object, id)
+		elseif piece.kind == "body" then
+			for _, source in ipairs(piece.parts:GetChildren()) do
+				local original = source:IsA("MeshPart") and character:FindFirstChild(source.Name)
+				if original and original:IsA("BasePart") then pcall(overlay, character, original, source, id) end
+			end
+		elseif piece.kind == "head" then
+			pcall(headOverlay, character, piece.object, id)
+		elseif piece.kind == "face" then
+			local head = character:FindFirstChild("Head")
+			local target = head
+			for _, d in ipairs(character:GetChildren()) do
+				if d.Name == TAG .. "_Head" then target = d end
+			end
+			if rig.visual and rig.visual.Head then
+				target = rig.visual.Head.part
+				for _, d in ipairs(target:GetChildren()) do if d:IsA("Decal") then d:Destroy() end end
+			end
+			if target then
+				local face = piece.object:Clone()
+				face.Name = "face"
+				face:SetAttribute(TAG, id)
+				face.Parent = target
+			end
+		else
+			local clothing = piece.object:Clone()
+			clothing:SetAttribute(TAG, id)
+			clothing.Parent = character
+		end
+	end
+	paintSkin(character)
+	if rigged then
+		moveAccessories(character)
+		dressRig(character)
+		pcall(wrapRig, character)
+	end
+end
+local applying, again = false, false
+local function applySoon()
+	if applying then again = true return end
+	applying = true
+	task.spawn(function()
+		repeat
+			again = false
+			task.wait(0.05)
+			local ok, err = pcall(apply)
+			if not ok then warn("[catalog] " .. tostring(err)) end
+		until not again or not alive
+		applying = false
+	end)
+end
+local function forget(key)
+	state.worn[key] = nil
+	local at = table.find(state.wornOrder, key)
+	if at then table.remove(state.wornOrder, at) end
+end
+local function toggleWorn(key, on)
+	key = tostring(key)
+	if on and not state.worn[key] then
+		state.worn[key] = true
+		state.wornOrder[#state.wornOrder + 1] = key
+		setStatus("Putting it on...")
+		task.spawn(function()
+			if #piecesOf(key) == 0 then
+				setStatus("Could not load " .. key .. " from Roblox, click it again")
+				forget(key)
+				refreshList()
+				save()
+				return
+			end
+			setStatus("Wearing " .. #state.wornOrder .. " items")
+			applySoon()
+		end)
+	elseif not on and state.worn[key] then
+		forget(key)
+		applySoon()
+	end
+	save()
+end
+keep(LocalPlayer.CharacterAdded:Connect(function(character)
+	character:WaitForChild("Head", 10)
+	task.wait(1)
+	table.clear(faded)
+	table.clear(painted)
+	if alive then applySoon() end
+end))
+ 
+getgenv().ZolarCatalog = function(S)
+	local page = S and S.Page
+	if not page then return end
+	local section = page:Section({ Name = "Catalog", Side = 1 })
+	local names = {}
+	for _, entry in ipairs(CATEGORIES) do names[#names + 1] = entry[1] end
+	local sortNames = {}
+	for _, entry in ipairs(SORTS) do sortNames[#sortNames + 1] = entry[1] end
+	status = section:Label({ Name = "Pick a section" })
+	section:Dropdown({
+		Name = "Section", Items = names, Default = names[1], Flag = "catalog_section",
+		Callback = function(value)
+			for _, entry in ipairs(CATEGORIES) do
+				if entry[1] == value then state.category = entry end
+			end
+			if list then fetch(false) end
+		end,
+	})
+	section:Dropdown({
+		Name = "Sort", Items = sortNames, Default = sortNames[1], Flag = "catalog_sort",
+		Callback = function(value)
+			for _, entry in ipairs(SORTS) do
+				if entry[1] == value then state.sort = entry end
+			end
+			if list then fetch(false) end
+		end,
+	})
+	section:Textbox({
+		Name = "Search", Placeholder = "name in the catalog", Finished = true,
+		Callback = function(value)
+			state.keyword = tostring(value or "")
+			if list then fetch(false) end
+		end,
+	})
+	section:Button({ Name = "Load more", Callback = function() fetch(true) end })
+	section:Textbox({
+		Name = "Wear by ID", Placeholder = "asset or bundle id", Finished = true,
+		Callback = function(value)
+			local id = string.gsub(tostring(value or ""), "%D", "")
+			if id == "" then return end
+			task.spawn(function()
+				setStatus("Looking up " .. id .. "...")
+				if template(id) then
+					toggleWorn(id, true)
+				elseif bundle(id) then
+					toggleWorn("b" .. id, true)
+				else
+					setStatus("Nothing to wear with id " .. id)
+				end
+			end)
+		end,
+	})
+	section:Button({
+		Name = "Show what I wear",
+		Callback = function()
+			state.token += 1
+			state.loading = false
+			state.rows, state.byId, state.cursor = {}, {}, nil
+			for _, key in ipairs(state.wornOrder) do
+				local isBundle = string.sub(key, 1, 1) == "b"
+				local row = rowFor({ id = isBundle and string.sub(key, 2) or key, itemType = isBundle and "Bundle" or "Asset", name = key })
+				state.byId[row.name] = row
+				state.rows[#state.rows + 1] = row
+			end
+			refreshList()
+			setStatus(#state.rows .. " worn items")
+		end,
+	})
+	section:Button({
+		Name = "Take off catalog items",
+		Callback = function()
+			state.worn, state.wornOrder = {}, {}
+			save()
+			applySoon()
+			refreshList()
+		end,
+	})
+	local own = page:Section({ Name = "My avatar", Side = 1 })
+	for _, entry in ipairs({
+		{ "accessories", "Hide my accessories" }, { "shirt", "Hide my shirt" }, { "pants", "Hide my pants" },
+		{ "tshirt", "Hide my t-shirt" }, { "face", "Hide my face" },
+	}) do
+		own:Toggle({
+			Name = entry[2], Default = state.hide[entry[1]], Flag = "catalog_hide_" .. entry[1],
+			Callback = function(value)
+				state.hide[entry[1]] = value == true
+				save()
+				applySoon()
+			end,
+		})
+	end
+	own:Toggle({
+		Name = "Skin color", Default = state.skin.on, Flag = "catalog_skin",
+		Callback = function(value)
+			state.skin.on = value == true
+			save()
+			applySoon()
+		end,
+	})
+	own:Colorpicker({
+		Name = "Skin", Default = state.skin.color, Flag = "catalog_skin_color",
+		Callback = function(color)
+			if typeof(color) ~= "Color3" then return end
+			state.skin.color = color
+			save()
+			if state.skin.on then applySoon() end
+		end,
+	})
+	local before = {}
+	list = page:ImageList({
+		Name = "Catalog", Key = "catalog_items", Thumb = "Asset", Column = 2, Multi = true, Cell = 92,
+		Items = {}, Empty = "Loading the catalog...",
+		Callback = function(value)
+			local now = {}
+			for _, key in ipairs(type(value) == "table" and value or {}) do now[tostring(key)] = true end
+			for key in pairs(now) do if not before[key] then toggleWorn(key, true) end end
+			for key in pairs(before) do if not now[key] then toggleWorn(key, false) end end
+			before = now
+		end,
+	})
+	local setValue = list.SetValue
+	list.SetValue = function(self, keys, silent)
+		before = {}
+		for _, key in ipairs(type(keys) == "table" and keys or {}) do before[tostring(key)] = true end
+		return setValue(self, keys, silent)
+	end
+	 
+	pcall(function()
+		local Z = getgenv().Zolar
+		Z.Flags.catalog_worn = table.clone(state.wornOrder)
+		Z.SetFlags.catalog_worn = function(list)
+			state.worn, state.wornOrder = {}, {}
+			for _, key in ipairs(type(list) == "table" and list or {}) do
+				key = tostring(key)
+				if not state.worn[key] then
+					state.worn[key] = true
+					state.wornOrder[#state.wornOrder + 1] = key
+				end
+			end
+			Z.Flags.catalog_worn = table.clone(state.wornOrder)
+			pcall(function() writefile(SAVE, game:GetService("HttpService"):JSONEncode({ worn = state.wornOrder })) end)
+			applySoon()
+			refreshList()
+		end
+	end)
+	fetch(false)
+	applySoon()
+end
+getgenv().ZolarCatalogApi = { toggle = toggleWorn, state = state, apply = applySoon, list = function() return list end }
+getgenv().ZolarCatalogUnload = function()
+	alive = false
+	for _, c in ipairs(connections) do pcall(function() c:Disconnect() end) end
+	local character = LocalPlayer.Character
+	if character then
+		pcall(clearWorn, character)
+		for _, item in ipairs(stash) do pcall(function() item.object.Parent = item.parent end) end
+		for part, color in pairs(painted) do pcall(function() part.Color = color end) end
+	end
+	stash = {}
+	getgenv().ZolarCatalog = nil
+	getgenv().ZolarCatalogApi = nil
+	getgenv().ZolarCatalogUnload = nil
+end
+end)
+if not ok then warn("[Salad] catalog.lua: " .. tostring(err)) end
 end
 do
 local ok, err = pcall(function()
@@ -80019,6 +88183,9 @@ local function saveLayout()
             left = layout.left, right = layout.right, join = join,
         }))
     end)
+     
+    local hook = getgenv().__ZolarWatermarkChanged
+    if type(hook) == "function" then task.defer(pcall, hook) end
 end
 loadLayout()
 local function isEnabled(id)
@@ -80365,7 +88532,8 @@ TabHL.Parent = Tabs
 do
     local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, 13); c.Parent = TabHL
 end
-local TAB_LIST = { "settings", "music" }
+local TAB_LIST = { "settings" }
+Tabs.Visible = false           
 local tabButtons, tabIcons = {}, {}
 for i, name in ipairs(TAB_LIST) do
     local b = Instance.new("TextButton")
@@ -80399,7 +88567,6 @@ local function newPage(name)
 end
 local pages = {
     settings = { group = newPage("SettingsPage"), a = 0 },
-    music    = { group = newPage("MusicPage"),    a = 0 },    
 }
 local Page = pages.settings.group
  
@@ -80522,7 +88689,7 @@ do
     t.BackgroundTransparency = 1
     t.Size = UDim2.new(1, 0, 1, 0)
     t.Font = Enum.Font.GothamBlack
-    t.TextSize = 15
+    t.TextSize = 22
     t.TextColor3 = WHITE
     t.Text = CONFIG.Name
     t.Parent = pill
@@ -80940,7 +89107,7 @@ for _, pr in ipairs(PRESETS) do
     pr.joinSet = {}
     for _, id in ipairs(pr.join or {}) do pr.joinSet[id] = true end
 end
-local MINI_TS, MINI_H, MINI_PAD, MINI_PILL_W, MINI_PILL_H, MINI_GAP = 10, 20, 10, 62, 24, 6
+local MINI_TS, MINI_H, MINI_PAD, MINI_PILL_W, MINI_PILL_H, MINI_GAP = 10, 20, 10, 80, 26, 6
 local MINI_FONT = Enum.Font.GothamBold
 local function miniPlain(id)
     local m = MODS[id]
@@ -81054,7 +89221,7 @@ local function buildMini(parent, pr, maxW)
     pill.ZIndex = 7
     pill.Parent = scene
     miniShade(pill, 9, 0.7)
-    local pt = miniLabel(pill, CONFIG.Name, 0, MINI_PILL_W, MINI_PILL_H, 11, Enum.Font.GothamBlack, false)
+    local pt = miniLabel(pill, CONFIG.Name, 0, MINI_PILL_W, MINI_PILL_H, 15, Enum.Font.GothamBlack, false)
     pt.TextXAlignment = Enum.TextXAlignment.Center
     return scene
 end
@@ -81312,9 +89479,9 @@ setTab("settings", true)
  
 local hovered, pressed = false, false
 local arrowHover, arrowH = false, 0
-local wS = Spring.new(PILL_W, 16, 0.72)      
-local hS = Spring.new(PILL_H, 15, 0.78)      
-local yS = Spring.new(-70,    11, 0.62)      
+local wS = Spring.new(PILL_W, 11, 1.0)      
+local hS = Spring.new(PILL_H, 11, 1.0)      
+local yS = Spring.new(-70,    10, 0.9)      
 yS.t = 0
 local function retarget()
     if open then
@@ -81345,8 +89512,30 @@ end)
  
 local mobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 local fold, foldTarget = 0, 0
+local heldAt, longPress = nil, false
+bind(Hit.MouseButton1Down, function()
+    heldAt, longPress = os.clock(), false
+    if mobile then
+        task.delay(0.45, function()
+            if heldAt and pressed and not open then
+                longPress = true
+                open = true
+                retarget()
+            end
+        end)
+    end
+end)
+bind(Hit.MouseButton1Up, function() heldAt = nil end)
 bind(Hit.Activated, function()
-    if mobile then foldTarget = 1 - foldTarget end
+    if mobile then
+        if longPress then longPress = false return end
+        foldTarget = 1 - foldTarget
+        return
+    end
+    open = not open
+    pressed = false
+    if not open and drag then endDrag(true) end
+    retarget()
 end)
  
 bind(UserInputService.InputBegan, function(input, processed)
@@ -81692,6 +89881,7 @@ local Window = Zolar:Window({ Name = "ZOLAR", Loader = true })
 local Combat = Window:Tab({ Name = "Combat", Icon = "swords" })
 local Sheriff = Combat:SubTab({ Name = "Sheriff", Icon = "crosshair" })
 local SheriffSection = Sheriff:Section({ Name = "Silent aim", Side = 1 })
+local GunSection = Sheriff:Section({ Name = "Gun", Side = 1 })
 local Targets = Combat:SubTab({ Name = "Targets", Icon = "users" })
 local Murderer = Combat:SubTab({ Name = "Murderer", Icon = "sword" })
 local KillSection = Murderer:Section({ Name = "Kill", Side = 1 })
@@ -81702,6 +89892,7 @@ if type(getgenv().ZolarExtra) == "function" then
 		Sheriff = SheriffSection,
 		Kill = KillSection,
 		Knife = KnifeSection,
+		Gun = GunSection,
 	})
 end
  
@@ -81713,11 +89904,6 @@ local Movement = Window:Tab({ Name = "Movement", Icon = "footprints" })
 local MovePage = Movement:SubTab({ Name = "Movement", Icon = "footprints" })
  
 local Visuals = Window:Tab({ Name = "Visuals", Icon = "eye" })
-local Esp = Visuals:SubTab({ Name = "ESP", Icon = "scan" })
-local EspSection = Esp:Section({ Name = "ESP", Side = 1 })
-local GunSection = Esp:Section({ Name = "Dropped gun", Side = 2 })
-local EspPlus = Visuals:SubTab({ Name = "ESP Plus", Icon = "scan-eye" })
-local World = Visuals:SubTab({ Name = "World", Icon = "globe" })
  
  
 local WorldSection = setmetatable({}, {
@@ -81725,20 +89911,34 @@ local WorldSection = setmetatable({}, {
 		return function() return self end
 	end,
 })
+local EspPlus = Visuals:SubTab({ Name = "ESP", Icon = "scan" })
+local World = Visuals:SubTab({ Name = "World", Icon = "globe" })
 local Self = Visuals:SubTab({ Name = "Self", Icon = "user" })
 local LocalSection = Self:Section({ Name = "Local", Side = 1 })
+local SelfEspSection = Self:Section({ Name = "Self outline", Side = 1 })
+local SelfChamsSection = Self:Section({ Name = "Self chams", Side = 2 })
 local Effects = Visuals:SubTab({ Name = "Effects", Icon = "sparkles" })
 local EffectsSection = Effects:Section({ Name = "Effects", Side = 1 })
+local ChibiSection = Effects:Section({ Name = "Chibi", Side = 2 })
+local MoreFxSection = Effects:Section({ Name = "Knife & footsteps", Side = 2 })
 local Character = Visuals:SubTab({ Name = "Character", Icon = "shirt" })
 local CharacterSection = Character:Section({ Name = "Character", Side = 1 })
+ 
+CharacterSection:Slider({
+	Name = "Weapon model size", Min = 0.6, Max = 3, Default = 1.4, Decimals = 0.05, Suffix = "x", Flag = "weapon_model_size",
+	Callback = function(value) getgenv().__saladSkinSize = value end,
+})
+getgenv().__saladSkinSize = 1.4
 stamp("visual sections made")
  
 if type(getgenv().ZolarVisuals) == "function" then
 	getgenv().ZolarVisuals({
-		Esp = EspSection,
-		Gun = GunSection,
+		Esp = WorldSection,
+		Gun = WorldSection,
 		World = WorldSection,
 		Local = LocalSection,
+		SelfEsp = SelfEspSection,
+		SelfChams = SelfChamsSection,
 		Effects = EffectsSection,
 		Character = CharacterSection,
 		Models = Character,
@@ -81746,18 +89946,21 @@ if type(getgenv().ZolarVisuals) == "function" then
 		SkinGuns = SkinGuns,
 	})
 end
+if type(getgenv().ZolarChibi) == "function" then
+	local ok, err = pcall(getgenv().ZolarChibi, ChibiSection)
+	if not ok then warn("[chibi] " .. tostring(err)) end
+end
  
 local AurasTab = Window:Tab({ Name = "Auras", Icon = "sparkles" })
 local Auras = AurasTab:SubTab({ Name = "Auras", Icon = "sparkles" })
-local FxCosmetics = AurasTab:SubTab({ Name = "Cosmetics", Icon = "crown" })
 local FxTrails = AurasTab:SubTab({ Name = "Trails", Icon = "route" })
  
-local HatsTab = Window:Tab({ Name = "China Hat", Icon = "hat-glasses" })
-local FxHats = HatsTab:SubTab({ Name = "Hats", Icon = "hat-glasses" })
+local FxCosmetics = AurasTab:SubTab({ Name = "Cosmetics", Icon = "crown" })
+local FxHats = AurasTab:SubTab({ Name = "Hats", Icon = "hat-glasses" })
+local FxCatalog = AurasTab:SubTab({ Name = "Catalog", Icon = "shopping-bag" })
  
 local Misc = Window:Tab({ Name = "Misc", Icon = "shapes" })
 local Tools = Misc:SubTab({ Name = "Tools", Icon = "wrench" })
-local SoundsPage = Misc:SubTab({ Name = "Sounds", Icon = "volume-2" })
 local ServerPage = Misc:SubTab({ Name = "Server", Icon = "globe" })
 local PerfPage = Misc:SubTab({ Name = "Performance", Icon = "gauge" })
 local InterfacePage = PerfPage
@@ -81767,8 +89970,8 @@ stamp("visuals.lua done")
  
 if type(getgenv().ZolarSanity) == "function" then
 	getgenv().ZolarSanity({
-		Sky = World:Section({ Name = "Skybox", Side = 2 }),
-		Sound = SoundsPage:Section({ Name = "Hit sound", Side = 2 }),
+		Sky = WorldSection,
+		Sound = WorldSection,
 		Hit = Effects:Section({ Name = "Hit effects", Side = 1 }),
 	})
 end
@@ -81789,6 +89992,11 @@ if type(getgenv().ZolarFx) == "function" then
 end
 stamp("fx done")
  
+if type(getgenv().ZolarCatalog) == "function" then
+	local ok, err = pcall(getgenv().ZolarCatalog, { Page = FxCatalog })
+	if not ok then warn("[catalog] " .. tostring(err)) end
+end
+ 
 if type(getgenv().ZolarModules) == "function" then
 	getgenv().ZolarModules({
 		Combat = Combat,
@@ -81798,16 +90006,25 @@ if type(getgenv().ZolarModules) == "function" then
 		MovePage = MovePage,
 		Targets = Targets,
 		Tools = Tools,
+		Camera = Self:Section({ Name = "Camera", Side = 2 }),
 	})
+end
+ 
+if type(getgenv().ZolarMM2Extras) == "function" then
+	local ok, err = pcall(getgenv().ZolarMM2Extras, {
+		Effects = getgenv().ZolarAdapt and getgenv().ZolarAdapt(MoreFxSection) or MoreFxSection,
+	})
+	if not ok then warn("[mm2 extras] " .. tostring(err)) end
 end
  
 stamp("modules done")
  
 if type(getgenv().ZolarSalad) == "function" then
 	getgenv().ZolarSalad({
-		Sounds = SoundsPage,
+		HitSound = Sheriff:Section({ Name = "Hit sound", Side = 2 }),
+		KillSound = Murderer:Section({ Name = "Kill sound", Side = 1 }),
 		Narrow = { Auras },
-		Titles = { Trail = Self },
+		Titles = { Trail = Self, Trade = Tools },
 		AuraGallery = function(params)
 			return getgenv().ZolarAurasSalad(params)
 		end,
@@ -81890,6 +90107,15 @@ do
 			Name = "One capsule per side", Default = merged, Flag = "watermark_merge",
 			Callback = function(v) merged = v; apply() end,
 		})
+		 
+		getgenv().__ZolarWatermarkChanged = function()
+			local now = mark.getLayout()
+			local l, r = {}, {}
+			for _, id in ipairs(now.left) do l[#l + 1] = nameOf[id] end
+			for _, id in ipairs(now.right) do r[#r + 1] = nameOf[id] end
+			left, right, merged = l, r, now.merged
+			Zolar.Flags.watermark_left, Zolar.Flags.watermark_right, Zolar.Flags.watermark_merge = l, r, now.merged
+		end
 	end
 end
 local Keys = General:Section({ Name = "Keys", Side = 2 })
@@ -81901,13 +90127,35 @@ menuKey.Set = function(self, key)
 	if key then Zolar.MenuKeybind = key end
 end
  
+Keys:Button({
+	Name = "Unload script",
+	Callback = function()
+		local unload = getgenv().ZolarUnloadAll
+		if type(unload) == "function" then task.defer(unload) end
+	end,
+})
+ 
+local Lobby = Tools:Section({ Name = "Lobby NPC", Side = 2 })
+Lobby:Toggle({
+	Name = "Trolly NPC", Default = true, Flag = "trolly_npc",
+	Callback = function(value)
+		task.spawn(function()
+			for _ = 1, 40 do
+				local npc = getgenv().__saladNpc
+				if npc then pcall(npc.setOn, value) return end
+				task.wait(0.25)
+			end
+		end)
+	end,
+})
+ 
 if type(getgenv().ZolarExtras) == "function" then
 	getgenv().ZolarExtras({
 		Sounds = General:Section({ Name = "Menu sounds", Side = 2 }),
 		Sticker = General:Section({ Name = "Stickers", Side = 1 }),
 		Binds = General:Section({ Name = "Keybind list", Side = 1 }),
 		Cursor = General:Section({ Name = "Cursor", Side = 2 }),
-		Arrows = Esp:Section({ Name = "Player arrows", Side = 2 }),
+		Arrows = EspPlus:Section({ Name = "Player arrows", Side = 2 }),
 		Jump = Effects:Section({ Name = "Jump circles", Side = 2 }),
 	})
 end
@@ -81928,6 +90176,31 @@ stamp("preview done")
 Loader:Set(0.95, "Ready")
  
 task.spawn(function() Loader:Finish(Window) end)
+ 
+task.spawn(function()
+	local name = Zolar:ReadActiveConfig()
+	if not name then return end
+	local function count()
+		local n = 0
+		for _ in pairs(Zolar.Flags) do n += 1 end
+		return n
+	end
+	 
+	local last, stable = -1, 0
+	for _ = 1, 60 do
+		task.wait(0.5)
+		local now = count()
+		stable = now == last and stable + 1 or 0
+		last = now
+		if stable >= 4 then break end
+	end
+	pcall(function() Zolar:RestoreConfigs() end)
+	local path = Zolar.ConfigFolder .. "/" .. name .. ".json"
+	if not (isfile and isfile(path)) then return end
+	Zolar:LoadConfigFile(name)
+	Zolar.ActiveConfig = name
+	 
+end)
 stamp("end")
 print("[menu] built")
 end)
